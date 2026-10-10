@@ -21,6 +21,11 @@ public class Cell
         Candidates.Remove(candidate);
     }
 
+    public void RemoveCandidates(IEnumerable<int> candidates)
+    {
+        Candidates.RemoveWhere(candidates.Contains);
+    }
+
     public void Bind(IEnumerable<Cell> linkedCells)
     {
         foreach (Cell linkedCell in linkedCells)
