@@ -8,6 +8,7 @@ public class Run
     public int Column { get; }
     public eOrientation Orientation { get; }
     public HashSet<int> Candidates { get; } = [];
+    public IEnumerable<int> Exclusions => Enumerable.Range(1, 9).Except(Candidates);
     
     private Run(int total, int length, int row, int column, eOrientation orientation)
     {
@@ -63,7 +64,7 @@ public class Run
             (numbers[depth], numbers[i]) = (numbers[i], numbers[depth]);
         }
     }
-    
+
     public enum eOrientation
     {
         Horizontal,
