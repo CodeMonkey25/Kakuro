@@ -14,20 +14,18 @@ class Program
     
     private static void Run()
     {
-        Puzzle[] puzzles = File.ReadLines("puzzles.txt")
+        Puzzle puzzle = File.ReadLines("puzzles.txt")
             .Select(p => p.Trim())
             .Where(p => !string.IsNullOrWhiteSpace(p))
+            .Take(1)
             .Select(Puzzle.Parse)
-            .ToArray();
+            .First();
         
-        // foreach (Puzzle puzzle in puzzles)
-        // {
-        //     System.Console.WriteLine(puzzle);
-        // }
-        //
-        // System.Console.WriteLine();
-        // System.Console.WriteLine(string.Join(", ", puzzles.First().Runs.First()));
-        // System.Console.WriteLine(string.Join(", ", puzzles.First().Runs.First().Candidates));
+        System.Console.WriteLine(puzzle);
+        
+        System.Console.WriteLine();
+        System.Console.WriteLine(string.Join(", ", puzzle.Runs.First()));
+        System.Console.WriteLine(string.Join(", ", puzzle.Runs.First().Candidates));
     }
     
     private static string TimeIt(Action action, int count = 1)
