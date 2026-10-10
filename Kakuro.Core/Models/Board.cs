@@ -20,7 +20,7 @@ public class Board
         // instantiate cells from puzzle runs
         foreach (Run run in Puzzle.Runs)
         {
-            List<Cell> runCells = new();
+            List<Cell> runCells = [];
             foreach (var (row, column) in run.GetIndices())
             {
                 Cells[row][column] ??= new Cell(row, column);
