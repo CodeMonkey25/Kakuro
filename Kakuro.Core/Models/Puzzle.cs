@@ -1,6 +1,4 @@
-﻿using Kakuro.Core.Utilities;
-
-namespace Kakuro.Core.Models;
+﻿namespace Kakuro.Core.Models;
 
 public class Puzzle
 {
@@ -19,8 +17,8 @@ public class Puzzle
         Difficulty = difficulty;
         Runs = runs;
         
-        Rows = Runs.Where(r => r.Orientation == eOrientation.Horizontal).Max(r => r.Row + r.Length);
-        Columns = Runs.Where(r => r.Orientation == eOrientation.Vertical).Max(r => r.Column + r.Length);
+        Rows = Runs.Where(r => r.Orientation == Run.eOrientation.Horizontal).Max(r => r.Row + r.Length);
+        Columns = Runs.Where(r => r.Orientation == Run.eOrientation.Vertical).Max(r => r.Column + r.Length);
     }
     
     public static Puzzle Parse(string puzzle)

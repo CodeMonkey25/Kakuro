@@ -1,5 +1,3 @@
-using Kakuro.Core.Utilities;
-
 namespace Kakuro.Core.Models;
 
 public class Run
@@ -9,7 +7,8 @@ public class Run
     public int Row { get; }
     public int Column { get; }
     public eOrientation Orientation { get; }
-
+    public HashSet<int> Candidates { get; } = [];
+    
     private Run(int total, int length, int row, int column, eOrientation orientation)
     {
         Total = total;
@@ -17,6 +16,7 @@ public class Run
         Row = row;
         Column = column;
         Orientation = orientation;
+        GetCandidates(0, 0, [1, 2, 3, 4, 5, 6, 7, 8, 9]);
     }
     
     public static Run Parse(string run)
@@ -33,5 +33,40 @@ public class Run
     public override string ToString()
     {
         return $"{Total},{Length},{Row},{Column},{(int)Orientation}";
+    }
+
+    public (int row, int column)[] GetIndices()
+    {
+        return Orientation switch
+        {
+            eOrientation.Horizontal => Enumerable.Range(Column, Length).Select(c => (Row, c)).ToArray(),
+            eOrientation.Vertical => Enumerable.Range(Row, Length).Select(r => (r, Column)).ToArray(),
+            _ => throw new InvalidOperationException("Invalid orientation"),
+        };
+    }
+
+    private void GetCandidates(int depth, int runningTotal, int[] numbers)
+    {
+        if (depth >= Length)
+        {
+            if (runningTotal == Total)
+            {
+                Candidates.UnionWith(numbers[..Length]);
+            }
+            return;
+        }
+        
+        for(int i = depth; i < numbers.Length; i++)
+        {
+            (numbers[depth], numbers[i]) = (numbers[i], numbers[depth]);
+            GetCandidates(depth + 1, runningTotal + numbers[depth], numbers);
+            (numbers[depth], numbers[i]) = (numbers[i], numbers[depth]);
+        }
+    }
+    
+    public enum eOrientation
+    {
+        Horizontal,
+        Vertical,
     }
 }
