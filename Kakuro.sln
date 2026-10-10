@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kakuro.Console", "Kakuro.Console\Kakuro.Console.csproj", "{40D3BAB2-5248-4ACB-8A66-119C703ED5AB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kakuro.Core", "Kakuro.Core\Kakuro.Core.csproj", "{9033F9BB-181C-400A-89FB-91320802D07B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{40D3BAB2-5248-4ACB-8A66-119C703ED5AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{40D3BAB2-5248-4ACB-8A66-119C703ED5AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{40D3BAB2-5248-4ACB-8A66-119C703ED5AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{40D3BAB2-5248-4ACB-8A66-119C703ED5AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9033F9BB-181C-400A-89FB-91320802D07B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9033F9BB-181C-400A-89FB-91320802D07B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9033F9BB-181C-400A-89FB-91320802D07B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9033F9BB-181C-400A-89FB-91320802D07B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
