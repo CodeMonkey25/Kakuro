@@ -7,7 +7,8 @@ public class Cell
     public int Value { get; private set; }
     public bool IsSolved { get; private set; }
     
-    private HashSet<int> Candidates { get; } = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    private HashSet<int> _candidates = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    public int[] Candidates => _candidates.Order().ToArray();
     public HashSet<Cell> LinkedCells { get; } = [];
 
     public Cell(int row, int column)
@@ -23,13 +24,13 @@ public class Cell
             return Value == candidate ? $"Cell at row {Row}, column {Column} has no candidates.\n" : "";
         }
         
-        Candidates.Remove(candidate);
-        switch (Candidates.Count)
+        _candidates.Remove(candidate);
+        switch (_candidates.Count)
         {
             case 0:
                 return $"Cell at row {Row}, column {Column} has no candidates.\n";
             case 1:
-                return Solve(Candidates.First());
+                return Solve(_candidates.First());
         }
         return "";
     }

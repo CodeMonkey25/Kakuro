@@ -1,0 +1,119 @@
+namespace Kakuro.Core.Tests;
+
+using Kakuro.Core.Models;
+using Xunit;
+
+public class BoardTests
+{
+    // A 3x3 puzzle with intersecting runs:
+    // (0,1) -> horiz len 2: (0,2), (0,3) (Total 16)
+    // (0,2) -> vert len 2: (1,2), (2,2) (Total 12)
+    // (1,0) -> horiz len 2: (1,1), (1,2) (Total 3)
+    // (2,0) -> horiz len 2: (2,1), (2,2) (Total 7)
+    private const string SamplePuzzleString = "kakuro.com|1|Easy|16,2,0,1,0|12,2,0,2,1|3,2,1,0,0|7,2,2,0,0";
+
+    [Fact]
+    public void Constructor_InstantiatesGridAndSharesIntersectingCells()
+    {
+        Puzzle puzzle = Puzzle.Parse(SamplePuzzleString);
+        Board board = new(puzzle);
+
+        // Verify the board initially is not solved
+        Assert.False(board.IsSolved());
+
+        // Check ToString format initially contains expected dividers and 'X' for non-cells
+        string boardString = board.ToString();
+        Assert.Contains("-------", boardString);
+        Assert.Contains("|X|", boardString);
+    }
+
+    [Fact]
+    public void IsSolved_ReturnsFalseWhenAnyCellIsUnsolved_AndTrueWhenAllSolved()
+    {
+        // 2x2 board: 1 horizontal run (1,1 len 1 -> (1,1)) and 1 vertical run (1,1 len 1 -> (1,1))
+        // Run with Total 9, Length 1 -> Candidates {9}, Exclusions {1..8}
+        Puzzle singleCellPuzzle = Puzzle.Parse("test|1|Easy|9,1,1,1,0|9,1,1,1,1");
+        Board board = new(singleCellPuzzle);
+
+        Assert.False(board.IsSolved());
+
+        string error = board.ApplyRunConstraints();
+
+        Assert.Equal("", error);
+        Assert.True(board.IsSolved());
+        Assert.Contains("|9|", board.ToString());
+    }
+
+    [Fact]
+    public void ToString_FormatsGridWithDividersAndCells()
+    {
+        // Puzzle with 2 rows, 2 columns: Cell at (1,1)
+        Puzzle puzzle = Puzzle.Parse("test|1|Easy|4,1,1,1,0");
+        Board board = new(puzzle);
+
+        string expectedUnsolved =
+            "-----\n" +
+            "|X|X|\n" +
+            "-----\n" +
+            "|X| |\n" +
+            "-----\n";
+
+        Assert.Equal(expectedUnsolved.Replace("\r\n", "\n"), board.ToString().Replace("\r\n", "\n"));
+    }
+
+    [Fact]
+    public void ApplyRunConstraints_AppliesExclusionsAcrossRuns()
+    {
+        // Puzzle #1 from calendar/official dataset
+        string officialPuzzle = "The Official Book of Kakuro|41|Easy|13,2,0,1,1|11,3,0,2,1|9,3,0,6,1|14,2,0,7,1|17,2,1,0,0|16,5,1,3,1|8,2,1,5,0|34,5,1,5,1|7,3,2,0,0|23,3,2,4,0|15,3,2,4,1|15,5,3,1,0|13,3,4,2,0|21,3,4,2,1|18,3,4,6,1|35,5,5,1,0|6,2,5,1,1|9,2,5,7,1|7,3,6,0,0|24,3,6,4,0|12,2,7,0,0|5,2,7,5,0";
+        Puzzle puzzle = Puzzle.Parse(officialPuzzle);
+        Board board = new(puzzle);
+
+        string result = board.ApplyRunConstraints();
+
+        Assert.Equal("", result);
+    }
+
+    [Fact]
+    public void ApplyRunConstraints_WhenRunForcesNakedSingle_SolvesCell()
+    {
+        // Run with Total 3, Length 2 has candidates {1, 2} and exclusions {3, 4, 5, 6, 7, 8, 9}
+        // Run with Total 4, Length 2 has candidates {1, 3} and exclusions {2, 4, 5, 6, 7, 8, 9}
+        // When these two runs intersect on a cell, exclusions {2..9} and {2,4..9} leave only digit 1.
+        // Therefore, the intersecting cell should automatically solve to 1.
+        Puzzle puzzle = Puzzle.Parse("test|1|Easy|3,2,1,0,0|4,2,0,1,1");
+        Board board = new(puzzle);
+
+        string error = board.ApplyRunConstraints();
+
+        Assert.Equal("", error);
+        string boardDisplay = board.ToString();
+        Assert.Contains("|1|", boardDisplay);
+    }
+
+    [Fact]
+    public void ApplyRunConstraints_ContradictoryIntersectingRuns_ReturnsError()
+    {
+        // Horizontal run with Total 3, Length 2 -> candidates {1, 2}, exclusions {3..9}
+        // Vertical run with Total 17, Length 2 -> candidates {8, 9}, exclusions {1..7}
+        // Intersecting at (1, 1), union of exclusions is {1..9}, leaving no valid candidate.
+        Puzzle puzzle = Puzzle.Parse("test|1|Easy|3,2,1,0,0|17,2,0,1,1");
+        Board board = new(puzzle);
+
+        string error = board.ApplyRunConstraints();
+
+        Assert.Contains("has no candidates", error);
+    }
+
+    [Fact]
+    public void ApplyRunConstraints_ValidDatasetPuzzle_ExecutesWithoutError()
+    {
+        string officialPuzzle = "The Official Book of Kakuro|41|Easy|13,2,0,1,1|11,3,0,2,1|9,3,0,6,1|14,2,0,7,1|17,2,1,0,0|16,5,1,3,1|8,2,1,5,0|34,5,1,5,1|7,3,2,0,0|23,3,2,4,0|15,3,2,4,1|15,5,3,1,0|13,3,4,2,0|21,3,4,2,1|18,3,4,6,1|35,5,5,1,0|6,2,5,1,1|9,2,5,7,1|7,3,6,0,0|24,3,6,4,0|12,2,7,0,0|5,2,7,5,0";
+        Puzzle puzzle = Puzzle.Parse(officialPuzzle);
+        Board board = new(puzzle);
+
+        string error = board.ApplyRunConstraints();
+
+        Assert.Equal("", error);
+    }
+}
