@@ -1,7 +1,6 @@
-namespace Kakuro.Core.Tests;
-
 using Kakuro.Core.Models;
-using Xunit;
+
+namespace Kakuro.Core.Tests.Models;
 
 public class CellTests
 {
