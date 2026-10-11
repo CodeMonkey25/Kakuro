@@ -42,6 +42,22 @@ public class BoardTests
         Assert.True(board.IsSolved());
         Assert.Contains("|9|", board.ToString());
     }
+    
+    [Fact]
+    public void IsSolved_ReturnsFalseWhenAnyCellIsUnsolved_AndTrueWhenAllSolved2()
+    {
+        // 2x2 board: 1 horizontal run (0,0 len 2 -> (0,0)) and 1 vertical run (0,0 len 2 -> (0,0))
+        Puzzle singleCellPuzzle = Puzzle.Parse("test|1|Easy|16,2,0,0,0|17,2,0,0,1");
+        Board board = new(singleCellPuzzle);
+
+        Assert.False(board.IsSolved());
+
+        string error = board.ApplyRunConstraints();
+
+        Assert.Equal("", error);
+        Assert.True(board.IsSolved());
+        Assert.Equal("-----\n|9|7|\n-----\n|8|X|\n-----\n", board.ToString());
+    }
 
     [Fact]
     public void ToString_FormatsGridWithDividersAndCells()
@@ -57,7 +73,7 @@ public class BoardTests
             "|X| |\n" +
             "-----\n";
 
-        Assert.Equal(expectedUnsolved.Replace("\r\n", "\n"), board.ToString().Replace("\r\n", "\n"));
+        Assert.Equal(expectedUnsolved, board.ToString());
     }
 
     [Fact]
