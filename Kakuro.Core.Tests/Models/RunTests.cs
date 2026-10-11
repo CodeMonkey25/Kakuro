@@ -42,7 +42,7 @@ public class RunTests
         (int row, int column)[] indices = run.GetIndices();
 
         Assert.Equal(3, indices.Length);
-        Assert.Equal([(2, 4), (2, 5), (2, 6)], indices);
+        Assert.Equal([(2, 5), (2, 6), (2, 7)], indices);
     }
 
     [Fact]
@@ -53,7 +53,7 @@ public class RunTests
         (int row, int column)[] indices = run.GetIndices();
 
         Assert.Equal(3, indices.Length);
-        Assert.Equal([(2, 4), (3, 4), (4, 4)], indices);
+        Assert.Equal([(3, 4), (4, 4), (5, 4)], indices);
     }
 
     [Theory]

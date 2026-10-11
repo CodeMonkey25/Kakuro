@@ -40,8 +40,8 @@ public class Run
     {
         return Orientation switch
         {
-            eOrientation.Horizontal => Enumerable.Range(Column, Length).Select(c => (Row, c)).ToArray(),
-            eOrientation.Vertical => Enumerable.Range(Row, Length).Select(r => (r, Column)).ToArray(),
+            eOrientation.Horizontal => Enumerable.Range(Column + 1, Length).Select(c => (Row, c)).ToArray(),
+            eOrientation.Vertical => Enumerable.Range(Row + 1, Length).Select(r => (r, Column)).ToArray(),
             _ => throw new InvalidOperationException("Invalid orientation"),
         };
     }

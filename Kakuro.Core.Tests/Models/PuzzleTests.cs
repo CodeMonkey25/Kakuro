@@ -25,7 +25,7 @@ public class PuzzleTests
         Puzzle puzzle = Puzzle.Parse(SamplePuzzleString);
 
         Assert.Equal(3, puzzle.Rows);
-        Assert.Equal(3, puzzle.Columns);
+        Assert.Equal(4, puzzle.Columns);
     }
 
     [Fact]

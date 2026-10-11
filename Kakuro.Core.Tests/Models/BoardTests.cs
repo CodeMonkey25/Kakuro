@@ -46,8 +46,8 @@ public class BoardTests
     [Fact]
     public void IsSolved_ReturnsFalseWhenAnyCellIsUnsolved_AndTrueWhenAllSolved2()
     {
-        // 2x2 board: 1 horizontal run (0,0 len 2 -> (0,0)) and 1 vertical run (0,0 len 2 -> (0,0))
-        Puzzle singleCellPuzzle = Puzzle.Parse("test|1|Easy|16,2,0,0,0|17,2,0,0,1");
+        // 2x2 block of cells at rows 1-2, columns 1-2, with clue cells in row 0 and column 0
+        Puzzle singleCellPuzzle = Puzzle.Parse("test|1|Easy|16,2,1,0,0|17,2,2,0,0|17,2,0,1,1|16,2,0,2,1");
         Board board = new(singleCellPuzzle);
 
         Assert.False(board.IsSolved());
@@ -56,14 +56,14 @@ public class BoardTests
 
         Assert.Equal("", error);
         Assert.True(board.IsSolved());
-        Assert.Equal("-----\n|9|7|\n-----\n|8|X|\n-----\n", board.ToString());
+        Assert.Equal("-------\n|X|X|X|\n-------\n|X|9|7|\n-------\n|X|8|9|\n-------\n", board.ToString());
     }
 
     [Fact]
     public void ToString_FormatsGridWithDividersAndCells()
     {
-        // Puzzle with 2 rows, 2 columns: Cell at (1,1)
-        Puzzle puzzle = Puzzle.Parse("test|1|Easy|4,1,1,1,0");
+        // Puzzle with 2 rows, 2 columns: Cell at (1,1) after the clue cell at (1,0)
+        Puzzle puzzle = Puzzle.Parse("test|1|Easy|4,1,1,0,0");
         Board board = new(puzzle);
 
         string expectedUnsolved =
