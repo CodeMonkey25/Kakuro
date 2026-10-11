@@ -16,17 +16,52 @@ public class Cell
         Column = column;
     }
 
-    public void RemoveCandidate(int candidate)
+    public string RemoveCandidate(int candidate)
     {
+        if (IsSolved)
+        {
+            return Value == candidate ? $"Cell at row {Row}, column {Column} has no candidates.\n" : "";
+        }
+        
         Candidates.Remove(candidate);
+        switch (Candidates.Count)
+        {
+            case 0:
+                return $"Cell at row {Row}, column {Column} has no candidates.\n";
+            case 1:
+                return Solve(Candidates.First());
+        }
+        return "";
     }
 
-    public void RemoveCandidates(IEnumerable<int> candidates)
+    private string Solve(int value)
     {
+        if (IsSolved)
+        {
+            return Value != value ? $"Cell at row {Row}, column {Column} is already solved.\n" : "";
+        }
+        
+        IsSolved = true;
+        Value = value;
+        
+        foreach (Cell linkedCell in LinkedCells)
+        {
+            string error = linkedCell.RemoveCandidate(Value);
+            if (error != "") return error;
+        }
+        
+        return "";
+    }
+
+    public string RemoveCandidates(IEnumerable<int> candidates)
+    {
+        string error = "";
         foreach (int c in candidates)
         {
-            Candidates.Remove(c);
+            error = RemoveCandidate(c);
+            if (error != "") break;
         }
+        return error;
     }
     
     public void Bind(IEnumerable<Cell> linkedCells)

@@ -54,4 +54,21 @@ public class Board
         sb.AppendLine(rowDivider);
         return sb.ToString();
     }
+
+    public string ApplyRunConstraints()
+    {
+        foreach (Run run in Puzzle.Runs)
+        {
+            foreach (var (row, column) in run.GetIndices())
+            {
+                if (Cells[row][column] is null)
+                {
+                    return $"Cell at row {row}, column {column} is null.\n";
+                }
+                string error = Cells[row][column]!.RemoveCandidates(run.Exclusions);
+                if (error != "") return error;
+            }
+        }
+        return "";
+    }
 }

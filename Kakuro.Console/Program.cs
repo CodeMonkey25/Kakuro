@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using Kakuro.Core;
 using Kakuro.Core.Extensions;
 using Kakuro.Core.Models;
 
@@ -32,6 +33,11 @@ class Program
         System.Console.WriteLine(puzzle.Rows + ", " + puzzle.Columns);
         Board board = new(puzzle);
         System.Console.WriteLine(board);
+
+        System.Console.WriteLine();
+        Engine engine = new(System.Console.WriteLine);
+        bool solved = engine.Solve(puzzle);
+        System.Console.WriteLine(solved);
     }
     
     private static string TimeIt(Action action, int count = 1)
