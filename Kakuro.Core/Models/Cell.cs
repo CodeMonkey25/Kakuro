@@ -23,9 +23,12 @@ public class Cell
 
     public void RemoveCandidates(IEnumerable<int> candidates)
     {
-        Candidates.RemoveWhere(candidates.Contains);
+        foreach (int c in candidates)
+        {
+            Candidates.Remove(c);
+        }
     }
-
+    
     public void Bind(IEnumerable<Cell> linkedCells)
     {
         foreach (Cell linkedCell in linkedCells)
@@ -33,5 +36,10 @@ public class Cell
             if (linkedCell == this) continue;
             LinkedCells.Add(linkedCell);
         }
+    }
+    
+    public override string ToString()
+    {
+        return Value == 0 ? " " : Value.ToString();
     }
 }

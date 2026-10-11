@@ -1,3 +1,5 @@
+using System.Text;
+
 namespace Kakuro.Core.Models;
 
 public class Board
@@ -10,12 +12,11 @@ public class Board
         Puzzle = puzzle;
         
         // prepare Cells array
-        Cells = Enumerable.Range(0, Puzzle.Rows)
-            .Select(row => Enumerable.Range(0, Puzzle.Columns)
-                .Select(column => (Cell?)null)
-                .ToArray()
-            )
-            .ToArray();
+        Cells = new Cell?[Puzzle.Rows][];
+        for (int r = 0; r < Puzzle.Rows; r++)
+        {
+            Cells[r] = new Cell?[Puzzle.Columns];
+        }
         
         // instantiate cells from puzzle runs
         foreach (Run run in Puzzle.Runs)
@@ -34,4 +35,18 @@ public class Board
     }
     
     public bool IsSolved() => Cells.All(row => row.All(cell => cell is null || cell.IsSolved));
+
+    public override string ToString()
+    {
+        StringBuilder sb = new();
+        foreach (Cell?[] row in Cells)
+        {
+            foreach (Cell? cell in row)
+            {
+                sb.Append(cell?.ToString() ?? "X");
+            }
+            sb.AppendLine();
+        }
+        return sb.ToString();
+    }
 }
