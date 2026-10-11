@@ -38,15 +38,20 @@ public class Board
 
     public override string ToString()
     {
+        string rowDivider = new('-', Puzzle.Columns * 2 + 1);
         StringBuilder sb = new();
         foreach (Cell?[] row in Cells)
         {
+            sb.AppendLine(rowDivider);
             foreach (Cell? cell in row)
             {
+                sb.Append('|');
                 sb.Append(cell?.ToString() ?? "X");
             }
+            sb.Append('|');
             sb.AppendLine();
         }
+        sb.AppendLine(rowDivider);
         return sb.ToString();
     }
 }
