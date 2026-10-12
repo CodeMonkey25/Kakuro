@@ -32,7 +32,15 @@ public class Engine
         } while (changed);
 
         Log?.Invoke(board.ToString());
-        Log?.Invoke(board.IsSolutionValid() ? "Solution is valid" : "Solution is invalid");
+
+        if (board.IsSolved())
+        {
+            Log?.Invoke(board.IsSolutionValid() ? "Solution is valid" : "Solution is invalid");
+        }
+        else
+        {
+            Log?.Invoke("Unable to solve puzzle logically");
+        }
         
         return board.IsSolved();
     }

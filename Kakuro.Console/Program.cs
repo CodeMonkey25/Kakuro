@@ -18,7 +18,7 @@ class Program
         Puzzle puzzle = File.ReadLines("puzzles.txt")
             .Select(p => p.Trim())
             .Where(p => !string.IsNullOrWhiteSpace(p))
-            .Skip(1)
+            .Skip(4)
             .Take(1)
             .Select(Puzzle.Parse)
             .First();
