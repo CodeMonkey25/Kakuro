@@ -24,8 +24,10 @@ public class Engine
         Log?.Invoke("Solving puzzle...");
         
         Log?.Invoke("Updating run constraints...");
+        int pass = 0;
         do
         {
+            Log?.Invoke($"\tPass {++pass}...");
             (string error, changed) = board.UpdateCellConstraints(numberBuffer, updatedCandidatesBuffer, currentCandidatesBuffer);
             if (error != "")
             {
@@ -35,6 +37,8 @@ public class Engine
         } while (changed);
 
         Log?.Invoke(board.ToString());
+        Log?.Invoke(board.IsSolutionValid() ? "Solution is valid" : "Solution is invalid");
+        
         return board.IsSolved();
     }
 }

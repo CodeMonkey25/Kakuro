@@ -34,8 +34,6 @@ public class Board
         }
     }
     
-    public bool IsSolved() => Cells.All(row => row.All(cell => cell is null || cell.IsSolved));
-
     public override string ToString()
     {
         string rowDivider = new('-', Puzzle.Columns * 2 + 1);
@@ -55,6 +53,36 @@ public class Board
         return sb.ToString();
     }
 
+    public bool IsSolved()
+    {
+        foreach (Cell?[] row in Cells)
+        {
+            foreach (Cell? cell in row)
+            {
+                if (cell is null) continue;
+                if (!cell.IsSolved) return false;
+            }
+        }
+        return true;
+    }
+
+    public bool IsSolutionValid()
+    {
+        if (!IsSolved()) return false;
+        
+        foreach (Run run in Puzzle.Runs)
+        {
+            ReadOnlySpan<Cell> cells = GetCells(run);
+            int total = 0;
+            foreach (Cell cell in cells)
+            {
+                total += cell.Value;
+            }
+            if (total != run.Total) return false;
+        }
+        return true;
+    }
+    
     public (string error, bool changed) UpdateCellConstraints(Span<int> numberBuffer, Span<HashSet<int>> updatedCandidatesBuffer, Span<int[]> currentCandidatesBuffer)
     {
         string error = "";

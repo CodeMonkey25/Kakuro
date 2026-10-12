@@ -42,6 +42,7 @@ public class BoardTests
         Assert.Equal("", error);
         Assert.True(changed);
         Assert.True(board.IsSolved());
+        Assert.True(board.IsSolutionValid());
         Assert.Contains("|9|", board.ToString());
     }
     
@@ -59,6 +60,7 @@ public class BoardTests
         Assert.Equal("", error);
         Assert.True(changed);
         Assert.True(board.IsSolved());
+        Assert.True(board.IsSolutionValid());
 
         string expected = new StringBuilder()
             .AppendLine("-------")
@@ -71,6 +73,31 @@ public class BoardTests
             .ToString();
 
         Assert.Equal(expected, board.ToString());
+    }
+
+    [Fact]
+    public void IsSolutionValid_WhenUnsolved_ReturnsFalse()
+    {
+        Puzzle puzzle = Puzzle.Parse(SamplePuzzleString);
+        Board board = new(puzzle);
+
+        Assert.False(board.IsSolved());
+        Assert.False(board.IsSolutionValid());
+    }
+
+    [Fact]
+    public void IsSolutionValid_WhenSolvedWithCorrectTotals_ReturnsTrue()
+    {
+        // 2x2 board: 1 horizontal run (1,1 len 1 -> (1,1)) and 1 vertical run (1,1 len 1 -> (1,1))
+        Puzzle singleCellPuzzle = Puzzle.Parse("test|1|Easy|9,1,1,1,0|9,1,1,1,1");
+        Board board = new(singleCellPuzzle);
+
+        (string error, bool changed) = UpdateCellConstraints(board);
+
+        Assert.Equal("", error);
+        Assert.True(changed);
+        Assert.True(board.IsSolved());
+        Assert.True(board.IsSolutionValid());
     }
 
     [Fact]
@@ -177,6 +204,7 @@ public class BoardTests
         } while (changed);
 
         Assert.True(board.IsSolved());
+        Assert.True(board.IsSolutionValid());
     }
 
     private static (string error, bool changed) UpdateCellConstraints(Board board)
