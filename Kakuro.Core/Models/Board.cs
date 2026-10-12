@@ -9,7 +9,7 @@ public class Board
     private Cell[][] Runs { get; }
     
     private int[] _numberBuffer = new int[9];
-    private HashSet<int>[] _updatedCandidatesBuffer = Enumerable.Range(0, 9).Select(_ => new HashSet<int>()).ToArray();
+    private HashSet<int>[] _excludedCandidatesBuffer = Enumerable.Range(0, 9).Select(_ => new HashSet<int>()).ToArray();
     private int[][] _currentCandidatesBuffer = Enumerable.Range(0, 9).Select(_ => Array.Empty<int>()).ToArray();
     
     public Board(Puzzle puzzle)
@@ -108,35 +108,35 @@ public class Board
             Run run = Puzzle.Runs[i];
             ReadOnlySpan<Cell> cells = Runs[i];
             Span<int[]> currentCandidates = _currentCandidatesBuffer.AsSpan(0, cells.Length);
-            ReadOnlySpan<HashSet<int>> updatedCandidates = _updatedCandidatesBuffer.AsSpan(0, cells.Length);
+            ReadOnlySpan<HashSet<int>> excludedCandidates = _excludedCandidatesBuffer.AsSpan(0, cells.Length);
             Span<int> numbers = _numberBuffer.AsSpan(0, cells.Length);
 
             for (int j = 0; j < cells.Length; j++)
             {
                 currentCandidates[j] = cells[j].Candidates;
+                excludedCandidates[j].Clear();
+                excludedCandidates[j].UnionWith(currentCandidates[j]);
             }
 
-            GetUpdatedCandidates(0, run.Total, 0, currentCandidates, updatedCandidates, numbers);
+            GetExcludedCandidates(0, run.Total, 0, currentCandidates, excludedCandidates, numbers);
 
             for (int j = 0; j < cells.Length; j++)
             {
                 Cell cell = cells[j];
-                int[] current = currentCandidates[j];
-                HashSet<int> updated = updatedCandidates[j];
+                HashSet<int> excluded = excludedCandidates[j];
 
-                (error, bool cellWasUpdated) = cell.RemoveCandidates(current.Except(updated));
+                (error, bool cellWasUpdated) = cell.RemoveCandidates(excluded);
                 if (error != "") return (error, false);
                 if (cellWasUpdated) boardWasUpdated = true;
 
                 currentCandidates[j] = [];
-                updatedCandidates[j].Clear();
             }
         }
 
         return (error, boardWasUpdated);
     }
 
-    private void GetUpdatedCandidates(int depth, int total, int runningTotal, Span<int[]> currentCandidates, ReadOnlySpan<HashSet<int>> updatedCandidates, Span<int> numbers)
+    private void GetExcludedCandidates(int depth, int total, int runningTotal, Span<int[]> currentCandidates, ReadOnlySpan<HashSet<int>> excludedCandidates, Span<int> numbers)
     {
         if (depth >= numbers.Length)
         {
@@ -144,7 +144,7 @@ public class Board
             {
                 for (int i = 0; i < numbers.Length; i++)
                 {
-                    updatedCandidates[i].Add(numbers[i]);
+                    excludedCandidates[i].Remove(numbers[i]);
                 }
             }
             return;
@@ -157,7 +157,7 @@ public class Board
             if (runningTotal + current > total) continue;
 
             numbers[depth] = current;
-            GetUpdatedCandidates(depth + 1, total, runningTotal + current, currentCandidates, updatedCandidates, numbers);
+            GetExcludedCandidates(depth + 1, total, runningTotal + current, currentCandidates, excludedCandidates, numbers);
             numbers[depth] = 0;
         }
     }
