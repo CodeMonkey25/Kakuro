@@ -4,8 +4,11 @@ public class Run
 {
     public int Total { get; }
     public int Length { get; }
-    public int Row { get; }
+    
+    // the row and column are the coordinates of the hint cell for the run
+    public int Row { get; } 
     public int Column { get; }
+    
     public eOrientation Orientation { get; }
     public HashSet<int> Candidates { get; } = [];
     public IEnumerable<int> Exclusions => Enumerable.Range(1, 9).Except(Candidates);
