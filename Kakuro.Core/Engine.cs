@@ -11,19 +11,22 @@ public class Engine
         Log = log;
     }
 
-    public bool Solve(Puzzle puzzle)
+    public bool SolveLogically(Puzzle puzzle)
     {
-        string error = "";
+        bool changed = false;
         Board board = new(puzzle);
         Log?.Invoke("Solving puzzle...");
         
-        Log?.Invoke("Applying run constraints...");
-        error = board.ApplyRunConstraints();
-        if (error != "")
+        Log?.Invoke("Updating run constraints...");
+        do
         {
-            Log?.Invoke(error);
-            return false;
-        }
+            (string error, changed) = board.UpdateCellConstraints();
+            if (error != "")
+            {
+                Log?.Invoke(error);
+                return false;
+            }
+        } while (changed);
 
         Log?.Invoke(board.ToString());
         return board.IsSolved();

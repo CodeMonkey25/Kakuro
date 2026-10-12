@@ -55,20 +55,67 @@ public class Board
         return sb.ToString();
     }
 
-    public string ApplyRunConstraints()
+    public (string error, bool changed) UpdateCellConstraints()
     {
+        string error = "";
+        bool changed = false;
         foreach (Run run in Puzzle.Runs)
         {
-            foreach (var (row, column) in run.GetIndices())
+            Cell[] cells = GetCells(run).ToArray();
+            int[][] currentCandidates = cells.Select(c => c.Candidates).ToArray();
+            HashSet<int>[] updatedCandidates = cells.Select(_ => new HashSet<int>()).ToArray();
+            Span<int> numbers = new int[cells.Length];
+            
+            GetUpdatedCandidates(run.Length, 0, run.Total, 0, currentCandidates, updatedCandidates, numbers);
+            
+            for (int i = 0; i < cells.Length; i++)
             {
-                if (Cells[row][column] is null)
-                {
-                    return $"Cell at row {row}, column {column} is null.\n";
-                }
-                string error = Cells[row][column]!.RemoveCandidates(run.Exclusions);
-                if (error != "") return error;
+                Cell cell = cells[i];
+                int[] current = currentCandidates[i];
+                HashSet<int> updated = updatedCandidates[i];
+                (error, bool wasUpdated) = cell.RemoveCandidates(current.Except(updated));
+                if (error != "") return (error, false);
+                if (wasUpdated) changed = true;
             }
         }
-        return "";
+        return (error, changed);
+    }
+
+    private void GetUpdatedCandidates(int length, int depth, int total, int runningTotal, int[][] currentCandidates, HashSet<int>[] updatedCandidates, Span<int> numbers)
+    {
+        if (depth >= length)
+        {
+            if (runningTotal == total)
+            {
+                for (int i = 0; i < length; i++)
+                {
+                    updatedCandidates[i].Add(numbers[i]);
+                }
+            }
+            return;
+        }
+        
+        for (int i = 0; i < currentCandidates[depth].Length; i++)
+        {
+            int current = currentCandidates[depth][i];
+            if (numbers[..depth].Contains(current)) continue;
+            if (runningTotal + current > total) continue;
+
+            numbers[depth] = current;
+            GetUpdatedCandidates(length, depth + 1, total, runningTotal + current, currentCandidates, updatedCandidates, numbers);
+            numbers[depth] = 0;
+        }
+    }
+    
+    private IEnumerable<Cell> GetCells(Run run)
+    {
+        foreach (var (row, column) in run.GetIndices())
+        {
+            if (Cells[row][column] is null)
+            {
+                throw new InvalidOperationException($"Cell at row {row}, column {column} is null.");
+            }
+            yield return Cells[row][column]!;
+        }
     }
 }

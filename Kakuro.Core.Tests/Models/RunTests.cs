@@ -56,42 +56,6 @@ public class RunTests
         Assert.Equal([(3, 4), (4, 4), (5, 4)], indices);
     }
 
-    [Theory]
-    [InlineData("3,2,0,0,0", new[] { 1, 2 })]
-    [InlineData("4,2,0,0,0", new[] { 1, 3 })]
-    [InlineData("16,2,0,0,0", new[] { 7, 9 })]
-    [InlineData("17,2,0,0,0", new[] { 8, 9 })]
-    [InlineData("6,3,0,0,0", new[] { 1, 2, 3 })]
-    [InlineData("24,3,0,0,0", new[] { 7, 8, 9 })]
-    public void Candidates_CalculatesValidDigits(string rawRun, int[] expectedCandidates)
-    {
-        Run run = Run.Parse(rawRun);
-
-        Assert.Equal(expectedCandidates.OrderBy(x => x), run.Candidates.OrderBy(x => x));
-    }
-
-    [Fact]
-    public void Exclusions_ReturnsComplementOfCandidates()
-    {
-        Run run = Run.Parse("16,2,0,0,0");
-
-        int[] exclusions = run.Exclusions.OrderBy(x => x).ToArray();
-
-        Assert.Equal([1, 2, 3, 4, 5, 6, 8], exclusions);
-        Assert.Empty(run.Candidates.Intersect(exclusions));
-        Assert.Equal(9, run.Candidates.Count + exclusions.Length);
-    }
-
-    [Fact]
-    public void Candidates_FullLengthRun_ContainsAllDigitsAndNoExclusions()
-    {
-        Run run = Run.Parse("45,9,0,0,0");
-
-        Assert.Equal(9, run.Candidates.Count);
-        Assert.Equal(Enumerable.Range(1, 9), run.Candidates.OrderBy(x => x));
-        Assert.Empty(run.Exclusions);
-    }
-
     [Fact]
     public void GetIndices_InvalidOrientation_ThrowsInvalidOperationException()
     {

@@ -10,8 +10,6 @@ public class Run
     public int Column { get; }
     
     public eOrientation Orientation { get; }
-    public HashSet<int> Candidates { get; } = [];
-    public IEnumerable<int> Exclusions => Enumerable.Range(1, 9).Except(Candidates);
     
     private Run(int total, int length, int row, int column, eOrientation orientation)
     {
@@ -20,7 +18,6 @@ public class Run
         Row = row;
         Column = column;
         Orientation = orientation;
-        GetCandidates(0, 0, [1, 2, 3, 4, 5, 6, 7, 8, 9]);
     }
     
     public static Run Parse(string run)
@@ -47,25 +44,6 @@ public class Run
             eOrientation.Vertical => Enumerable.Range(Row + 1, Length).Select(r => (r, Column)).ToArray(),
             _ => throw new InvalidOperationException("Invalid orientation"),
         };
-    }
-
-    private void GetCandidates(int depth, int runningTotal, int[] numbers)
-    {
-        if (depth >= Length)
-        {
-            if (runningTotal == Total)
-            {
-                Candidates.UnionWith(numbers[..Length]);
-            }
-            return;
-        }
-        
-        for(int i = depth; i < numbers.Length; i++)
-        {
-            (numbers[depth], numbers[i]) = (numbers[i], numbers[depth]);
-            GetCandidates(depth + 1, runningTotal + numbers[depth], numbers);
-            (numbers[depth], numbers[i]) = (numbers[i], numbers[depth]);
-        }
     }
 
     public enum eOrientation

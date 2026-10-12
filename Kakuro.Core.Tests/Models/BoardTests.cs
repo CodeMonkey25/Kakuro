@@ -1,3 +1,4 @@
+using System.Text;
 using Kakuro.Core.Models;
 
 namespace Kakuro.Core.Tests.Models;
@@ -36,9 +37,10 @@ public class BoardTests
 
         Assert.False(board.IsSolved());
 
-        string error = board.ApplyRunConstraints();
+        (string error, bool changed) = board.UpdateCellConstraints();
 
         Assert.Equal("", error);
+        Assert.True(changed);
         Assert.True(board.IsSolved());
         Assert.Contains("|9|", board.ToString());
     }
@@ -52,45 +54,59 @@ public class BoardTests
 
         Assert.False(board.IsSolved());
 
-        string error = board.ApplyRunConstraints();
+        (string error, bool changed) = board.UpdateCellConstraints();
 
         Assert.Equal("", error);
+        Assert.True(changed);
         Assert.True(board.IsSolved());
-        Assert.Equal("-------\n|X|X|X|\n-------\n|X|9|7|\n-------\n|X|8|9|\n-------\n", board.ToString());
+
+        string expected = new StringBuilder()
+            .AppendLine("-------")
+            .AppendLine("|X|X|X|")
+            .AppendLine("-------")
+            .AppendLine("|X|9|7|")
+            .AppendLine("-------")
+            .AppendLine("|X|8|9|")
+            .AppendLine("-------")
+            .ToString();
+
+        Assert.Equal(expected, board.ToString());
     }
 
     [Fact]
     public void ToString_FormatsGridWithDividersAndCells()
     {
-        // Puzzle with 2 rows, 2 columns: Cell at (1,1) after the clue cell at (1,0)
-        Puzzle puzzle = Puzzle.Parse("test|1|Easy|4,1,1,0,0");
+        // Puzzle with 2 rows, 2 columns: Cell at (1,1) after the clue cell at (1,0) and (0,1)
+        Puzzle puzzle = Puzzle.Parse("test|1|Easy|4,1,1,0,0|4,1,0,1,1");
         Board board = new(puzzle);
 
-        string expectedUnsolved =
-            "-----\n" +
-            "|X|X|\n" +
-            "-----\n" +
-            "|X| |\n" +
-            "-----\n";
+        string expectedUnsolved = new StringBuilder()
+            .AppendLine("-----")
+            .AppendLine("|X|X|")
+            .AppendLine("-----")
+            .AppendLine("|X| |")
+            .AppendLine("-----")
+            .ToString();
 
         Assert.Equal(expectedUnsolved, board.ToString());
     }
 
     [Fact]
-    public void ApplyRunConstraints_AppliesExclusionsAcrossRuns()
+    public void UpdateCellConstraints_AppliesExclusionsAcrossRuns()
     {
         // Puzzle #1 from calendar/official dataset
         string officialPuzzle = "The Official Book of Kakuro|41|Easy|13,2,0,1,1|11,3,0,2,1|9,3,0,6,1|14,2,0,7,1|17,2,1,0,0|16,5,1,3,1|8,2,1,5,0|34,5,1,5,1|7,3,2,0,0|23,3,2,4,0|15,3,2,4,1|15,5,3,1,0|13,3,4,2,0|21,3,4,2,1|18,3,4,6,1|35,5,5,1,0|6,2,5,1,1|9,2,5,7,1|7,3,6,0,0|24,3,6,4,0|12,2,7,0,0|5,2,7,5,0";
         Puzzle puzzle = Puzzle.Parse(officialPuzzle);
         Board board = new(puzzle);
 
-        string result = board.ApplyRunConstraints();
+        (string result, bool changed) = board.UpdateCellConstraints();
 
         Assert.Equal("", result);
+        Assert.True(changed);
     }
 
     [Fact]
-    public void ApplyRunConstraints_WhenRunForcesNakedSingle_SolvesCell()
+    public void UpdateCellConstraints_WhenRunForcesNakedSingle_SolvesCell()
     {
         // Run with Total 3, Length 2 has candidates {1, 2} and exclusions {3, 4, 5, 6, 7, 8, 9}
         // Run with Total 4, Length 2 has candidates {1, 3} and exclusions {2, 4, 5, 6, 7, 8, 9}
@@ -99,15 +115,16 @@ public class BoardTests
         Puzzle puzzle = Puzzle.Parse("test|1|Easy|3,2,1,0,0|4,2,0,1,1");
         Board board = new(puzzle);
 
-        string error = board.ApplyRunConstraints();
+        (string error, bool changed) = board.UpdateCellConstraints();
 
         Assert.Equal("", error);
+        Assert.True(changed);
         string boardDisplay = board.ToString();
         Assert.Contains("|1|", boardDisplay);
     }
 
     [Fact]
-    public void ApplyRunConstraints_ContradictoryIntersectingRuns_ReturnsError()
+    public void UpdateCellConstraints_ContradictoryIntersectingRuns_ReturnsError()
     {
         // Horizontal run with Total 3, Length 2 -> candidates {1, 2}, exclusions {3..9}
         // Vertical run with Total 17, Length 2 -> candidates {8, 9}, exclusions {1..7}
@@ -115,20 +132,42 @@ public class BoardTests
         Puzzle puzzle = Puzzle.Parse("test|1|Easy|3,2,1,0,0|17,2,0,1,1");
         Board board = new(puzzle);
 
-        string error = board.ApplyRunConstraints();
+        (string error, bool changed) = board.UpdateCellConstraints();
 
         Assert.Contains("has no candidates", error);
+        Assert.False(changed);
     }
 
     [Fact]
-    public void ApplyRunConstraints_ValidDatasetPuzzle_ExecutesWithoutError()
+    public void UpdateCellConstraints_WhenAlreadyAtFixedPoint_ReturnsChangedFalse()
+    {
+        Puzzle puzzle = Puzzle.Parse("test|1|Easy|3,2,1,0,0|4,2,0,1,1");
+        Board board = new(puzzle);
+
+        var (firstError, firstChanged) = board.UpdateCellConstraints();
+        Assert.Equal("", firstError);
+        Assert.True(firstChanged);
+
+        var (secondError, secondChanged) = board.UpdateCellConstraints();
+        Assert.Equal("", secondError);
+        Assert.False(secondChanged);
+    }
+
+    [Fact]
+    public void UpdateCellConstraints_ValidDatasetPuzzle_IterativelySolves()
     {
         string officialPuzzle = "The Official Book of Kakuro|41|Easy|13,2,0,1,1|11,3,0,2,1|9,3,0,6,1|14,2,0,7,1|17,2,1,0,0|16,5,1,3,1|8,2,1,5,0|34,5,1,5,1|7,3,2,0,0|23,3,2,4,0|15,3,2,4,1|15,5,3,1,0|13,3,4,2,0|21,3,4,2,1|18,3,4,6,1|35,5,5,1,0|6,2,5,1,1|9,2,5,7,1|7,3,6,0,0|24,3,6,4,0|12,2,7,0,0|5,2,7,5,0";
         Puzzle puzzle = Puzzle.Parse(officialPuzzle);
         Board board = new(puzzle);
 
-        string error = board.ApplyRunConstraints();
+        string error = "";
+        bool changed;
+        do
+        {
+            (error, changed) = board.UpdateCellConstraints();
+            Assert.Equal("", error);
+        } while (changed);
 
-        Assert.Equal("", error);
+        Assert.True(board.IsSolved());
     }
 }

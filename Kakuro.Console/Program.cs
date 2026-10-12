@@ -26,17 +26,13 @@ class Program
         System.Console.WriteLine(puzzle);
         
         System.Console.WriteLine();
-        System.Console.WriteLine(string.Join(", ", puzzle.Runs.First()));
-        System.Console.WriteLine(string.Join(", ", puzzle.Runs.First().Candidates));
-        
-        System.Console.WriteLine();
         System.Console.WriteLine(puzzle.Rows + ", " + puzzle.Columns);
         Board board = new(puzzle);
         System.Console.WriteLine(board);
 
         System.Console.WriteLine();
         Engine engine = new(System.Console.WriteLine);
-        bool solved = engine.Solve(puzzle);
+        bool solved = engine.SolveLogically(puzzle);
         System.Console.WriteLine(solved);
     }
     

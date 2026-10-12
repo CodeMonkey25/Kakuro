@@ -17,52 +17,65 @@ public class Cell
         Column = column;
     }
 
-    public string RemoveCandidate(int candidate)
+    public (string error, bool removed) RemoveCandidates(IEnumerable<int> candidates)
     {
+        string error = "";
+        bool removed = false;
+        foreach (int c in candidates)
+        {
+            (error, bool removedCandidate) = RemoveCandidate(c);
+            if (error != "") break;
+            if (removedCandidate) removed = true;
+        }
+        return (error, removed);
+    }
+
+    public (string error, bool removed) RemoveCandidate(int candidate)
+    {
+        string error = "";
+        bool removed = false;
+        
         if (IsSolved)
         {
-            return Value == candidate ? $"Cell at row {Row}, column {Column} has no candidates.\n" : "";
+            error = Value == candidate ? $"Cell at row {Row}, column {Column} has no candidates." : "";
+        }
+        else if (_candidates.Contains(candidate))
+        {
+            _candidates.Remove(candidate);
+            removed = true;
+            
+            switch (_candidates.Count)
+            {
+                case 0:
+                    error = $"Cell at row {Row}, column {Column} has no candidates.";
+                    break;
+                case 1:
+                    error = Solve(_candidates.First());
+                    break;
+            }
         }
         
-        _candidates.Remove(candidate);
-        switch (_candidates.Count)
-        {
-            case 0:
-                return $"Cell at row {Row}, column {Column} has no candidates.\n";
-            case 1:
-                return Solve(_candidates.First());
-        }
-        return "";
+        return (error, removed);
     }
 
     private string Solve(int value)
     {
         if (IsSolved)
         {
-            return Value != value ? $"Cell at row {Row}, column {Column} is already solved.\n" : "";
+            return Value != value ? $"Cell at row {Row}, column {Column} is already solved." : "";
         }
         
         IsSolved = true;
         Value = value;
+        _candidates = [value,];
         
         foreach (Cell linkedCell in LinkedCells)
         {
-            string error = linkedCell.RemoveCandidate(Value);
+            (string error, _) = linkedCell.RemoveCandidate(Value);
             if (error != "") return error;
         }
         
         return "";
-    }
-
-    public string RemoveCandidates(IEnumerable<int> candidates)
-    {
-        string error = "";
-        foreach (int c in candidates)
-        {
-            error = RemoveCandidate(c);
-            if (error != "") break;
-        }
-        return error;
     }
     
     public void Bind(IEnumerable<Cell> linkedCells)
