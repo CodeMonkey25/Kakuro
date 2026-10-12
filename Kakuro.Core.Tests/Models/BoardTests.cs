@@ -37,7 +37,7 @@ public class BoardTests
 
         Assert.False(board.IsSolved());
 
-        (string error, bool changed) = UpdateCellConstraints(board);
+        (string error, bool changed) = board.UpdateCellConstraints();
 
         Assert.Equal("", error);
         Assert.True(changed);
@@ -55,7 +55,7 @@ public class BoardTests
 
         Assert.False(board.IsSolved());
 
-        (string error, bool changed) = UpdateCellConstraints(board);
+        (string error, bool changed) = board.UpdateCellConstraints();
 
         Assert.Equal("", error);
         Assert.True(changed);
@@ -92,7 +92,7 @@ public class BoardTests
         Puzzle singleCellPuzzle = Puzzle.Parse("test|1|Easy|9,1,1,1,0|9,1,1,1,1");
         Board board = new(singleCellPuzzle);
 
-        (string error, bool changed) = UpdateCellConstraints(board);
+        (string error, bool changed) = board.UpdateCellConstraints();
 
         Assert.Equal("", error);
         Assert.True(changed);
@@ -126,7 +126,7 @@ public class BoardTests
         Puzzle puzzle = Puzzle.Parse(officialPuzzle);
         Board board = new(puzzle);
 
-        (string result, bool changed) = UpdateCellConstraints(board);
+        (string result, bool changed) = board.UpdateCellConstraints();
 
         Assert.Equal("", result);
         Assert.True(changed);
@@ -142,7 +142,7 @@ public class BoardTests
         Puzzle puzzle = Puzzle.Parse("test|1|Easy|3,2,1,0,0|4,2,0,1,1");
         Board board = new(puzzle);
 
-        (string error, bool changed) = UpdateCellConstraints(board);
+        (string error, bool changed) = board.UpdateCellConstraints();
 
         Assert.Equal("", error);
         Assert.True(changed);
@@ -159,7 +159,7 @@ public class BoardTests
         Puzzle puzzle = Puzzle.Parse("test|1|Easy|3,2,1,0,0|17,2,0,1,1");
         Board board = new(puzzle);
 
-        (string error, bool changed) = UpdateCellConstraints(board);
+        (string error, bool changed) = board.UpdateCellConstraints();
 
         Assert.Contains("has no candidates", error);
         Assert.False(changed);
@@ -171,15 +171,11 @@ public class BoardTests
         Puzzle puzzle = Puzzle.Parse("test|1|Easy|3,2,1,0,0|4,2,0,1,1");
         Board board = new(puzzle);
 
-        Span<int> numberBuffer = stackalloc int[9];
-        Span<HashSet<int>> updatedCandidatesBuffer = Enumerable.Range(0, 9).Select(_ => new HashSet<int>()).ToArray();
-        Span<int[]> currentCandidatesBuffer = Enumerable.Range(0, 9).Select(_ => Array.Empty<int>()).ToArray();
-
-        var (firstError, firstChanged) = board.UpdateCellConstraints(numberBuffer, updatedCandidatesBuffer, currentCandidatesBuffer);
+        var (firstError, firstChanged) = board.UpdateCellConstraints();
         Assert.Equal("", firstError);
         Assert.True(firstChanged);
 
-        var (secondError, secondChanged) = board.UpdateCellConstraints(numberBuffer, updatedCandidatesBuffer, currentCandidatesBuffer);
+        var (secondError, secondChanged) = board.UpdateCellConstraints();
         Assert.Equal("", secondError);
         Assert.False(secondChanged);
     }
@@ -191,15 +187,11 @@ public class BoardTests
         Puzzle puzzle = Puzzle.Parse(officialPuzzle);
         Board board = new(puzzle);
 
-        Span<int> numberBuffer = stackalloc int[9];
-        Span<HashSet<int>> updatedCandidatesBuffer = Enumerable.Range(0, 9).Select(_ => new HashSet<int>()).ToArray();
-        Span<int[]> currentCandidatesBuffer = Enumerable.Range(0, 9).Select(_ => Array.Empty<int>()).ToArray();
-
         string error = "";
         bool changed;
         do
         {
-            (error, changed) = board.UpdateCellConstraints(numberBuffer, updatedCandidatesBuffer, currentCandidatesBuffer);
+            (error, changed) = board.UpdateCellConstraints();
             Assert.Equal("", error);
         } while (changed);
 
@@ -222,13 +214,5 @@ public class BoardTests
 
         Assert.NotNull(board);
         Assert.False(string.IsNullOrEmpty(board.ToString()));
-    }
-
-    private static (string error, bool changed) UpdateCellConstraints(Board board)
-    {
-        Span<int> numberBuffer = stackalloc int[9];
-        Span<HashSet<int>> updatedCandidatesBuffer = Enumerable.Range(0, 9).Select(_ => new HashSet<int>()).ToArray();
-        Span<int[]> currentCandidatesBuffer = Enumerable.Range(0, 9).Select(_ => Array.Empty<int>()).ToArray();
-        return board.UpdateCellConstraints(numberBuffer, updatedCandidatesBuffer, currentCandidatesBuffer);
     }
 }

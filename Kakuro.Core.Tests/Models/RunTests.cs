@@ -5,9 +5,10 @@ namespace Kakuro.Core.Tests.Models;
 public class RunTests
 {
     [Theory]
-    [InlineData("16,2,0,1,0", 16, 2, 0, 1, Run.RunOrientation.Horizontal)]
-    [InlineData("12,3,4,5,1", 12, 3, 4, 5, Run.RunOrientation.Vertical)]
+    [InlineData(0, "16,2,0,1,0", 16, 2, 0, 1, Run.RunOrientation.Horizontal)]
+    [InlineData(1, "12,3,4,5,1", 12, 3, 4, 5, Run.RunOrientation.Vertical)]
     public void Parse_ValidString_SetsPropertiesCorrectly(
+        int index,
         string rawRun,
         int expectedTotal,
         int expectedLength,
@@ -15,8 +16,9 @@ public class RunTests
         int expectedColumn,
         Run.RunOrientation expectedOrientation)
     {
-        Run run = Run.Parse(rawRun);
+        Run run = Run.Parse(index, rawRun);
 
+        Assert.Equal(index, run.Index);
         Assert.Equal(expectedTotal, run.Total);
         Assert.Equal(expectedLength, run.Length);
         Assert.Equal(expectedRow, run.Row);
@@ -29,37 +31,37 @@ public class RunTests
     [InlineData("12,3,4,5,1")]
     public void ToString_ReturnsFormattedString(string rawRun)
     {
-        Run run = Run.Parse(rawRun);
+        Run run = Run.Parse(0, rawRun);
 
         Assert.Equal(rawRun, run.ToString());
     }
 
     [Fact]
-    public void Indices_Horizontal_ReturnsSequentialColumnCoordinates()
+    public void CellCoordinates_Horizontal_ReturnsSequentialColumnCoordinates()
     {
-        Run run = Run.Parse("16,3,2,4,0");
+        Run run = Run.Parse(0, "16,3,2,4,0");
 
-        (int row, int column)[] indices = run.Indices;
+        (int row, int column)[] coordinates = run.CellCoordinates;
 
-        Assert.Equal(3, indices.Length);
-        Assert.Equal([(2, 5), (2, 6), (2, 7)], indices);
+        Assert.Equal(3, coordinates.Length);
+        Assert.Equal([(2, 5), (2, 6), (2, 7)], coordinates);
     }
 
     [Fact]
-    public void Indices_Vertical_ReturnsSequentialRowCoordinates()
+    public void CellCoordinates_Vertical_ReturnsSequentialRowCoordinates()
     {
-        Run run = Run.Parse("16,3,2,4,1");
+        Run run = Run.Parse(0, "16,3,2,4,1");
 
-        (int row, int column)[] indices = run.Indices;
+        (int row, int column)[] coordinates = run.CellCoordinates;
 
-        Assert.Equal(3, indices.Length);
-        Assert.Equal([(3, 4), (4, 4), (5, 4)], indices);
+        Assert.Equal(3, coordinates.Length);
+        Assert.Equal([(3, 4), (4, 4), (5, 4)], coordinates);
     }
 
     [Fact]
     public void Parse_InvalidOrientation_ThrowsInvalidOperationException()
     {
         // Constructing a run string with an undefined orientation value throws during initialization
-        Assert.Throws<InvalidOperationException>(() => Run.Parse("16,2,0,0,99"));
+        Assert.Throws<InvalidOperationException>(() => Run.Parse(0, "16,2,0,0,99"));
     }
 }

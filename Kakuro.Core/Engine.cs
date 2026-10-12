@@ -16,11 +16,6 @@ public class Engine
         bool changed = false;
         Board board = new(puzzle);
         
-        // instantiate buffers
-        Span<int> numberBuffer = stackalloc int[9];
-        Span<HashSet<int>> updatedCandidatesBuffer = Enumerable.Range(0, 9).Select(_ => new HashSet<int>()).ToArray();
-        Span<int[]> currentCandidatesBuffer = Enumerable.Range(0, 9).Select(_ => Array.Empty<int>()).ToArray();
-        
         Log?.Invoke("Solving puzzle...");
         
         Log?.Invoke("Updating run constraints...");
@@ -28,7 +23,7 @@ public class Engine
         do
         {
             Log?.Invoke($"\tPass {++pass}...");
-            (string error, changed) = board.UpdateCellConstraints(numberBuffer, updatedCandidatesBuffer, currentCandidatesBuffer);
+            (string error, changed) = board.UpdateCellConstraints();
             if (error != "")
             {
                 Log?.Invoke(error);

@@ -32,7 +32,7 @@ public class Puzzle
         string source = parts[0];
         string number = parts[1];
         string difficulty = parts[2];
-        Run[] runs = parts[3..].Select(Run.Parse).ToArray();
+        Run[] runs = parts[3..].Select((r, i) => Run.Parse(i, r)).ToArray();
         return new Puzzle(source, number, difficulty, runs);
     }
     
