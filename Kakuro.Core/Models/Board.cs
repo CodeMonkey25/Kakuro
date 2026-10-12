@@ -59,12 +59,13 @@ public class Board
     {
         string error = "";
         bool changed = false;
+        Span<int> buffer = stackalloc int[9];
         foreach (Run run in Puzzle.Runs)
         {
             Cell[] cells = GetCells(run).ToArray();
             int[][] currentCandidates = cells.Select(c => c.Candidates).ToArray();
             HashSet<int>[] updatedCandidates = cells.Select(_ => new HashSet<int>()).ToArray();
-            Span<int> numbers = new int[cells.Length];
+            Span<int> numbers = buffer.Slice(0, cells.Length);
             
             GetUpdatedCandidates(run.Length, 0, run.Total, 0, currentCandidates, updatedCandidates, numbers);
             
