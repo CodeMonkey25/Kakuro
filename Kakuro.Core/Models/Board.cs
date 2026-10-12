@@ -55,40 +55,49 @@ public class Board
         return sb.ToString();
     }
 
-    public (string error, bool changed) UpdateCellConstraints()
+    public (string error, bool changed) UpdateCellConstraints(Span<int> numberBuffer, Span<HashSet<int>> updatedCandidatesBuffer, Span<int[]> currentCandidatesBuffer)
     {
         string error = "";
-        bool changed = false;
-        Span<int> buffer = stackalloc int[9];
+        bool boardWasUpdated = false;
+        
         foreach (Run run in Puzzle.Runs)
         {
-            Cell[] cells = GetCells(run).ToArray();
-            int[][] currentCandidates = cells.Select(c => c.Candidates).ToArray();
-            HashSet<int>[] updatedCandidates = cells.Select(_ => new HashSet<int>()).ToArray();
-            Span<int> numbers = buffer.Slice(0, cells.Length);
+            ReadOnlySpan<Cell> cells = GetCells(run);
+            Span<int[]> currentCandidates = currentCandidatesBuffer.Slice(0, cells.Length);
+            Span<HashSet<int>> updatedCandidates = updatedCandidatesBuffer.Slice(0, cells.Length);
+            Span<int> numbers = numberBuffer.Slice(0, cells.Length);
+
+            for (int i = 0; i < cells.Length; i++)
+            {
+                currentCandidates[i] = cells[i].Candidates;
+            }
             
-            GetUpdatedCandidates(run.Length, 0, run.Total, 0, currentCandidates, updatedCandidates, numbers);
+            GetUpdatedCandidates(0, run.Total, 0, currentCandidates, updatedCandidates, numbers);
             
             for (int i = 0; i < cells.Length; i++)
             {
                 Cell cell = cells[i];
                 int[] current = currentCandidates[i];
                 HashSet<int> updated = updatedCandidates[i];
-                (error, bool wasUpdated) = cell.RemoveCandidates(current.Except(updated));
+                
+                (error, bool cellWasUpdated) = cell.RemoveCandidates(current.Except(updated));
                 if (error != "") return (error, false);
-                if (wasUpdated) changed = true;
+                if (cellWasUpdated) boardWasUpdated = true;
+                
+                currentCandidates[i] = [];
+                updatedCandidates[i].Clear();
             }
         }
-        return (error, changed);
+        return (error, boardWasUpdated);
     }
 
-    private void GetUpdatedCandidates(int length, int depth, int total, int runningTotal, int[][] currentCandidates, HashSet<int>[] updatedCandidates, Span<int> numbers)
+    private void GetUpdatedCandidates(int depth, int total, int runningTotal, Span<int[]> currentCandidates, Span<HashSet<int>> updatedCandidates, Span<int> numbers)
     {
-        if (depth >= length)
+        if (depth >= numbers.Length)
         {
             if (runningTotal == total)
             {
-                for (int i = 0; i < length; i++)
+                for (int i = 0; i < numbers.Length; i++)
                 {
                     updatedCandidates[i].Add(numbers[i]);
                 }
@@ -103,20 +112,25 @@ public class Board
             if (runningTotal + current > total) continue;
 
             numbers[depth] = current;
-            GetUpdatedCandidates(length, depth + 1, total, runningTotal + current, currentCandidates, updatedCandidates, numbers);
+            GetUpdatedCandidates(depth + 1, total, runningTotal + current, currentCandidates, updatedCandidates, numbers);
             numbers[depth] = 0;
         }
     }
     
-    private IEnumerable<Cell> GetCells(Run run)
+    private ReadOnlySpan<Cell> GetCells(Run run)
     {
-        foreach (var (row, column) in run.GetIndices())
+        if (run.Orientation == Run.eOrientation.Horizontal)
         {
-            if (Cells[row][column] is null)
-            {
-                throw new InvalidOperationException($"Cell at row {row}, column {column} is null.");
-            }
-            yield return Cells[row][column]!;
+            return Cells[run.Row].AsSpan(run.Column + 1, run.Length)!;
         }
+        
+        // must be vertical...
+        Cell[] cells = new Cell[run.Length];
+        int index = 0;
+        foreach ((int row, int column) in run.GetIndices())
+        {
+            cells[index++] = Cells[row][column]!;
+        }
+        return cells;
     }
 }
