@@ -207,6 +207,23 @@ public class BoardTests
         Assert.True(board.IsSolutionValid());
     }
 
+    [Theory]
+    [InlineData("test|1|Easy|3,2,0,1,1|4,2,4,0,0")] // Horizontal run on row 4 exceeds vertical run extent (row 2)
+    [InlineData("test|2|Easy|4,2,0,0,0|3,2,0,4,1")] // Vertical run on column 4 exceeds horizontal run extent (column 2)
+    [InlineData("test|3|Easy|4,2,2,0,0")]             // Only horizontal runs (Rows defaults to 1, but row 2 is needed)
+    [InlineData("test|4|Easy|4,2,0,2,1")]             // Only vertical runs (Columns defaults to 1, but column 2 is needed)
+    public void Constructor_WhenRunCoordinatesExceedOppositeOrientationDimensions_InstantiatesBoardSuccessfully(string puzzleString)
+    {
+        Puzzle puzzle = Puzzle.Parse(puzzleString);
+
+        // Verifies that board dimensions correctly account for both orientations and edge cases (e.g. single-orientation puzzles),
+        // preventing IndexOutOfRangeException during cell instantiation.
+        Board board = new(puzzle);
+
+        Assert.NotNull(board);
+        Assert.False(string.IsNullOrEmpty(board.ToString()));
+    }
+
     private static (string error, bool changed) UpdateCellConstraints(Board board)
     {
         Span<int> numberBuffer = stackalloc int[9];

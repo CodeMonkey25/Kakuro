@@ -18,17 +18,13 @@ public class Puzzle
         Runs = runs;
         
         Rows = Runs
-            .Where(r => r.Orientation == Run.eOrientation.Vertical)
-            .Select(r => r.Row + r.Length + 1)
+            .Select(r => r.Orientation == Run.RunOrientation.Vertical ? r.Row + r.Length + 1 : r.Row + 1)
             .DefaultIfEmpty(1)
             .Max();
-        
         Columns = Runs
-            .Where(r => r.Orientation == Run.eOrientation.Horizontal)
-            .Select(r => r.Column + r.Length + 1)
+            .Select(r => r.Orientation == Run.RunOrientation.Horizontal ? r.Column + r.Length + 1 : r.Column + 1)
             .DefaultIfEmpty(1)
-            .Max();
-    }
+            .Max();    }
     
     public static Puzzle Parse(string puzzle)
     {

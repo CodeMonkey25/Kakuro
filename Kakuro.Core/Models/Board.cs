@@ -22,7 +22,7 @@ public class Board
         foreach (Run run in Puzzle.Runs)
         {
             List<Cell> runCells = [];
-            foreach (var (row, column) in run.GetIndices())
+            foreach (var (row, column) in run.Indices)
             {
                 Cells[row][column] ??= new Cell(row, column);
                 runCells.Add(Cells[row][column]!);
@@ -73,12 +73,13 @@ public class Board
         foreach (Run run in Puzzle.Runs)
         {
             ReadOnlySpan<Cell> cells = GetCells(run);
-            int total = 0;
+            HashSet<int> candidates = new HashSet<int>();
             foreach (Cell cell in cells)
             {
-                total += cell.Value;
+                candidates.UnionWith(cell.Candidates);
             }
-            if (total != run.Total) return false;
+            if (candidates.Sum() != run.Total) return false;
+            if (candidates.Count != cells.Length) return false;
         }
         return true;
     }
@@ -147,7 +148,7 @@ public class Board
     
     private ReadOnlySpan<Cell> GetCells(Run run)
     {
-        if (run.Orientation == Run.eOrientation.Horizontal)
+        if (run.Orientation == Run.RunOrientation.Horizontal)
         {
             return Cells[run.Row].AsSpan(run.Column + 1, run.Length)!;
         }
@@ -155,7 +156,7 @@ public class Board
         // must be vertical...
         Cell[] cells = new Cell[run.Length];
         int index = 0;
-        foreach ((int row, int column) in run.GetIndices())
+        foreach ((int row, int column) in run.Indices)
         {
             cells[index++] = Cells[row][column]!;
         }

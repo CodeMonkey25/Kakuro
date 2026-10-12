@@ -9,7 +9,9 @@ public class Cell
     
     private HashSet<int> _candidates = [1, 2, 3, 4, 5, 6, 7, 8, 9];
     public int[] Candidates => _candidates.Order().ToArray();
-    public HashSet<Cell> LinkedCells { get; } = [];
+    
+    private readonly HashSet<Cell> _linkedCells = [];
+    public IReadOnlySet<Cell> LinkedCells => _linkedCells;
 
     public Cell(int row, int column)
     {
@@ -71,7 +73,7 @@ public class Cell
         
         foreach (Cell linkedCell in LinkedCells)
         {
-            (string error, _) = linkedCell.RemoveCandidate(Value);
+            (string error, _) = linkedCell.RemoveCandidate(value);
             if (error != "") return error;
         }
         
@@ -83,7 +85,7 @@ public class Cell
         foreach (Cell linkedCell in linkedCells)
         {
             if (linkedCell == this) continue;
-            LinkedCells.Add(linkedCell);
+            _linkedCells.Add(linkedCell);
         }
     }
     

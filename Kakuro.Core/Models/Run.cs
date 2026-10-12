@@ -8,16 +8,23 @@ public class Run
     // the row and column are the coordinates of the hint cell for the run
     public int Row { get; } 
     public int Column { get; }
+    public (int row, int column)[] Indices { get; }
     
-    public eOrientation Orientation { get; }
+    public RunOrientation Orientation { get; }
     
-    private Run(int total, int length, int row, int column, eOrientation orientation)
+    private Run(int total, int length, int row, int column, RunOrientation orientation)
     {
         Total = total;
         Length = length;
         Row = row;
         Column = column;
         Orientation = orientation;
+        Indices = Orientation switch
+        {
+            RunOrientation.Horizontal => Enumerable.Range(Column + 1, Length).Select(c => (Row, c)).ToArray(),
+            RunOrientation.Vertical => Enumerable.Range(Row + 1, Length).Select(r => (r, Column)).ToArray(),
+            _ => throw new InvalidOperationException("Invalid orientation"),
+        };
     }
     
     public static Run Parse(string run)
@@ -27,7 +34,7 @@ public class Run
         int length = int.Parse(parts[1]);
         int row = int.Parse(parts[2]);
         int column = int.Parse(parts[3]);
-        eOrientation orientation = (eOrientation)int.Parse(parts[4]);
+        RunOrientation orientation = (RunOrientation)int.Parse(parts[4]);
         return new Run(total, length, row, column, orientation);
     }
     
@@ -36,17 +43,7 @@ public class Run
         return $"{Total},{Length},{Row},{Column},{(int)Orientation}";
     }
 
-    public (int row, int column)[] GetIndices()
-    {
-        return Orientation switch
-        {
-            eOrientation.Horizontal => Enumerable.Range(Column + 1, Length).Select(c => (Row, c)).ToArray(),
-            eOrientation.Vertical => Enumerable.Range(Row + 1, Length).Select(r => (r, Column)).ToArray(),
-            _ => throw new InvalidOperationException("Invalid orientation"),
-        };
-    }
-
-    public enum eOrientation
+    public enum RunOrientation
     {
         Horizontal,
         Vertical,
