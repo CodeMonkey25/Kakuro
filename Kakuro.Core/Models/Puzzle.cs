@@ -17,8 +17,17 @@ public class Puzzle
         Difficulty = difficulty;
         Runs = runs;
         
-        Rows = Runs.Max(r => r.Orientation == Run.eOrientation.Vertical ? r.Row + r.Length + 1 : r.Row + 1);
-        Columns = Runs.Max(r => r.Orientation == Run.eOrientation.Horizontal ? r.Column + r.Length + 1 : r.Column + 1);
+        Rows = Runs
+            .Where(r => r.Orientation == Run.eOrientation.Vertical)
+            .Select(r => r.Row + r.Length + 1)
+            .DefaultIfEmpty(1)
+            .Max();
+        
+        Columns = Runs
+            .Where(r => r.Orientation == Run.eOrientation.Horizontal)
+            .Select(r => r.Column + r.Length + 1)
+            .DefaultIfEmpty(1)
+            .Max();
     }
     
     public static Puzzle Parse(string puzzle)
