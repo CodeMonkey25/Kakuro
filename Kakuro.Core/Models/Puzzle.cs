@@ -1,16 +1,18 @@
-﻿namespace Kakuro.Core.Models;
+﻿using System.Collections.Immutable;
+
+namespace Kakuro.Core.Models;
 
 public sealed class Puzzle
 {
     public string Source { get; }
     public string Number { get; }
     public string Difficulty { get; }
-    public Run[] Runs { get; }
+    public ImmutableArray<Run> Runs { get; }
     
     public int Rows { get; }
     public int Columns { get; }
     
-    private Puzzle(string source, string number, string difficulty, Run[] runs)
+    private Puzzle(string source, string number, string difficulty, ImmutableArray<Run> runs)
     {
         Source = source;
         Number = number;
@@ -24,7 +26,8 @@ public sealed class Puzzle
         Columns = Runs
             .Select(r => r.Orientation == Run.RunOrientation.Horizontal ? r.Column + r.Length + 1 : r.Column + 1)
             .DefaultIfEmpty(1)
-            .Max();    }
+            .Max();
+    }
     
     public static Puzzle Parse(string puzzle)
     {
@@ -32,7 +35,7 @@ public sealed class Puzzle
         string source = parts[0];
         string number = parts[1];
         string difficulty = parts[2];
-        Run[] runs = parts[3..].Select((r, i) => Run.Parse(i, r)).ToArray();
+        ImmutableArray<Run> runs = parts[3..].Select((r, i) => Run.Parse(i, r)).ToImmutableArray();
         return new Puzzle(source, number, difficulty, runs);
     }
     
