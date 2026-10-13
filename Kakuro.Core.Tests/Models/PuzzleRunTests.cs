@@ -2,11 +2,11 @@ using Kakuro.Core.Models;
 
 namespace Kakuro.Core.Tests.Models;
 
-public class RunTests
+public class PuzzleRunTests
 {
     [Theory]
-    [InlineData(0, "16,2,0,1,0", 16, 2, 0, 1, Run.RunOrientation.Horizontal)]
-    [InlineData(1, "12,3,4,5,1", 12, 3, 4, 5, Run.RunOrientation.Vertical)]
+    [InlineData(0, "16,2,0,1,0", 16, 2, 0, 1, Puzzle.Run.RunOrientation.Horizontal)]
+    [InlineData(1, "12,3,4,5,1", 12, 3, 4, 5, Puzzle.Run.RunOrientation.Vertical)]
     public void Parse_ValidString_SetsPropertiesCorrectly(
         int index,
         string rawRun,
@@ -14,9 +14,9 @@ public class RunTests
         int expectedLength,
         int expectedRow,
         int expectedColumn,
-        Run.RunOrientation expectedOrientation)
+        Puzzle.Run.RunOrientation expectedOrientation)
     {
-        Run run = Run.Parse(index, rawRun);
+        Puzzle.Run run = Puzzle.Run.Parse(index, rawRun);
 
         Assert.Equal(index, run.Index);
         Assert.Equal(expectedTotal, run.Total);
@@ -31,7 +31,7 @@ public class RunTests
     [InlineData("12,3,4,5,1")]
     public void ToString_ReturnsFormattedString(string rawRun)
     {
-        Run run = Run.Parse(0, rawRun);
+        Puzzle.Run run = Puzzle.Run.Parse(0, rawRun);
 
         Assert.Equal(rawRun, run.ToString());
     }
@@ -39,7 +39,7 @@ public class RunTests
     [Fact]
     public void CellCoordinates_Horizontal_ReturnsSequentialColumnCoordinates()
     {
-        Run run = Run.Parse(0, "16,3,2,4,0");
+        Puzzle.Run run = Puzzle.Run.Parse(0, "16,3,2,4,0");
 
         (int row, int column)[] coordinates = run.CellCoordinates;
 
@@ -50,7 +50,7 @@ public class RunTests
     [Fact]
     public void CellCoordinates_Vertical_ReturnsSequentialRowCoordinates()
     {
-        Run run = Run.Parse(0, "16,3,2,4,1");
+        Puzzle.Run run = Puzzle.Run.Parse(0, "16,3,2,4,1");
 
         (int row, int column)[] coordinates = run.CellCoordinates;
 
@@ -62,6 +62,6 @@ public class RunTests
     public void Parse_InvalidOrientation_ThrowsInvalidOperationException()
     {
         // Constructing a run string with an undefined orientation value throws during initialization
-        Assert.Throws<InvalidOperationException>(() => Run.Parse(0, "16,2,0,0,99"));
+        Assert.Throws<InvalidOperationException>(() => Puzzle.Run.Parse(0, "16,2,0,0,99"));
     }
 }

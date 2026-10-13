@@ -33,7 +33,7 @@ public class Board
         // bind cells together
         Runs = new Cell[Puzzle.Runs.Length][];
         int i = 0;
-        foreach (Run run in Puzzle.Runs)
+        foreach (Puzzle.Run run in Puzzle.Runs)
         {
             Cell[] runCells = new Cell[run.Length];
             int j = 0;
@@ -86,7 +86,7 @@ public class Board
     {
         for (int i = 0; i < Puzzle.Runs.Length; i++)
         {
-            Run run = Puzzle.Runs[i];
+            Puzzle.Run run = Puzzle.Runs[i];
             Cell[] cells = Runs[i];
             
             if (cells.Any(c => !c.IsSolved)) return false;
@@ -103,7 +103,7 @@ public class Board
 
         for (int i = 0; i < Puzzle.Runs.Length; i++)
         {
-            Run run = Puzzle.Runs[i];
+            Puzzle.Run run = Puzzle.Runs[i];
             ReadOnlySpan<Cell> cells = Runs[i];
             Span<IReadOnlyList<int>> currentCandidates = _currentCandidatesBuffer.AsSpan(0, cells.Length);
             ReadOnlySpan<HashSet<int>> excludedCandidates = _excludedCandidatesBuffer.AsSpan(0, cells.Length);
