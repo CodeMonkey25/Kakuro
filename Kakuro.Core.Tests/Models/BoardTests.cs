@@ -37,9 +37,9 @@ public class BoardTests
 
         Assert.False(board.IsSolved());
 
-        (string error, bool changed) = board.UpdateCellConstraints();
+        (string? error, bool changed) = board.UpdateCellConstraints();
 
-        Assert.Equal("", error);
+        Assert.Null(error);
         Assert.True(changed);
         Assert.True(board.IsSolved());
         Assert.True(board.IsSolutionValid());
@@ -55,9 +55,9 @@ public class BoardTests
 
         Assert.False(board.IsSolved());
 
-        (string error, bool changed) = board.UpdateCellConstraints();
+        (string? error, bool changed) = board.UpdateCellConstraints();
 
-        Assert.Equal("", error);
+        Assert.Null(error);
         Assert.True(changed);
         Assert.True(board.IsSolved());
         Assert.True(board.IsSolutionValid());
@@ -92,9 +92,9 @@ public class BoardTests
         Puzzle singleCellPuzzle = Puzzle.Parse("test|1|Easy|9,1,1,1,0|9,1,1,1,1");
         Board board = new(singleCellPuzzle);
 
-        (string error, bool changed) = board.UpdateCellConstraints();
+        (string? error, bool changed) = board.UpdateCellConstraints();
 
-        Assert.Equal("", error);
+        Assert.Null(error);
         Assert.True(changed);
         Assert.True(board.IsSolved());
         Assert.True(board.IsSolutionValid());
@@ -126,9 +126,9 @@ public class BoardTests
         Puzzle puzzle = Puzzle.Parse(officialPuzzle);
         Board board = new(puzzle);
 
-        (string result, bool changed) = board.UpdateCellConstraints();
+        (string? result, bool changed) = board.UpdateCellConstraints();
 
-        Assert.Equal("", result);
+        Assert.Null(result);
         Assert.True(changed);
     }
 
@@ -142,9 +142,9 @@ public class BoardTests
         Puzzle puzzle = Puzzle.Parse("test|1|Easy|3,2,1,0,0|4,2,0,1,1");
         Board board = new(puzzle);
 
-        (string error, bool changed) = board.UpdateCellConstraints();
+        (string? error, bool changed) = board.UpdateCellConstraints();
 
-        Assert.Equal("", error);
+        Assert.Null(error);
         Assert.True(changed);
         string boardDisplay = board.ToString();
         Assert.Contains("|1|", boardDisplay);
@@ -159,7 +159,7 @@ public class BoardTests
         Puzzle puzzle = Puzzle.Parse("test|1|Easy|3,2,1,0,0|17,2,0,1,1");
         Board board = new(puzzle);
 
-        (string error, bool changed) = board.UpdateCellConstraints();
+        (string? error, bool changed) = board.UpdateCellConstraints();
 
         Assert.Contains("has no candidates", error);
         Assert.False(changed);
@@ -172,11 +172,11 @@ public class BoardTests
         Board board = new(puzzle);
 
         var (firstError, firstChanged) = board.UpdateCellConstraints();
-        Assert.Equal("", firstError);
+        Assert.Null(firstError);
         Assert.True(firstChanged);
 
         var (secondError, secondChanged) = board.UpdateCellConstraints();
-        Assert.Equal("", secondError);
+        Assert.Null(secondError);
         Assert.False(secondChanged);
     }
 
@@ -187,12 +187,12 @@ public class BoardTests
         Puzzle puzzle = Puzzle.Parse(officialPuzzle);
         Board board = new(puzzle);
 
-        string error = "";
+        string? error = null;
         bool changed;
         do
         {
             (error, changed) = board.UpdateCellConstraints();
-            Assert.Equal("", error);
+            Assert.Null(error);
         } while (changed);
 
         Assert.True(board.IsSolved());

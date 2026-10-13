@@ -19,27 +19,27 @@ public class Cell
         Column = column;
     }
 
-    public (string error, bool removed) RemoveCandidates(IEnumerable<int> candidates)
+    public (string? error, bool removed) RemoveCandidates(IEnumerable<int> candidates)
     {
-        string error = "";
+        string? error = null;
         bool removed = false;
         foreach (int c in candidates)
         {
             (error, bool removedCandidate) = RemoveCandidate(c);
-            if (error != "") break;
+            if (error != null) break;
             if (removedCandidate) removed = true;
         }
         return (error, removed);
     }
 
-    public (string error, bool removed) RemoveCandidate(int candidate)
+    public (string? error, bool removed) RemoveCandidate(int candidate)
     {
-        string error = "";
+        string? error = null;
         bool removed = false;
         
         if (IsSolved)
         {
-            error = Value == candidate ? $"Cell at row {Row}, column {Column} has no candidates." : "";
+            error = Value == candidate ? $"Cell at row {Row}, column {Column} has no candidates." : null;
         }
         else if (_candidates.Contains(candidate))
         {
@@ -60,11 +60,11 @@ public class Cell
         return (error, removed);
     }
 
-    private string Solve(int value)
+    private string? Solve(int value)
     {
         if (IsSolved)
         {
-            return Value != value ? $"Cell at row {Row}, column {Column} is already solved." : "";
+            return Value != value ? $"Cell at row {Row}, column {Column} is already solved." : null;
         }
         
         IsSolved = true;
@@ -73,11 +73,11 @@ public class Cell
         
         foreach (Cell linkedCell in LinkedCells)
         {
-            (string error, _) = linkedCell.RemoveCandidate(value);
-            if (error != "") return error;
+            (string? error, _) = linkedCell.RemoveCandidate(value);
+            if (error != null) return error;
         }
         
-        return "";
+        return null;
     }
     
     public void Bind(IEnumerable<Cell> linkedCells)

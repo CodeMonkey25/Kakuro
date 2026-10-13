@@ -23,8 +23,8 @@ public class Engine
         do
         {
             Log?.Invoke($"\tPass {++pass}...");
-            (string error, changed) = board.UpdateCellConstraints();
-            if (error != "")
+            (string? error, changed) = board.UpdateCellConstraints();
+            if (error != null)
             {
                 Log?.Invoke(error);
                 return false;

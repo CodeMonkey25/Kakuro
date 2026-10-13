@@ -42,9 +42,9 @@ public class CellTests
     {
         Cell cell = new(0, 0);
 
-        (string error, bool removed) = cell.RemoveCandidate(3);
+        (string? error, bool removed) = cell.RemoveCandidate(3);
 
-        Assert.Equal("", error);
+        Assert.Null(error);
         Assert.True(removed);
         Assert.False(cell.IsSolved);
         Assert.Equal(0, cell.Value);
@@ -58,9 +58,9 @@ public class CellTests
         Cell cell = new(0, 0);
         cell.RemoveCandidate(3);
 
-        (string error, bool removed) = cell.RemoveCandidate(3);
+        (string? error, bool removed) = cell.RemoveCandidate(3);
 
-        Assert.Equal("", error);
+        Assert.Null(error);
         Assert.False(removed);
         Assert.False(cell.IsSolved);
         Assert.Equal([1, 2, 4, 5, 6, 7, 8, 9], cell.Candidates);
@@ -69,7 +69,7 @@ public class CellTests
     [Fact]
     public void RemoveCandidate_DownToOneCandidate_SolvesCellAndUpdatesString()
     {
-        string error = "";
+        string? error = null;
         bool removed = false;
         Cell cell = new(2, 4);
 
@@ -77,7 +77,7 @@ public class CellTests
         for (int i = 1; i <= 7; i++)
         {
             (error, removed) = cell.RemoveCandidate(i);
-            Assert.Equal("", error);
+            Assert.Null(error);
             Assert.True(removed);
             Assert.False(cell.IsSolved);
         }
@@ -85,7 +85,7 @@ public class CellTests
 
         (error, removed) = cell.RemoveCandidate(8);
 
-        Assert.Equal("", error);
+        Assert.Null(error);
         Assert.True(removed);
         Assert.True(cell.IsSolved);
         Assert.Equal(9, cell.Value);
@@ -105,7 +105,7 @@ public class CellTests
         }
 
         // Cell is now solved to 9. Removing 9 should return no candidates error
-        (string error, bool removed) = cell.RemoveCandidate(9);
+        (string? error, bool removed) = cell.RemoveCandidate(9);
 
         Assert.Equal("Cell at row 1, column 2 has no candidates.", error);
         Assert.False(removed);
@@ -116,18 +116,18 @@ public class CellTests
     {
         Cell cell = new(0, 0);
         var (initError, initRemoved) = cell.RemoveCandidates([1, 2, 3, 4, 5, 6, 7, 8]); // Solved to 9
-        Assert.Equal("", initError);
+        Assert.Null(initError);
         Assert.True(initRemoved);
         Assert.True(cell.IsSolved);
         Assert.Equal(9, cell.Value);
 
         // Removing a candidate different from solved Value should return empty string and false
-        (string nonMatchingError, bool nonMatchingRemoved) = cell.RemoveCandidate(4);
-        Assert.Equal("", nonMatchingError);
+        (string? nonMatchingError, bool nonMatchingRemoved) = cell.RemoveCandidate(4);
+        Assert.Null(nonMatchingError);
         Assert.False(nonMatchingRemoved);
 
         // Removing the candidate matching solved Value returns error and false
-        (string matchingError, bool matchingRemoved) = cell.RemoveCandidate(9);
+        (string? matchingError, bool matchingRemoved) = cell.RemoveCandidate(9);
         Assert.Equal("Cell at row 0, column 0 has no candidates.", matchingError);
         Assert.False(matchingRemoved);
     }
@@ -137,9 +137,9 @@ public class CellTests
     {
         Cell cell = new(1, 1);
 
-        (string result, bool removed) = cell.RemoveCandidates([2, 3, 4, 5, 6, 7, 8]);
+        (string? result, bool removed) = cell.RemoveCandidates([2, 3, 4, 5, 6, 7, 8]);
 
-        Assert.Equal("", result);
+        Assert.Null(result);
         Assert.True(removed);
         Assert.False(cell.IsSolved);
         Assert.Equal([1, 9], cell.Candidates);
@@ -151,9 +151,9 @@ public class CellTests
         Cell cell = new(1, 1);
         cell.RemoveCandidates([2, 3]);
 
-        (string result, bool removed) = cell.RemoveCandidates([2, 3]);
+        (string? result, bool removed) = cell.RemoveCandidates([2, 3]);
 
-        Assert.Equal("", result);
+        Assert.Null(result);
         Assert.False(removed);
         Assert.False(cell.IsSolved);
         Assert.Equal([1, 4, 5, 6, 7, 8, 9], cell.Candidates);
@@ -164,9 +164,9 @@ public class CellTests
     {
         Cell cell = new(1, 1);
 
-        (string result, bool removed) = cell.RemoveCandidates([1, 2, 3, 4, 5, 6, 7, 8]);
+        (string? result, bool removed) = cell.RemoveCandidates([1, 2, 3, 4, 5, 6, 7, 8]);
 
-        Assert.Equal("", result);
+        Assert.Null(result);
         Assert.True(removed);
         Assert.True(cell.IsSolved);
         Assert.Equal(9, cell.Value);
@@ -188,7 +188,7 @@ public class CellTests
     {
         Cell cell = new(3, 3);
 
-        (string error, bool removed) = cell.RemoveCandidates([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+        (string? error, bool removed) = cell.RemoveCandidates([1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
         Assert.Equal("Cell at row 3, column 3 has no candidates.", error);
         Assert.True(removed);
@@ -208,9 +208,9 @@ public class CellTests
         cellB.RemoveCandidates([1, 2, 3, 4, 5, 6, 7]);
 
         // Solve cellA to 9 by eliminating 1..8
-        (string result, bool removed) = cellA.RemoveCandidates([1, 2, 3, 4, 5, 6, 7, 8]);
+        (string? result, bool removed) = cellA.RemoveCandidates([1, 2, 3, 4, 5, 6, 7, 8]);
 
-        Assert.Equal("", result);
+        Assert.Null(result);
         Assert.True(removed);
         Assert.True(cellA.IsSolved);
         Assert.Equal(9, cellA.Value);
@@ -235,7 +235,7 @@ public class CellTests
         cellA.Bind([cellB]);
 
         // When cellA solves to 9, it tries to remove 9 from cellB, causing conflict
-        (string error, _) = cellA.RemoveCandidates([1, 2, 3, 4, 5, 6, 7, 8]);
+        (string? error, _) = cellA.RemoveCandidates([1, 2, 3, 4, 5, 6, 7, 8]);
 
         Assert.Equal("Cell at row 0, column 1 has no candidates.", error);
     }

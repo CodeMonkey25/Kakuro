@@ -8,9 +8,9 @@ public class Board
     private Cell?[][] Cells { get; }
     private Cell[][] Runs { get; }
     
-    private int[] _numberBuffer = new int[9];
-    private HashSet<int>[] _excludedCandidatesBuffer = Enumerable.Range(0, 9).Select(_ => new HashSet<int>()).ToArray();
-    private int[][] _currentCandidatesBuffer = Enumerable.Range(0, 9).Select(_ => Array.Empty<int>()).ToArray();
+    private readonly int[] _numberBuffer = new int[9];
+    private readonly HashSet<int>[] _excludedCandidatesBuffer = Enumerable.Range(0, 9).Select(_ => new HashSet<int>()).ToArray();
+    private readonly int[][] _currentCandidatesBuffer = Enumerable.Range(0, 9).Select(_ => Array.Empty<int>()).ToArray();
     
     public Board(Puzzle puzzle)
     {
@@ -98,9 +98,8 @@ public class Board
         return true;
     }
     
-    public (string error, bool changed) UpdateCellConstraints()
+    public (string? error, bool changed) UpdateCellConstraints()
     {
-        string error = "";
         bool boardWasUpdated = false;
 
         for (int i = 0; i < Puzzle.Runs.Length; i++)
@@ -125,15 +124,15 @@ public class Board
                 Cell cell = cells[j];
                 HashSet<int> excluded = excludedCandidates[j];
 
-                (error, bool cellWasUpdated) = cell.RemoveCandidates(excluded);
-                if (error != "") return (error, false);
+                (string? error, bool cellWasUpdated) = cell.RemoveCandidates(excluded);
+                if (error != null) return (error, false);
                 if (cellWasUpdated) boardWasUpdated = true;
 
                 currentCandidates[j] = [];
             }
         }
 
-        return (error, boardWasUpdated);
+        return (null, boardWasUpdated);
     }
 
     private void GetExcludedCandidates(int depth, int total, int runningTotal, Span<int[]> currentCandidates, ReadOnlySpan<HashSet<int>> excludedCandidates, Span<int> numbers)
