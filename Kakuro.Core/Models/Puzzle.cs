@@ -1,14 +1,14 @@
 ﻿namespace Kakuro.Core.Models;
 
-public class Puzzle
+public sealed class Puzzle
 {
     public string Source { get; }
     public string Number { get; }
     public string Difficulty { get; }
     public Run[] Runs { get; }
     
-    public int Rows { get; private set; }
-    public int Columns { get; private set; }
+    public int Rows { get; }
+    public int Columns { get; }
     
     private Puzzle(string source, string number, string difficulty, Run[] runs)
     {
@@ -41,7 +41,7 @@ public class Puzzle
         return $"{Source}|{Number}|{Difficulty}|{string.Join('|', Runs.Select(r => r.ToString()))}";
     }
     
-    public class Run
+    public readonly record struct Run
     {
         public int Index { get; }
         public int Total { get; }
@@ -50,7 +50,6 @@ public class Puzzle
         // the row and column are the coordinates of the hint cell for the run
         public int Row { get; } 
         public int Column { get; }
-        public (int row, int column)[] CellCoordinates { get; }
     
         public RunOrientation Orientation { get; }
     
@@ -62,12 +61,6 @@ public class Puzzle
             Row = row;
             Column = column;
             Orientation = orientation;
-            CellCoordinates = Orientation switch
-            {
-                RunOrientation.Horizontal => Enumerable.Range(Column + 1, Length).Select(c => (Row, c)).ToArray(),
-                RunOrientation.Vertical => Enumerable.Range(Row + 1, Length).Select(r => (r, Column)).ToArray(),
-                _ => throw new InvalidOperationException("Invalid orientation"),
-            };
         }
     
         public static Run Parse(int index, string run)
@@ -84,6 +77,27 @@ public class Puzzle
         public override string ToString()
         {
             return $"{Total},{Length},{Row},{Column},{(int)Orientation}";
+        }
+
+        public IEnumerable<(int row, int column)> GetCellCoordinates()
+        {
+            switch (Orientation)
+            {
+                case RunOrientation.Horizontal:
+                {
+                    for (int c = Column + 1; c <= Column + Length; c++)
+                        yield return (Row, c);
+                    break;
+                }
+                case RunOrientation.Vertical:
+                {
+                    for (int r = Row + 1; r <= Row + Length; r++)
+                        yield return (r, Column);
+                    break;
+                }
+                default:
+                    throw new InvalidOperationException("Invalid orientation");
+            }
         }
 
         public enum RunOrientation

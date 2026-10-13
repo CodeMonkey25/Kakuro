@@ -37,7 +37,7 @@ public class Board
         {
             Cell[] runCells = new Cell[puzzleRun.Length];
             int j = 0;
-            foreach ((int row, int column) in puzzleRun.CellCoordinates)
+            foreach ((int row, int column) in puzzleRun.GetCellCoordinates())
             {
                 Cells[row][column] ??= new Cell(row, column);
                 runCells[j++] = Cells[row][column]!;

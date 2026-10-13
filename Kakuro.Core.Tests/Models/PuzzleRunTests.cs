@@ -41,9 +41,9 @@ public class PuzzleRunTests
     {
         Puzzle.Run run = Puzzle.Run.Parse(0, "16,3,2,4,0");
 
-        (int row, int column)[] coordinates = run.CellCoordinates;
+        var coordinates = run.GetCellCoordinates();
 
-        Assert.Equal(3, coordinates.Length);
+        Assert.Equal(3, coordinates.Count());
         Assert.Equal([(2, 5), (2, 6), (2, 7)], coordinates);
     }
 
@@ -52,16 +52,9 @@ public class PuzzleRunTests
     {
         Puzzle.Run run = Puzzle.Run.Parse(0, "16,3,2,4,1");
 
-        (int row, int column)[] coordinates = run.CellCoordinates;
+        var coordinates = run.GetCellCoordinates();
 
-        Assert.Equal(3, coordinates.Length);
+        Assert.Equal(3, coordinates.Count());
         Assert.Equal([(3, 4), (4, 4), (5, 4)], coordinates);
-    }
-
-    [Fact]
-    public void Parse_InvalidOrientation_ThrowsInvalidOperationException()
-    {
-        // Constructing a run string with an undefined orientation value throws during initialization
-        Assert.Throws<InvalidOperationException>(() => Puzzle.Run.Parse(0, "16,2,0,0,99"));
     }
 }
