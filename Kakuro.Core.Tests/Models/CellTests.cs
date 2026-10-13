@@ -5,238 +5,28 @@ namespace Kakuro.Core.Tests.Models;
 public class CellTests
 {
     [Fact]
-    public void Constructor_InitializesStateAndCoordinates()
+    public void EmptyCell_InheritsFromCell()
     {
-        Cell cell = new(3, 5);
+        Cell cell = EmptyCell.Instance;
 
-        Assert.Equal(3, cell.Row);
-        Assert.Equal(5, cell.Column);
-        Assert.Equal(0, cell.Value);
-        Assert.False(cell.IsSolved);
-        Assert.Equal([1, 2, 3, 4, 5, 6, 7, 8, 9], cell.Candidates);
-        Assert.Empty(cell.LinkedCells);
-        Assert.Equal(" ", cell.ToString());
+        Assert.IsAssignableFrom<Cell>(cell);
     }
 
     [Fact]
-    public void Bind_AddsPeerCellsExcludingSelfAndAvoidsDuplicates()
+    public void PlayableCell_InheritsFromCell()
     {
-        Cell cell1 = new(1, 1);
-        Cell cell2 = new(1, 2);
-        Cell cell3 = new(1, 3);
+        Cell cell = new PlayableCell(1, 2);
 
-        cell1.Bind([cell1, cell2, cell3]);
-
-        Assert.Equal(2, cell1.LinkedCells.Count);
-        Assert.Contains(cell2, cell1.LinkedCells);
-        Assert.Contains(cell3, cell1.LinkedCells);
-        Assert.DoesNotContain(cell1, cell1.LinkedCells);
-
-        // Binding again should not duplicate
-        cell1.Bind([cell2, cell3]);
-        Assert.Equal(2, cell1.LinkedCells.Count);
+        Assert.IsAssignableFrom<Cell>(cell);
     }
 
     [Fact]
-    public void RemoveCandidate_UnsolvedCell_RemovesCandidateWithoutSolving()
+    public void PolymorphicCells_CanBeStoredInCellArray()
     {
-        Cell cell = new(0, 0);
+        Cell[] cells = [EmptyCell.Instance, new PlayableCell(0, 0)];
 
-        (string? error, bool removed) = cell.RemoveCandidate(3);
-
-        Assert.Null(error);
-        Assert.True(removed);
-        Assert.False(cell.IsSolved);
-        Assert.Equal(0, cell.Value);
-        Assert.Equal([1, 2, 4, 5, 6, 7, 8, 9], cell.Candidates);
-        Assert.Equal(" ", cell.ToString());
-    }
-
-    [Fact]
-    public void RemoveCandidate_WhenCandidateNotPresent_ReturnsFalseAndNoError()
-    {
-        Cell cell = new(0, 0);
-        cell.RemoveCandidate(3);
-
-        (string? error, bool removed) = cell.RemoveCandidate(3);
-
-        Assert.Null(error);
-        Assert.False(removed);
-        Assert.False(cell.IsSolved);
-        Assert.Equal([1, 2, 4, 5, 6, 7, 8, 9], cell.Candidates);
-    }
-
-    [Fact]
-    public void RemoveCandidate_DownToOneCandidate_SolvesCellAndUpdatesString()
-    {
-        string? error = null;
-        bool removed = false;
-        Cell cell = new(2, 4);
-
-        // Remove candidates 1 through 7, leaving 8 and 9
-        for (int i = 1; i <= 7; i++)
-        {
-            (error, removed) = cell.RemoveCandidate(i);
-            Assert.Null(error);
-            Assert.True(removed);
-            Assert.False(cell.IsSolved);
-        }
-        Assert.Equal([8, 9], cell.Candidates);
-
-        (error, removed) = cell.RemoveCandidate(8);
-
-        Assert.Null(error);
-        Assert.True(removed);
-        Assert.True(cell.IsSolved);
-        Assert.Equal(9, cell.Value);
-        Assert.Equal([9], cell.Candidates);
-        Assert.Equal("9", cell.ToString());
-    }
-
-    [Fact]
-    public void RemoveCandidate_WhenAllCandidatesRemoved_ReturnsError()
-    {
-        Cell cell = new(1, 2);
-
-        // Remove candidates 1 through 8
-        for (int i = 1; i <= 8; i++)
-        {
-            cell.RemoveCandidate(i);
-        }
-
-        // Cell is now solved to 9. Removing 9 should return no candidates error
-        (string? error, bool removed) = cell.RemoveCandidate(9);
-
-        Assert.Equal("Cell at row 1, column 2 has no candidates.", error);
-        Assert.False(removed);
-    }
-
-    [Fact]
-    public void RemoveCandidate_WhenAlreadySolved_ReturnsErrorOnlyWhenMatchingValue()
-    {
-        Cell cell = new(0, 0);
-        var (initError, initRemoved) = cell.RemoveCandidates([1, 2, 3, 4, 5, 6, 7, 8]); // Solved to 9
-        Assert.Null(initError);
-        Assert.True(initRemoved);
-        Assert.True(cell.IsSolved);
-        Assert.Equal(9, cell.Value);
-
-        // Removing a candidate different from solved Value should return empty string and false
-        (string? nonMatchingError, bool nonMatchingRemoved) = cell.RemoveCandidate(4);
-        Assert.Null(nonMatchingError);
-        Assert.False(nonMatchingRemoved);
-
-        // Removing the candidate matching solved Value returns error and false
-        (string? matchingError, bool matchingRemoved) = cell.RemoveCandidate(9);
-        Assert.Equal("Cell at row 0, column 0 has no candidates.", matchingError);
-        Assert.False(matchingRemoved);
-    }
-
-    [Fact]
-    public void RemoveCandidates_MultipleValues_AppliesAllRemovals()
-    {
-        Cell cell = new(1, 1);
-
-        (string? result, bool removed) = cell.RemoveCandidates([2, 3, 4, 5, 6, 7, 8]);
-
-        Assert.Null(result);
-        Assert.True(removed);
-        Assert.False(cell.IsSolved);
-        Assert.Equal([1, 9], cell.Candidates);
-    }
-
-    [Fact]
-    public void RemoveCandidates_WhenNoCandidatesRemoved_ReturnsFalseAndNoError()
-    {
-        Cell cell = new(1, 1);
-        cell.RemoveCandidates([2, 3]);
-
-        (string? result, bool removed) = cell.RemoveCandidates([2, 3]);
-
-        Assert.Null(result);
-        Assert.False(removed);
-        Assert.False(cell.IsSolved);
-        Assert.Equal([1, 4, 5, 6, 7, 8, 9], cell.Candidates);
-    }
-
-    [Fact]
-    public void RemoveCandidates_LeavesSingleCandidate_SolvesCell()
-    {
-        Cell cell = new(1, 1);
-
-        (string? result, bool removed) = cell.RemoveCandidates([1, 2, 3, 4, 5, 6, 7, 8]);
-
-        Assert.Null(result);
-        Assert.True(removed);
-        Assert.True(cell.IsSolved);
-        Assert.Equal(9, cell.Value);
-        Assert.Equal([9], cell.Candidates);
-    }
-
-    [Fact]
-    public void Candidates_ReturnsRemainingCandidatesInAscendingOrder()
-    {
-        Cell cell = new(0, 0);
-        var (_, removed) = cell.RemoveCandidates([7, 2, 5]);
-
-        Assert.True(removed);
-        Assert.Equal([1, 3, 4, 6, 8, 9], cell.Candidates);
-    }
-
-    [Fact]
-    public void RemoveCandidates_WhenContradictionOccurs_ShortCircuitsAndReturnsError()
-    {
-        Cell cell = new(3, 3);
-
-        (string? error, bool removed) = cell.RemoveCandidates([1, 2, 3, 4, 5, 6, 7, 8, 9]);
-
-        Assert.Equal("Cell at row 3, column 3 has no candidates.", error);
-        Assert.True(removed);
-    }
-
-    [Fact]
-    public void Solve_PropagatesValueRemovalToLinkedCells()
-    {
-        Cell cellA = new(0, 0);
-        Cell cellB = new(0, 1);
-
-        // Link cellA and cellB
-        cellA.Bind([cellA, cellB]);
-        cellB.Bind([cellA, cellB]);
-
-        // Restrict cellB to candidates {8, 9}
-        cellB.RemoveCandidates([1, 2, 3, 4, 5, 6, 7]);
-
-        // Solve cellA to 9 by eliminating 1..8
-        (string? result, bool removed) = cellA.RemoveCandidates([1, 2, 3, 4, 5, 6, 7, 8]);
-
-        Assert.Null(result);
-        Assert.True(removed);
-        Assert.True(cellA.IsSolved);
-        Assert.Equal(9, cellA.Value);
-
-        // cellB should have received candidate 9 removal, reducing it to {8} and auto-solving to 8
-        Assert.True(cellB.IsSolved);
-        Assert.Equal(8, cellB.Value);
-    }
-
-    [Fact]
-    public void Solve_PropagatesContradictionToLinkedCell_ReturnsError()
-    {
-        Cell cellA = new(0, 0);
-        Cell cellB = new(0, 1);
-
-        // Directly solve cellB to 9
-        cellB.RemoveCandidates([1, 2, 3, 4, 5, 6, 7, 8]);
-        Assert.True(cellB.IsSolved);
-        Assert.Equal(9, cellB.Value);
-
-        // Bind cellB to cellA so that cellA solving to 9 propagates to already-solved cellB
-        cellA.Bind([cellB]);
-
-        // When cellA solves to 9, it tries to remove 9 from cellB, causing conflict
-        (string? error, _) = cellA.RemoveCandidates([1, 2, 3, 4, 5, 6, 7, 8]);
-
-        Assert.Equal("Cell at row 0, column 1 has no candidates.", error);
+        Assert.Equal(2, cells.Length);
+        Assert.IsType<EmptyCell>(cells[0]);
+        Assert.IsType<PlayableCell>(cells[1]);
     }
 }

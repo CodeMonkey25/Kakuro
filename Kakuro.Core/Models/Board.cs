@@ -9,7 +9,7 @@ public class Board
     private static readonly int[] MaxPossibleSum = [0, 9, 17, 24, 30, 35, 39, 42, 44, 45];
 
     private Puzzle Puzzle { get; }
-    private Cell?[][] Cells { get; }
+    private Cell[][] Cells { get; }
     private Run[] Runs { get; }
     
     // buffers for use with GetExcludedCandidates()
@@ -23,10 +23,14 @@ public class Board
         Puzzle = puzzle;
         
         // prepare Cells array
-        Cells = new Cell?[Puzzle.Rows][];
+        Cells = new Cell[Puzzle.Rows][];
         for (int r = 0; r < Puzzle.Rows; r++)
         {
-            Cells[r] = new Cell?[Puzzle.Columns];
+            Cells[r] = new Cell[Puzzle.Columns];
+            for (int c = 0; c < Puzzle.Columns; c++)
+            {
+                Cells[r][c] = EmptyCell.Instance;
+            }
         }
         
         // instantiate cells from puzzle runs
@@ -36,15 +40,19 @@ public class Board
         int i = 0;
         foreach (Puzzle.Run puzzleRun in Puzzle.Runs)
         {
-            Cell[] runCells = new Cell[puzzleRun.Length];
+            PlayableCell[] runCells = new PlayableCell[puzzleRun.Length];
             int j = 0;
             foreach ((int row, int column) in puzzleRun.GetCellCoordinates())
             {
-                Cells[row][column] ??= new Cell(row, column);
-                runCells[j++] = Cells[row][column]!;
+                if (Cells[row][column] is not PlayableCell playableCell)
+                {
+                    playableCell = new PlayableCell(row, column);
+                    Cells[row][column] = playableCell;
+                }
+                runCells[j++] = playableCell;
             }
             Runs[i++] = new Run(puzzleRun, runCells.ToImmutableArray());
-            foreach (Cell cell in runCells)
+            foreach (PlayableCell cell in runCells)
             {
                 cell.Bind(runCells);
             }
@@ -55,13 +63,13 @@ public class Board
     {
         string rowDivider = new('-', Puzzle.Columns * 2 + 1);
         StringBuilder sb = new();
-        foreach (Cell?[] row in Cells)
+        foreach (Cell[] row in Cells)
         {
             sb.AppendLine(rowDivider);
-            foreach (Cell? cell in row)
+            foreach (Cell cell in row)
             {
                 sb.Append('|');
-                sb.Append(cell?.ToString() ?? "X");
+                sb.Append(cell);
             }
             sb.Append('|');
             sb.AppendLine();
@@ -72,12 +80,12 @@ public class Board
 
     public bool IsSolved()
     {
-        foreach (Cell?[] row in Cells)
+        foreach (Cell[] row in Cells)
         {
-            foreach (Cell? cell in row)
+            foreach (Cell cell in row)
             {
-                if (cell is null) continue;
-                if (!cell.IsSolved) return false;
+                if (cell is PlayableCell playableCell && !playableCell.IsSolved)
+                    return false;
             }
         }
         return true;
@@ -118,7 +126,7 @@ public class Board
 
             for (int j = 0; j < run.Length; j++)
             {
-                Cell cell = run.Cells[j];
+                PlayableCell cell = run.Cells[j];
                 HashSet<int> excluded = excludedCandidates[j];
 
                 (string? error, bool cellWasUpdated) = cell.RemoveCandidates(excluded);
@@ -169,9 +177,9 @@ public class Board
         }
     }
 
-    private readonly struct Run(Puzzle.Run puzzleRun, ImmutableArray<Cell> cells)
+    private readonly struct Run(Puzzle.Run puzzleRun, ImmutableArray<PlayableCell> cells)
     {
-        public ImmutableArray<Cell> Cells { get; } = cells;
+        public ImmutableArray<PlayableCell> Cells { get; } = cells;
         public int Length => puzzleRun.Length;
         public int Total => puzzleRun.Total;
     }
