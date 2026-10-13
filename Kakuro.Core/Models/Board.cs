@@ -4,11 +4,15 @@ namespace Kakuro.Core.Models;
 
 public class Board
 {
+    private static readonly int[] MinPossibleSum = [0, 1, 3, 6, 10, 15, 21, 28, 36, 45];
+    private static readonly int[] MaxPossibleSum = [0, 9, 17, 24, 30, 35, 39, 42, 44, 45];
+
     private Puzzle Puzzle { get; }
     private Cell?[][] Cells { get; }
     private Cell[][] Runs { get; }
     
     private readonly int[] _numberBuffer = new int[9];
+    private readonly bool[] _usedNumbersBuffer = new bool[10]; // indices 1..9 for digits
     private readonly HashSet<int>[] _excludedCandidatesBuffer = Enumerable.Range(0, 9).Select(_ => new HashSet<int>()).ToArray();
     private readonly IReadOnlyList<int>[] _currentCandidatesBuffer = Enumerable.Range(0, 9).Select(_ => (IReadOnlyList<int>)Array.Empty<int>()).ToArray();
     
@@ -103,6 +107,7 @@ public class Board
             Span<IReadOnlyList<int>> currentCandidates = _currentCandidatesBuffer.AsSpan(0, cells.Length);
             ReadOnlySpan<HashSet<int>> excludedCandidates = _excludedCandidatesBuffer.AsSpan(0, cells.Length);
             Span<int> numbers = _numberBuffer.AsSpan(0, cells.Length);
+            Span<bool> usedNumbers = _usedNumbersBuffer.AsSpan();
 
             for (int j = 0; j < cells.Length; j++)
             {
@@ -110,8 +115,9 @@ public class Board
                 excludedCandidates[j].Clear();
                 excludedCandidates[j].UnionWith(currentCandidates[j]);
             }
+            usedNumbers.Clear();
 
-            GetExcludedCandidates(0, run.Total, 0, currentCandidates, excludedCandidates, numbers);
+            GetExcludedCandidates(0, run.Total, 0, currentCandidates, excludedCandidates, numbers, usedNumbers);
 
             for (int j = 0; j < cells.Length; j++)
             {
@@ -129,7 +135,7 @@ public class Board
         return (null, boardWasUpdated);
     }
 
-    private void GetExcludedCandidates(int depth, int total, int runningTotal, Span<IReadOnlyList<int>> currentCandidates, ReadOnlySpan<HashSet<int>> excludedCandidates, Span<int> numbers)
+    private void GetExcludedCandidates(int depth, int total, int runningTotal, Span<IReadOnlyList<int>> currentCandidates, ReadOnlySpan<HashSet<int>> excludedCandidates, Span<int> numbers, Span<bool> usedNumbers)
     {
         if (depth >= numbers.Length)
         {
@@ -143,17 +149,26 @@ public class Board
             return;
         }
 
+        int remainingCellsAfterThis = numbers.Length - depth - 1;
         IReadOnlyList<int> currentCandidate = currentCandidates[depth];
         int currentCandidateCount = currentCandidate.Count;
         for (int i = 0; i < currentCandidateCount; i++)
         {
             int current = currentCandidate[i];
-            if (numbers[..depth].Contains(current)) continue;
-            if (runningTotal + current > total) continue;
+            if (usedNumbers[current]) continue;
+            
+            int newRunningTotal = runningTotal + current;
+            if (newRunningTotal > total) continue;
+            
+            int remainingSumNeeded = total - newRunningTotal;
+            if (remainingSumNeeded < MinPossibleSum[remainingCellsAfterThis]) continue;
+            if (remainingSumNeeded > MaxPossibleSum[remainingCellsAfterThis]) continue;
 
             numbers[depth] = current;
-            GetExcludedCandidates(depth + 1, total, runningTotal + current, currentCandidates, excludedCandidates, numbers);
+            usedNumbers[current] = true;
+            GetExcludedCandidates(depth + 1, total, newRunningTotal, currentCandidates, excludedCandidates, numbers, usedNumbers);
             numbers[depth] = 0;
+            usedNumbers[current] = false;
         }
     }
 }
