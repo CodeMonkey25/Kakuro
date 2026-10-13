@@ -11,6 +11,7 @@ public class Board
     private Cell?[][] Cells { get; }
     private Cell[][] Runs { get; }
     
+    // buffers for use with GetExcludedCandidates()
     private readonly int[] _numberBuffer = new int[9];
     private readonly bool[] _usedNumbersBuffer = new bool[10]; // indices 1..9 for digits
     private readonly HashSet<int>[] _excludedCandidatesBuffer = Enumerable.Range(0, 9).Select(_ => new HashSet<int>()).ToArray();
