@@ -193,6 +193,12 @@ public class Board
             usedNumbers[current] = false;
         }
     }
+    
+    public bool BruteForceCells()
+    {
+        
+        return false;
+    }
 
     private readonly struct Run(Puzzle.Run puzzleRun, ImmutableArray<PlayableCell> cells)
     {

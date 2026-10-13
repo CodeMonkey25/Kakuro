@@ -11,26 +11,24 @@ public class Engine
         Log = log;
     }
 
-    public bool SolveLogically(Puzzle puzzle)
+    public bool Solve(Puzzle puzzle)
     {
-        bool changed = false;
         Board board = new(puzzle);
         
         Log?.Invoke("Solving puzzle...");
         
-        Log?.Invoke("Updating run constraints...");
-        int pass = 0;
-        do
+        string? error = SolveLogically(board);
+        if (error != null)
         {
-            Log?.Invoke($"\tPass {++pass}...");
-            (string? error, changed) = board.UpdateCellConstraints();
-            if (error != null)
-            {
-                Log?.Invoke(error);
-                return false;
-            }
-        } while (changed);
+            Log?.Invoke(error);
+            return false;
+        }
 
+        if (!board.IsSolved())
+        {
+            SolveViaBruteForce(board);
+        }
+        
         Log?.Invoke(board.ToString());
 
         if (board.IsSolved())
@@ -39,9 +37,29 @@ public class Engine
         }
         else
         {
-            Log?.Invoke("Unable to solve puzzle logically");
+            Log?.Invoke("Unable to solve puzzle");
         }
         
         return board.IsSolved();
+    }
+
+    private string? SolveLogically(Board board)
+    {
+        bool changed;
+        Log?.Invoke("Updating run constraints...");
+        int pass = 0;
+        do
+        {
+            Log?.Invoke($"\tPass {++pass}...");
+            (string? error, changed) = board.UpdateCellConstraints();
+            if (error != null) return error;
+        } while (changed);
+
+        return null;
+    }
+    
+    private bool SolveViaBruteForce(Board board)
+    {
+        return board.BruteForceCells();
     }
 }

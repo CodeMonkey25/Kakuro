@@ -32,7 +32,7 @@ class Program
 
         System.Console.WriteLine();
         Engine engine = new(System.Console.WriteLine);
-        bool solved = engine.SolveLogically(puzzle);
+        bool solved = engine.Solve(puzzle);
         System.Console.WriteLine(solved);
     }
     
