@@ -16,8 +16,8 @@ class Program
     private static void Run()
     {
         Puzzle puzzle = File.ReadLines("puzzles.txt")
-            .Select(p => p.Trim())
-            .Where(p => !string.IsNullOrWhiteSpace(p))
+            .Select(static p => p.Trim())
+            .Where(static p => !string.IsNullOrWhiteSpace(p))
             .Skip(4)
             .Take(1)
             .Select(Puzzle.Parse)
@@ -48,5 +48,4 @@ class Program
         watch.Stop();
         return $"Total time: {watch.Elapsed.ReadableTime()}";
     }
-
 }
