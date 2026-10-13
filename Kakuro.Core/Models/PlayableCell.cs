@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace Kakuro.Core.Models;
 
 public sealed class PlayableCell : Cell
@@ -89,4 +91,17 @@ public sealed class PlayableCell : Cell
     }
     
     public override string ToString() => Value == 0 ? " " : Value.ToString();
+    
+    public override State GetState() => new PlayableCellState(Value, _candidates.ToImmutableArray());
+
+    public override void SetState(State state)
+    {
+        if (state is not PlayableCellState playableCellState) throw new ArgumentException("Invalid state");
+        
+        Value = playableCellState.Value;
+        _candidates.Clear();
+        _candidates.AddRange(playableCellState.Candidates);
+    }
+
+    private sealed record PlayableCellState(int Value, ImmutableArray<int> Candidates) : Cell.State;
 }

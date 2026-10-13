@@ -101,6 +101,16 @@ public class Board
         return true;
     }
     
+    public State GetState() => new(Cells.Select(cell => cell.GetState()).ToImmutableArray());
+
+    public void SetState(State state)
+    {
+        for (int i = 0; i < Cells.Length; i++)
+        {
+            Cells[i].SetState(state.CellStates[i]);
+        }
+    }
+
     public (string? error, bool changed) UpdateCellConstraints()
     {
         bool boardWasUpdated = false;
@@ -181,4 +191,6 @@ public class Board
         public int Length => puzzleRun.Length;
         public int Total => puzzleRun.Total;
     }
+    
+    public sealed record State(ImmutableArray<Cell.State> CellStates);
 }

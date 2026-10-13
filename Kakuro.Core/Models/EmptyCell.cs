@@ -7,4 +7,17 @@ public sealed class EmptyCell : Cell
     public override string ToString() => "X";
     
     private EmptyCell() { }
+
+    public override State GetState() => EmptyCellState.Instance;
+
+    public override void SetState(State state)
+    {
+        if (state is EmptyCellState) return;
+        throw new ArgumentException("Invalid state");
+    }
+
+    private sealed record EmptyCellState : Cell.State
+    {
+        public static EmptyCellState Instance { get; } = new();
+    }
 }
