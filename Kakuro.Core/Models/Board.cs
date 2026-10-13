@@ -9,7 +9,7 @@ public class Board
 
     private Puzzle Puzzle { get; }
     private Cell?[][] Cells { get; }
-    private Cell[][] Runs { get; }
+    private Run[] Runs { get; }
     
     // buffers for use with GetExcludedCandidates()
     private readonly int[] _numberBuffer = new int[9];
@@ -29,20 +29,20 @@ public class Board
         }
         
         // instantiate cells from puzzle runs
-        // instantiate Runs
+        // instantiate Board Runs
         // bind cells together
-        Runs = new Cell[Puzzle.Runs.Length][];
+        Runs = new Run[Puzzle.Runs.Length];
         int i = 0;
-        foreach (Puzzle.Run run in Puzzle.Runs)
+        foreach (Puzzle.Run puzzleRun in Puzzle.Runs)
         {
-            Cell[] runCells = new Cell[run.Length];
+            Cell[] runCells = new Cell[puzzleRun.Length];
             int j = 0;
-            foreach ((int row, int column) in run.CellCoordinates)
+            foreach ((int row, int column) in puzzleRun.CellCoordinates)
             {
                 Cells[row][column] ??= new Cell(row, column);
                 runCells[j++] = Cells[row][column]!;
             }
-            Runs[i++] = runCells;
+            Runs[i++] = new Run(puzzleRun, runCells);
             foreach (Cell cell in runCells)
             {
                 cell.Bind(runCells);
@@ -84,14 +84,11 @@ public class Board
 
     public bool IsSolutionValid()
     {
-        for (int i = 0; i < Puzzle.Runs.Length; i++)
+        foreach (Run run in Runs)
         {
-            Puzzle.Run run = Puzzle.Runs[i];
-            Cell[] cells = Runs[i];
-            
-            if (cells.Any(c => !c.IsSolved)) return false;
-            if (cells.Sum(c => c.Value) != run.Total) return false;
-            if (cells.DistinctBy(c => c.Value).Count() != cells.Length) return false;
+            if (run.Cells.Any(c => !c.IsSolved)) return false;
+            if (run.Cells.Sum(c => c.Value) != run.Total) return false;
+            if (run.Cells.DistinctBy(c => c.Value).Count() != run.Length) return false;
         }
 
         return true;
@@ -101,18 +98,16 @@ public class Board
     {
         bool boardWasUpdated = false;
 
-        for (int i = 0; i < Puzzle.Runs.Length; i++)
+        foreach (Run run in Runs)
         {
-            Puzzle.Run run = Puzzle.Runs[i];
-            ReadOnlySpan<Cell> cells = Runs[i];
-            Span<IReadOnlyList<int>> currentCandidates = _currentCandidatesBuffer.AsSpan(0, cells.Length);
-            ReadOnlySpan<HashSet<int>> excludedCandidates = _excludedCandidatesBuffer.AsSpan(0, cells.Length);
-            Span<int> numbers = _numberBuffer.AsSpan(0, cells.Length);
+            Span<IReadOnlyList<int>> currentCandidates = _currentCandidatesBuffer.AsSpan(0, run.Length);
+            ReadOnlySpan<HashSet<int>> excludedCandidates = _excludedCandidatesBuffer.AsSpan(0, run.Length);
+            Span<int> numbers = _numberBuffer.AsSpan(0, run.Length);
             Span<bool> usedNumbers = _usedNumbersBuffer.AsSpan();
 
-            for (int j = 0; j < cells.Length; j++)
+            for (int j = 0; j < run.Length; j++)
             {
-                currentCandidates[j] = cells[j].Candidates;
+                currentCandidates[j] = run.Cells[j].Candidates;
                 excludedCandidates[j].Clear();
                 excludedCandidates[j].UnionWith(currentCandidates[j]);
             }
@@ -120,9 +115,9 @@ public class Board
 
             GetExcludedCandidates(0, run.Total, 0, currentCandidates, excludedCandidates, numbers, usedNumbers);
 
-            for (int j = 0; j < cells.Length; j++)
+            for (int j = 0; j < run.Length; j++)
             {
-                Cell cell = cells[j];
+                Cell cell = run.Cells[j];
                 HashSet<int> excluded = excludedCandidates[j];
 
                 (string? error, bool cellWasUpdated) = cell.RemoveCandidates(excluded);
@@ -171,5 +166,12 @@ public class Board
             numbers[depth] = 0;
             usedNumbers[current] = false;
         }
+    }
+
+    private readonly struct Run(Puzzle.Run puzzleRun, Cell[] cells)
+    {
+        public Cell[] Cells { get; } = cells;
+        public int Length => puzzleRun.Length;
+        public int Total => puzzleRun.Total;
     }
 }
