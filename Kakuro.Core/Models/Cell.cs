@@ -5,10 +5,10 @@ public class Cell
     public int Row { get; }
     public int Column { get; }
     public int Value { get; private set; }
-    public bool IsSolved { get; private set; }
+    public bool IsSolved => Value != 0;
     
-    private HashSet<int> _candidates = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-    public int[] Candidates => _candidates.Order().ToArray();
+    private List<int> _candidates = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    public IReadOnlyList<int> Candidates => _candidates;
     
     private readonly HashSet<Cell> _linkedCells = [];
     public IReadOnlySet<Cell> LinkedCells => _linkedCells;
@@ -41,9 +41,8 @@ public class Cell
         {
             error = Value == candidate ? $"Cell at row {Row}, column {Column} has no candidates." : null;
         }
-        else if (_candidates.Contains(candidate))
+        else if (_candidates.Remove(candidate))
         {
-            _candidates.Remove(candidate);
             removed = true;
             
             switch (_candidates.Count)
@@ -52,7 +51,7 @@ public class Cell
                     error = $"Cell at row {Row}, column {Column} has no candidates.";
                     break;
                 case 1:
-                    error = Solve(_candidates.First());
+                    error = Solve(_candidates[0]);
                     break;
             }
         }
@@ -67,9 +66,9 @@ public class Cell
             return Value != value ? $"Cell at row {Row}, column {Column} is already solved." : null;
         }
         
-        IsSolved = true;
         Value = value;
-        _candidates = [value,];
+        _candidates.Clear();
+        _candidates.Add(value);
         
         foreach (Cell linkedCell in LinkedCells)
         {

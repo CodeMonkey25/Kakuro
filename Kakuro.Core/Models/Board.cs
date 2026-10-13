@@ -10,7 +10,7 @@ public class Board
     
     private readonly int[] _numberBuffer = new int[9];
     private readonly HashSet<int>[] _excludedCandidatesBuffer = Enumerable.Range(0, 9).Select(_ => new HashSet<int>()).ToArray();
-    private readonly int[][] _currentCandidatesBuffer = Enumerable.Range(0, 9).Select(_ => Array.Empty<int>()).ToArray();
+    private readonly IReadOnlyList<int>[] _currentCandidatesBuffer = Enumerable.Range(0, 9).Select(_ => (IReadOnlyList<int>)Array.Empty<int>()).ToArray();
     
     public Board(Puzzle puzzle)
     {
@@ -79,20 +79,14 @@ public class Board
 
     public bool IsSolutionValid()
     {
-        if (!IsSolved()) return false;
-
         for (int i = 0; i < Puzzle.Runs.Length; i++)
         {
             Run run = Puzzle.Runs[i];
-            ReadOnlySpan<Cell> cells = Runs[i];
-            HashSet<int> candidates = [];
-            foreach (Cell cell in cells)
-            {
-                candidates.UnionWith(cell.Candidates);
-            }
-
-            if (candidates.Sum() != run.Total) return false;
-            if (candidates.Count != cells.Length) return false;
+            Cell[] cells = Runs[i];
+            
+            if (cells.Any(c => !c.IsSolved)) return false;
+            if (cells.Sum(c => c.Value) != run.Total) return false;
+            if (cells.DistinctBy(c => c.Value).Count() != cells.Length) return false;
         }
 
         return true;
@@ -106,7 +100,7 @@ public class Board
         {
             Run run = Puzzle.Runs[i];
             ReadOnlySpan<Cell> cells = Runs[i];
-            Span<int[]> currentCandidates = _currentCandidatesBuffer.AsSpan(0, cells.Length);
+            Span<IReadOnlyList<int>> currentCandidates = _currentCandidatesBuffer.AsSpan(0, cells.Length);
             ReadOnlySpan<HashSet<int>> excludedCandidates = _excludedCandidatesBuffer.AsSpan(0, cells.Length);
             Span<int> numbers = _numberBuffer.AsSpan(0, cells.Length);
 
@@ -128,14 +122,14 @@ public class Board
                 if (error != null) return (error, false);
                 if (cellWasUpdated) boardWasUpdated = true;
 
-                currentCandidates[j] = [];
+                currentCandidates[j] = Array.Empty<int>();
             }
         }
 
         return (null, boardWasUpdated);
     }
 
-    private void GetExcludedCandidates(int depth, int total, int runningTotal, Span<int[]> currentCandidates, ReadOnlySpan<HashSet<int>> excludedCandidates, Span<int> numbers)
+    private void GetExcludedCandidates(int depth, int total, int runningTotal, Span<IReadOnlyList<int>> currentCandidates, ReadOnlySpan<HashSet<int>> excludedCandidates, Span<int> numbers)
     {
         if (depth >= numbers.Length)
         {
@@ -148,10 +142,12 @@ public class Board
             }
             return;
         }
-        
-        for (int i = 0; i < currentCandidates[depth].Length; i++)
+
+        IReadOnlyList<int> currentCandidate = currentCandidates[depth];
+        int currentCandidateCount = currentCandidate.Count;
+        for (int i = 0; i < currentCandidateCount; i++)
         {
-            int current = currentCandidates[depth][i];
+            int current = currentCandidate[i];
             if (numbers[..depth].Contains(current)) continue;
             if (runningTotal + current > total) continue;
 
