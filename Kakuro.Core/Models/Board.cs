@@ -9,7 +9,7 @@ public class Board
     private static readonly int[] MaxPossibleSum = [0, 9, 17, 24, 30, 35, 39, 42, 44, 45];
 
     private Puzzle Puzzle { get; }
-    private Cell[][] Cells { get; }
+    private Cell[,] Cells { get; }
     private Run[] Runs { get; }
     
     // buffers for use with GetExcludedCandidates()
@@ -23,13 +23,12 @@ public class Board
         Puzzle = puzzle;
         
         // prepare Cells array
-        Cells = new Cell[Puzzle.Rows][];
+        Cells = new Cell[Puzzle.Rows, Puzzle.Columns];
         for (int r = 0; r < Puzzle.Rows; r++)
         {
-            Cells[r] = new Cell[Puzzle.Columns];
             for (int c = 0; c < Puzzle.Columns; c++)
             {
-                Cells[r][c] = EmptyCell.Instance;
+                Cells[r, c] = EmptyCell.Instance;
             }
         }
         
@@ -44,10 +43,10 @@ public class Board
             int j = 0;
             foreach ((int row, int column) in puzzleRun.GetCellCoordinates())
             {
-                if (Cells[row][column] is not PlayableCell playableCell)
+                if (Cells[row, column] is not PlayableCell playableCell)
                 {
                     playableCell = new PlayableCell(row, column);
-                    Cells[row][column] = playableCell;
+                    Cells[row, column] = playableCell;
                 }
                 runCells[j++] = playableCell;
             }
@@ -63,13 +62,13 @@ public class Board
     {
         string rowDivider = new('-', Puzzle.Columns * 2 + 1);
         StringBuilder sb = new();
-        foreach (Cell[] row in Cells)
+        for (int r = 0; r < Puzzle.Rows; r++)
         {
             sb.AppendLine(rowDivider);
-            foreach (Cell cell in row)
+            for (int c = 0; c < Puzzle.Columns; c++)
             {
                 sb.Append('|');
-                sb.Append(cell);
+                sb.Append(Cells[r, c]);
             }
             sb.Append('|');
             sb.AppendLine();
@@ -80,13 +79,10 @@ public class Board
 
     public bool IsSolved()
     {
-        foreach (Cell[] row in Cells)
+        foreach (Cell cell in Cells)
         {
-            foreach (Cell cell in row)
-            {
-                if (cell is PlayableCell playableCell && !playableCell.IsSolved)
-                    return false;
-            }
+            if (cell is PlayableCell playableCell && !playableCell.IsSolved)
+                return false;
         }
         return true;
     }
