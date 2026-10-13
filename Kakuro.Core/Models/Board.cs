@@ -91,9 +91,16 @@ public class Board
     {
         foreach (Run run in Runs)
         {
-            if (run.Cells.Any(c => !c.IsSolved)) return false;
-            if (run.Cells.Sum(c => c.Value) != run.Total) return false;
-            if (run.Cells.DistinctBy(c => c.Value).Count() != run.Length) return false;
+            int sum = 0;
+            HashSet<int> seen = [];
+            foreach (PlayableCell playableCell in run.Cells)
+            {
+                if (!playableCell.IsSolved) return false;
+                if (!seen.Add(playableCell.Value)) return false;
+                
+                sum += playableCell.Value;
+            }
+            if (sum != run.Total) return false;
         }
 
         return true;
