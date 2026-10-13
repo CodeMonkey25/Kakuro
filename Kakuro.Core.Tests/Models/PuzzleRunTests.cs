@@ -5,10 +5,9 @@ namespace Kakuro.Core.Tests.Models;
 public class PuzzleRunTests
 {
     [Theory]
-    [InlineData(0, "16,2,0,1,0", 16, 2, 0, 1, Puzzle.Run.RunOrientation.Horizontal)]
-    [InlineData(1, "12,3,4,5,1", 12, 3, 4, 5, Puzzle.Run.RunOrientation.Vertical)]
+    [InlineData("16,2,0,1,0", 16, 2, 0, 1, Puzzle.Run.RunOrientation.Horizontal)]
+    [InlineData("12,3,4,5,1", 12, 3, 4, 5, Puzzle.Run.RunOrientation.Vertical)]
     public void Parse_ValidString_SetsPropertiesCorrectly(
-        int index,
         string rawRun,
         int expectedTotal,
         int expectedLength,
@@ -16,9 +15,8 @@ public class PuzzleRunTests
         int expectedColumn,
         Puzzle.Run.RunOrientation expectedOrientation)
     {
-        Puzzle.Run run = Puzzle.Run.Parse(index, rawRun);
+        Puzzle.Run run = Puzzle.Run.Parse(rawRun);
 
-        Assert.Equal(index, run.Index);
         Assert.Equal(expectedTotal, run.Total);
         Assert.Equal(expectedLength, run.Length);
         Assert.Equal(expectedRow, run.Row);
@@ -31,7 +29,7 @@ public class PuzzleRunTests
     [InlineData("12,3,4,5,1")]
     public void ToString_ReturnsFormattedString(string rawRun)
     {
-        Puzzle.Run run = Puzzle.Run.Parse(0, rawRun);
+        Puzzle.Run run = Puzzle.Run.Parse(rawRun);
 
         Assert.Equal(rawRun, run.ToString());
     }
@@ -39,7 +37,7 @@ public class PuzzleRunTests
     [Fact]
     public void CellCoordinates_Horizontal_ReturnsSequentialColumnCoordinates()
     {
-        Puzzle.Run run = Puzzle.Run.Parse(0, "16,3,2,4,0");
+        Puzzle.Run run = Puzzle.Run.Parse("16,3,2,4,0");
 
         var coordinates = run.GetCellCoordinates();
 
@@ -50,7 +48,7 @@ public class PuzzleRunTests
     [Fact]
     public void CellCoordinates_Vertical_ReturnsSequentialRowCoordinates()
     {
-        Puzzle.Run run = Puzzle.Run.Parse(0, "16,3,2,4,1");
+        Puzzle.Run run = Puzzle.Run.Parse("16,3,2,4,1");
 
         var coordinates = run.GetCellCoordinates();
 

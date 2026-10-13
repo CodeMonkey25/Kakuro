@@ -35,18 +35,17 @@ public sealed class Puzzle
         string source = parts[0];
         string number = parts[1];
         string difficulty = parts[2];
-        ImmutableArray<Run> runs = parts[3..].Select((r, i) => Run.Parse(i, r)).ToImmutableArray();
+        ImmutableArray<Run> runs = parts[3..].Select(Run.Parse).ToImmutableArray();
         return new Puzzle(source, number, difficulty, runs);
     }
     
     public override string ToString()
     {
-        return $"{Source}|{Number}|{Difficulty}|{string.Join('|', Runs.Select(r => r.ToString()))}";
+        return $"{Source}|{Number}|{Difficulty}|{string.Join('|', Runs)}";
     }
     
     public readonly record struct Run
     {
-        public int Index { get; }
         public int Total { get; }
         public int Length { get; }
     
@@ -56,9 +55,8 @@ public sealed class Puzzle
     
         public RunOrientation Orientation { get; }
     
-        private Run(int index, int total, int length, int row, int column, RunOrientation orientation)
+        private Run(int total, int length, int row, int column, RunOrientation orientation)
         {
-            Index = index;
             Total = total;
             Length = length;
             Row = row;
@@ -66,15 +64,26 @@ public sealed class Puzzle
             Orientation = orientation;
         }
     
-        public static Run Parse(int index, string run)
+        public static Run Parse(string run)
         {
             string[] parts = run.Split(',');
+            if (parts.Length != 5)
+            {
+                throw new FormatException($"Invalid run string format: '{run}'. Expected 5 comma-separated values.");
+            }
+
             int total = int.Parse(parts[0]);
             int length = int.Parse(parts[1]);
             int row = int.Parse(parts[2]);
             int column = int.Parse(parts[3]);
-            RunOrientation orientation = (RunOrientation)int.Parse(parts[4]);
-            return new Run(index, total, length, row, column, orientation);
+            int orientationValue = int.Parse(parts[4]);
+
+            if (!Enum.IsDefined(typeof(RunOrientation), orientationValue))
+            {
+                throw new FormatException($"Invalid RunOrientation value '{orientationValue}'.");
+            }
+
+            return new Run(total, length, row, column, (RunOrientation)orientationValue);
         }
     
         public override string ToString()
