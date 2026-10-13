@@ -105,6 +105,15 @@ public class Board
 
     public void SetState(State state)
     {
+        if (state is null || state.CellStates.IsDefault || state.CellStates.Length != Cells.Length)
+            throw new ArgumentException("Invalid state");
+        
+        for (int i = 0; i < Cells.Length; i++)
+        {
+            if (!Cells[i].IsValidState(state.CellStates[i]))
+                throw new ArgumentException("Invalid state");
+        }
+
         for (int i = 0; i < Cells.Length; i++)
         {
             Cells[i].SetState(state.CellStates[i]);
@@ -192,5 +201,19 @@ public class Board
         public int Total => puzzleRun.Total;
     }
     
-    public sealed record State(ImmutableArray<Cell.State> CellStates);
+    public sealed record State(ImmutableArray<Cell.State> CellStates)
+    {
+        public bool Equals(State? other) =>
+            other is not null && (CellStates.IsDefault || other.CellStates.IsDefault
+                ? CellStates.IsDefault && other.CellStates.IsDefault
+                : CellStates.AsSpan().SequenceEqual(other.CellStates.AsSpan()));
+
+        public override int GetHashCode()
+        {
+            HashCode hash = new();
+            if (!CellStates.IsDefault)
+                foreach (Cell.State s in CellStates) hash.Add(s);
+            return hash.ToHashCode();
+        }
+    }
 }

@@ -16,6 +16,8 @@ public sealed class EmptyCell : Cell
         throw new ArgumentException("Invalid state");
     }
 
+    public override bool IsValidState(State state) => state is EmptyCellState;
+
     private sealed record EmptyCellState : Cell.State
     {
         public static EmptyCellState Instance { get; } = new();

@@ -96,12 +96,33 @@ public sealed class PlayableCell : Cell
 
     public override void SetState(State state)
     {
-        if (state is not PlayableCellState playableCellState) throw new ArgumentException("Invalid state");
+        if (state is not PlayableCellState playableCellState || !IsValidState(playableCellState))
+            throw new ArgumentException("Invalid state");
         
         Value = playableCellState.Value;
         _candidates.Clear();
         _candidates.AddRange(playableCellState.Candidates);
     }
 
-    private sealed record PlayableCellState(int Value, ImmutableArray<int> Candidates) : Cell.State;
+    public override bool IsValidState(State state)
+    {
+        if (state is not PlayableCellState { Value: var value, Candidates: var candidates }) return false;
+        if (candidates.IsDefault || value is < 0 or > 9) return false;
+        if (value != 0) return candidates.Length == 1 && candidates[0] == value;
+        return candidates.Length > 0 && candidates.All(c => c is >= 1 and <= 9);
+    }
+
+    private sealed record PlayableCellState(int Value, ImmutableArray<int> Candidates) : Cell.State
+    {
+        public bool Equals(PlayableCellState? other) =>
+            other is not null && Value == other.Value && Candidates.AsSpan().SequenceEqual(other.Candidates.AsSpan());
+
+        public override int GetHashCode()
+        {
+            HashCode hash = new();
+            hash.Add(Value);
+            foreach (int c in Candidates) hash.Add(c);
+            return hash.ToHashCode();
+        }
+    }
 }
