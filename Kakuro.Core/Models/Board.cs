@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Text;
 
 namespace Kakuro.Core.Models;
@@ -42,7 +43,7 @@ public class Board
                 Cells[row][column] ??= new Cell(row, column);
                 runCells[j++] = Cells[row][column]!;
             }
-            Runs[i++] = new Run(puzzleRun, runCells);
+            Runs[i++] = new Run(puzzleRun, runCells.ToImmutableArray());
             foreach (Cell cell in runCells)
             {
                 cell.Bind(runCells);
@@ -168,9 +169,9 @@ public class Board
         }
     }
 
-    private readonly struct Run(Puzzle.Run puzzleRun, Cell[] cells)
+    private readonly struct Run(Puzzle.Run puzzleRun, ImmutableArray<Cell> cells)
     {
-        public Cell[] Cells { get; } = cells;
+        public ImmutableArray<Cell> Cells { get; } = cells;
         public int Length => puzzleRun.Length;
         public int Total => puzzleRun.Total;
     }
