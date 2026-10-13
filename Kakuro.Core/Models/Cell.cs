@@ -7,7 +7,7 @@ public class Cell
     public int Value { get; private set; }
     public bool IsSolved => Value != 0;
     
-    private List<int> _candidates = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    private readonly List<int> _candidates = [1, 2, 3, 4, 5, 6, 7, 8, 9];
     public IReadOnlyList<int> Candidates => _candidates;
     
     private readonly HashSet<Cell> _linkedCells = [];
