@@ -4,7 +4,7 @@ namespace Kakuro.Core.Models;
 
 public abstract class CandidateCollection : IReadOnlyList<int>
 {
-    public static CandidateCollection Build(IEnumerable<int> candidates) => new CandidateCollectionList(candidates);
+    public static CandidateCollection Build(IEnumerable<int> candidates) => new CandidateCollectionMask(candidates);
     
     public abstract IEnumerator<int> GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
