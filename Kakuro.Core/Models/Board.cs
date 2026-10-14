@@ -217,9 +217,15 @@ public class Board
 
         PlayableCell? cell = GetCellWithLowestCandidates();
         if (cell == null) return true; // no unsolved cells remain
+        
+        Span<int> candidates = stackalloc int[cell.Candidates.Count];
+        for (int i = 0; i < cell.Candidates.Count; i++)
+        {
+            candidates[i] = cell.Candidates[i];
+        }
 
         State state = GetState();
-        foreach (int candidate in cell.Candidates.ToArray())
+        foreach (int candidate in candidates)
         {
             error = cell.Solve(candidate);
             if (error == null)
