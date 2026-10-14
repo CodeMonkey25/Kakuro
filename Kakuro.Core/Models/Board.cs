@@ -119,8 +119,48 @@ public class Board
             Cells[i].SetState(state.CellStates[i]);
         }
     }
+    
+    public bool Solve()
+    {
+        State initialState = GetState();
+        if (TrySolve()) return true;
 
-    public (string? error, bool changed) UpdateCellConstraints()
+        // a failed search can leave the board half-propagated (possibly with empty candidate lists)
+        SetState(initialState);
+        return false;
+    }
+
+    private bool TrySolve()
+    {
+        // update cell constraints
+        bool changed;
+        do
+        {
+            (string? constraintError, changed) = UpdateCellConstraints();
+            if (constraintError != null) return false; // previous guess must be bad
+        } while (changed);
+
+        PlayableCell? cell = GetCellWithLowestCandidates();
+        if (cell == null) return true; // no unsolved cells remain
+        
+        Span<int> candidates = stackalloc int[cell.Candidates.Count];
+        for (int i = 0; i < cell.Candidates.Count; i++)
+        {
+            candidates[i] = cell.Candidates[i];
+        }
+
+        State state = GetState();
+        foreach (int candidate in candidates)
+        {
+            string? guessError = cell.Solve(candidate);
+            if (guessError == null && TrySolve()) return true;
+            SetState(state);
+        }
+        
+        return false;
+    }
+
+    private (string? error, bool changed) UpdateCellConstraints()
     {
         bool boardWasUpdated = false;
 
@@ -192,46 +232,6 @@ public class Board
             numbers[depth] = 0;
             usedNumbers[current] = false;
         }
-    }
-    
-    public bool Solve()
-    {
-        State initialState = GetState();
-        if (TrySolve()) return true;
-
-        // a failed search can leave the board half-propagated (possibly with empty candidate lists)
-        SetState(initialState);
-        return false;
-    }
-
-    private bool TrySolve()
-    {
-        // update cell constraints
-        bool changed;
-        do
-        {
-            (string? constraintError, changed) = UpdateCellConstraints();
-            if (constraintError != null) return false; // previous guess must be bad 
-        } while (changed);
-
-        PlayableCell? cell = GetCellWithLowestCandidates();
-        if (cell == null) return true; // no unsolved cells remain
-        
-        Span<int> candidates = stackalloc int[cell.Candidates.Count];
-        for (int i = 0; i < cell.Candidates.Count; i++)
-        {
-            candidates[i] = cell.Candidates[i];
-        }
-
-        State state = GetState();
-        foreach (int candidate in candidates)
-        {
-            string? guessError = cell.Solve(candidate);
-            if (guessError == null && TrySolve()) return true;
-            SetState(state);
-        }
-        
-        return false;
     }
 
     private PlayableCell? GetCellWithLowestCandidates()
