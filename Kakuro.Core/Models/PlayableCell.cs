@@ -12,8 +12,8 @@ public sealed class PlayableCell : Cell
     private readonly List<int> _candidates = [1, 2, 3, 4, 5, 6, 7, 8, 9];
     public IReadOnlyList<int> Candidates => _candidates;
     
-    private readonly HashSet<PlayableCell> _linkedCells = [];
-    public IReadOnlySet<PlayableCell> LinkedCells => _linkedCells;
+    private readonly List<PlayableCell> _linkedCells = [];
+    public IReadOnlyList<PlayableCell> LinkedCells => _linkedCells;
     
     public PlayableCell(int row, int column)
     {
@@ -86,6 +86,7 @@ public sealed class PlayableCell : Cell
         foreach (PlayableCell linkedCell in linkedCells)
         {
             if (linkedCell == this) continue;
+            if (_linkedCells.Contains(linkedCell)) continue;
             _linkedCells.Add(linkedCell);
         }
     }
