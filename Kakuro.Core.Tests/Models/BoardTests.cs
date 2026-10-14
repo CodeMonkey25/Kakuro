@@ -158,6 +158,20 @@ public class BoardTests
     }
 
     [Fact]
+    public void Solve_WhenPropagationFindsConflict_LogsConflictAndDoesNotGuess()
+    {
+        // same contradictory puzzle as above: rejected by constraint propagation alone
+        Puzzle puzzle = Puzzle.Parse("test|1|Easy|3,2,1,0,0|17,2,0,1,1");
+        Board board = new(puzzle);
+        List<string> log = [];
+
+        Assert.False(board.Solve(log.Add));
+
+        Assert.Single(log, message => message.Contains("constraints conflict detected"));
+        Assert.DoesNotContain(log, message => message.Contains("guessing"));
+    }
+
+    [Fact]
     public void Solve_WhenAlreadySolved_ReturnsTrueAndLeavesStateUnchanged()
     {
         Puzzle puzzle = Puzzle.Parse("test|1|Easy|3,2,1,0,0|4,2,0,1,1");

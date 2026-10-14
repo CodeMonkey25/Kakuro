@@ -123,38 +123,54 @@ public class Board
     public bool Solve(Action<string>? log = null)
     {
         State initialState = GetState();
-        if (TrySolve(log)) return true;
+
+        string? error = PropagateConstraints();
+        if (error == null)
+        {
+            if (SolveByGuessing(log)) return true;
+        }
+        else
+        {
+            log?.Invoke($"constraints conflict detected: {error}");
+        }
 
         // a failed search can leave the board half-propagated (possibly with empty candidate lists)
         SetState(initialState);
         return false;
     }
 
-    private bool TrySolve(Action<string>? log)
+    // repeats UpdateCellConstraints() until nothing changes; returns null on success or the first error
+    private string? PropagateConstraints()
     {
-        // update cell constraints
         bool changed;
         do
         {
-            (string? constraintError, changed) = UpdateCellConstraints();
-            if (constraintError != null) return false; // previous guess must be bad
+            (string? error, changed) = UpdateCellConstraints();
+            if (error != null) return error;
         } while (changed);
+        return null;
+    }
 
+    private bool SolveByGuessing(Action<string>? log)
+    {
+        // identify unsolved cell with lowest number of candidates
         PlayableCell? cell = GetCellWithLowestCandidates();
         if (cell == null) return true; // no unsolved cells remain
         
+        // load candidates for guessing
         Span<int> candidates = stackalloc int[cell.Candidates.Count];
         for (int i = 0; i < cell.Candidates.Count; i++)
         {
             candidates[i] = cell.Candidates[i];
         }
 
+        // try each candidate in turn
         State state = GetState();
         foreach (int candidate in candidates)
         {
             log?.Invoke($"Cell ({cell.Row}, {cell.Column}): guessing {candidate}");
             string? guessError = cell.Solve(candidate);
-            if (guessError == null && TrySolve(log)) return true;
+            if (guessError == null && PropagateConstraints() == null && SolveByGuessing(log)) return true;
             log?.Invoke($"Cell ({cell.Row}, {cell.Column}): guess {candidate} was bad, reverting");
             SetState(state);
         }

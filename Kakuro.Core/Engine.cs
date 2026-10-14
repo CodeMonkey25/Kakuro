@@ -18,12 +18,17 @@ public class Engine
         Log?.Invoke("Solving puzzle...");
         
         bool solved = board.Solve(Log);
-        
-        Log?.Invoke(board.ToString());
-
         if (solved)
         {
-            Log?.Invoke(board.IsSolutionValid() ? "Solution is valid" : "Solution is invalid");
+            Log?.Invoke(board.ToString());
+            if (board.IsSolutionValid())
+            {
+                Log?.Invoke("Solution is valid");
+            }
+            else
+            {
+                Log?.Invoke("Solution is invalid");
+            }
         }
         else
         {
