@@ -1,5 +1,3 @@
-using System.Collections.Immutable;
-
 namespace Kakuro.Core.Models;
 
 public sealed class PlayableCell : Cell
