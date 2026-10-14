@@ -207,12 +207,11 @@ public class Board
     private bool TrySolve()
     {
         // update cell constraints
-        string? error;
         bool changed;
         do
         {
-            (error, changed) = UpdateCellConstraints();
-            if (error != null) return false;
+            (string? constraintError, changed) = UpdateCellConstraints();
+            if (constraintError != null) return false; // previous guess must be bad 
         } while (changed);
 
         PlayableCell? cell = GetCellWithLowestCandidates();
@@ -227,12 +226,8 @@ public class Board
         State state = GetState();
         foreach (int candidate in candidates)
         {
-            error = cell.Solve(candidate);
-            if (error == null)
-            {
-                bool solved = TrySolve();
-                if (solved) return true;
-            }
+            string? guessError = cell.Solve(candidate);
+            if (guessError == null && TrySolve()) return true;
             SetState(state);
         }
         
