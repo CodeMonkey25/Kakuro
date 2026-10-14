@@ -72,7 +72,7 @@ public sealed class PlayableCell : Cell
         _candidates.Clear();
         _candidates.Add(value);
         
-        foreach (PlayableCell linkedCell in LinkedCells)
+        foreach (PlayableCell linkedCell in _linkedCells)
         {
             (string? error, _) = linkedCell.RemoveCandidate(value);
             if (error != null) return error;
