@@ -9,7 +9,7 @@ public sealed class PlayableCell : Cell
     public int Value { get; private set; }
     public bool IsSolved => Value != 0;
     
-    private readonly List<int> _candidates = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    private readonly CandidateCollection _candidates = new CandidateCollectionList([1, 2, 3, 4, 5, 6, 7, 8, 9]);
     public IReadOnlyList<int> Candidates => _candidates;
     
     private readonly List<PlayableCell> _linkedCells = [];
@@ -93,7 +93,7 @@ public sealed class PlayableCell : Cell
     
     public override string ToString() => Value == 0 ? " " : Value.ToString();
     
-    public override State GetState() => new PlayableCellState(Value, _candidates.ToImmutableArray());
+    public override State GetState() => new PlayableCellState(Value, _candidates.GetState());
 
     public override void SetState(State state)
     {
@@ -101,28 +101,26 @@ public sealed class PlayableCell : Cell
             throw new ArgumentException("Invalid state");
         
         Value = playableCellState.Value;
-        _candidates.Clear();
-        _candidates.AddRange(playableCellState.Candidates);
+        _candidates.SetState(playableCellState.Candidates);
     }
 
     public override bool IsValidState(State state)
     {
         if (state is not PlayableCellState { Value: var value, Candidates: var candidates }) return false;
-        if (candidates.IsDefault || value is < 0 or > 9) return false;
-        if (value != 0) return candidates.Length == 1 && candidates[0] == value;
-        return candidates.Length > 0 && candidates.All(c => c is >= 1 and <= 9);
+        if (value is < 0 or > 9) return false;
+        return candidates.IsStateValid(value);
     }
 
-    private sealed record PlayableCellState(int Value, ImmutableArray<int> Candidates) : Cell.State
+    private sealed record PlayableCellState(int Value, CandidateCollection.CandidateCollectionState Candidates) : Cell.State
     {
         public bool Equals(PlayableCellState? other) =>
-            other is not null && Value == other.Value && Candidates.AsSpan().SequenceEqual(other.Candidates.AsSpan());
+            other is not null && Value == other.Value && Candidates.Equals(other.Candidates);
 
         public override int GetHashCode()
         {
             HashCode hash = new();
             hash.Add(Value);
-            foreach (int c in Candidates) hash.Add(c);
+            hash.Add(Candidates);
             return hash.ToHashCode();
         }
     }
