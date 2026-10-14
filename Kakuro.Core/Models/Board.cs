@@ -120,17 +120,17 @@ public class Board
         }
     }
     
-    public bool Solve()
+    public bool Solve(Action<string>? log)
     {
         State initialState = GetState();
-        if (TrySolve()) return true;
+        if (TrySolve(log)) return true;
 
         // a failed search can leave the board half-propagated (possibly with empty candidate lists)
         SetState(initialState);
         return false;
     }
 
-    private bool TrySolve()
+    private bool TrySolve(Action<string>? log)
     {
         // update cell constraints
         bool changed;
@@ -152,8 +152,10 @@ public class Board
         State state = GetState();
         foreach (int candidate in candidates)
         {
+            log?.Invoke($"Cell ({cell.Row}, {cell.Column}): guessing {candidate}");
             string? guessError = cell.Solve(candidate);
-            if (guessError == null && TrySolve()) return true;
+            if (guessError == null && TrySolve(log)) return true;
+            log?.Invoke($"Cell ({cell.Row}, {cell.Column}): guess {candidate} was bad, reverting");
             SetState(state);
         }
         

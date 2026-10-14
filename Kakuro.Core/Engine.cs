@@ -17,7 +17,7 @@ public class Engine
         
         Log?.Invoke("Solving puzzle...");
         
-        bool solved = board.Solve();
+        bool solved = board.Solve(Log);
         
         Log?.Invoke(board.ToString());
 
