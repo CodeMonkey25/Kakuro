@@ -196,6 +196,16 @@ public class Board
     
     public bool Solve()
     {
+        State initialState = GetState();
+        if (TrySolve()) return true;
+
+        // a failed search can leave the board half-propagated (possibly with empty candidate lists)
+        SetState(initialState);
+        return false;
+    }
+
+    private bool TrySolve()
+    {
         // update cell constraints
         string? error;
         bool changed;
@@ -214,7 +224,7 @@ public class Board
             error = cell.Solve(candidate);
             if (error == null)
             {
-                bool solved = Solve();
+                bool solved = TrySolve();
                 if (solved) return true;
             }
             SetState(state);

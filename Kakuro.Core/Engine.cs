@@ -30,6 +30,6 @@ public class Engine
             Log?.Invoke("Unable to solve puzzle");
         }
         
-        return board.IsSolved();
+        return solved;
     }
 }
