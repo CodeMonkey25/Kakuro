@@ -68,7 +68,7 @@ public class Board
             sb.Append('|');
             sb.AppendLine();
         }
-        sb.AppendLine(rowDivider);
+        sb.Append(rowDivider);
         return sb.ToString();
     }
 

@@ -68,7 +68,7 @@ public class BoardTests
             .AppendLine("-------")
             .AppendLine("|X|8|9|")
             .AppendLine("-------")
-            .ToString();
+            .ToString().TrimEnd();
 
         Assert.Equal(expected, board.ToString());
     }
@@ -110,7 +110,7 @@ public class BoardTests
             .AppendLine("-----")
             .AppendLine("|X| |")
             .AppendLine("-----")
-            .ToString();
+            .ToString().TrimEnd();
 
         Assert.Equal(expectedUnsolved, board.ToString());
     }

@@ -32,8 +32,7 @@ class Program
 
         System.Console.WriteLine();
         Engine engine = new(System.Console.WriteLine);
-        bool solved = engine.Solve(puzzle);
-        System.Console.WriteLine(solved);
+        engine.Solve(puzzle);
     }
     
     private static string TimeIt(Action action, int count = 1)
