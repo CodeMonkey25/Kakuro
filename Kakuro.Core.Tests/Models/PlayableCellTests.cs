@@ -310,4 +310,42 @@ public class PlayableCellTests
         Assert.Contains(verticalPeer, mainCell.LinkedCells);
         Assert.DoesNotContain(mainCell, mainCell.LinkedCells);
     }
+
+    [Fact]
+    public void Solve_Directly_SetsValueAndCollapsesCandidates()
+    {
+        PlayableCell cell = new(0, 0);
+
+        string? error = cell.Solve(4);
+
+        Assert.Null(error);
+        Assert.True(cell.IsSolved);
+        Assert.Equal(4, cell.Value);
+        Assert.Equal([4], cell.Candidates);
+    }
+
+    [Fact]
+    public void Solve_Directly_RemovesValueFromLinkedCells()
+    {
+        PlayableCell cell = new(0, 0);
+        PlayableCell peer = new(0, 1);
+        cell.Bind([cell, peer]);
+        peer.Bind([cell, peer]);
+
+        string? error = cell.Solve(4);
+
+        Assert.Null(error);
+        Assert.DoesNotContain(4, peer.Candidates);
+    }
+
+    [Fact]
+    public void Solve_WhenAlreadySolved_ReturnsErrorOnlyForDifferentValue()
+    {
+        PlayableCell cell = new(2, 3);
+        cell.Solve(4);
+
+        Assert.Null(cell.Solve(4));
+        Assert.Contains("already solved", cell.Solve(5));
+        Assert.Equal(4, cell.Value);
+    }
 }

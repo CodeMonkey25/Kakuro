@@ -37,10 +37,9 @@ public class BoardTests
 
         Assert.False(board.IsSolved());
 
-        (string? error, bool changed) = board.UpdateCellConstraints();
+        bool solved = board.Solve();
 
-        Assert.Null(error);
-        Assert.True(changed);
+        Assert.True(solved);
         Assert.True(board.IsSolved());
         Assert.True(board.IsSolutionValid());
         Assert.Contains("|9|", board.ToString());
@@ -55,10 +54,9 @@ public class BoardTests
 
         Assert.False(board.IsSolved());
 
-        (string? error, bool changed) = board.UpdateCellConstraints();
+        bool solved = board.Solve();
 
-        Assert.Null(error);
-        Assert.True(changed);
+        Assert.True(solved);
         Assert.True(board.IsSolved());
         Assert.True(board.IsSolutionValid());
 
@@ -92,10 +90,9 @@ public class BoardTests
         Puzzle singleCellPuzzle = Puzzle.Parse("test|1|Easy|9,1,1,1,0|9,1,1,1,1");
         Board board = new(singleCellPuzzle);
 
-        (string? error, bool changed) = board.UpdateCellConstraints();
+        bool solved = board.Solve();
 
-        Assert.Null(error);
-        Assert.True(changed);
+        Assert.True(solved);
         Assert.True(board.IsSolved());
         Assert.True(board.IsSolutionValid());
     }
@@ -119,21 +116,18 @@ public class BoardTests
     }
 
     [Fact]
-    public void UpdateCellConstraints_AppliesExclusionsAcrossRuns()
+    public void Solve_OfficialPuzzle_ReturnsTrue()
     {
         // Puzzle #1 from calendar/official dataset
         string officialPuzzle = "The Official Book of Kakuro|41|Easy|13,2,0,1,1|11,3,0,2,1|9,3,0,6,1|14,2,0,7,1|17,2,1,0,0|16,5,1,3,1|8,2,1,5,0|34,5,1,5,1|7,3,2,0,0|23,3,2,4,0|15,3,2,4,1|15,5,3,1,0|13,3,4,2,0|21,3,4,2,1|18,3,4,6,1|35,5,5,1,0|6,2,5,1,1|9,2,5,7,1|7,3,6,0,0|24,3,6,4,0|12,2,7,0,0|5,2,7,5,0";
         Puzzle puzzle = Puzzle.Parse(officialPuzzle);
         Board board = new(puzzle);
 
-        (string? result, bool changed) = board.UpdateCellConstraints();
-
-        Assert.Null(result);
-        Assert.True(changed);
+        Assert.True(board.Solve());
     }
 
     [Fact]
-    public void UpdateCellConstraints_WhenRunForcesNakedSingle_SolvesCell()
+    public void Solve_WhenRunForcesNakedSingle_SolvesCell()
     {
         // Run with Total 3, Length 2 has candidates {1, 2} and exclusions {3, 4, 5, 6, 7, 8, 9}
         // Run with Total 4, Length 2 has candidates {1, 3} and exclusions {2, 4, 5, 6, 7, 8, 9}
@@ -142,58 +136,75 @@ public class BoardTests
         Puzzle puzzle = Puzzle.Parse("test|1|Easy|3,2,1,0,0|4,2,0,1,1");
         Board board = new(puzzle);
 
-        (string? error, bool changed) = board.UpdateCellConstraints();
-
-        Assert.Null(error);
-        Assert.True(changed);
+        Assert.True(board.Solve());
         string boardDisplay = board.ToString();
         Assert.Contains("|1|", boardDisplay);
     }
 
     [Fact]
-    public void UpdateCellConstraints_ContradictoryIntersectingRuns_ReturnsError()
+    public void Solve_ContradictoryIntersectingRuns_ReturnsFalseAndRestoresBoard()
     {
         // Horizontal run with Total 3, Length 2 -> candidates {1, 2}, exclusions {3..9}
         // Vertical run with Total 17, Length 2 -> candidates {8, 9}, exclusions {1..7}
         // Intersecting at (1, 1), union of exclusions is {1..9}, leaving no valid candidate.
         Puzzle puzzle = Puzzle.Parse("test|1|Easy|3,2,1,0,0|17,2,0,1,1");
         Board board = new(puzzle);
+        Board.State initial = board.GetState();
 
-        (string? error, bool changed) = board.UpdateCellConstraints();
+        Assert.False(board.Solve());
 
-        Assert.Contains("has no candidates", error);
-        Assert.False(changed);
+        Assert.False(board.IsSolved());
+        Assert.Equal(initial, board.GetState());
     }
 
     [Fact]
-    public void UpdateCellConstraints_WhenAlreadyAtFixedPoint_ReturnsChangedFalse()
+    public void Solve_WhenAlreadySolved_ReturnsTrueAndLeavesStateUnchanged()
     {
         Puzzle puzzle = Puzzle.Parse("test|1|Easy|3,2,1,0,0|4,2,0,1,1");
         Board board = new(puzzle);
 
-        var (firstError, firstChanged) = board.UpdateCellConstraints();
-        Assert.Null(firstError);
-        Assert.True(firstChanged);
+        Assert.True(board.Solve());
+        Board.State solved = board.GetState();
 
-        var (secondError, secondChanged) = board.UpdateCellConstraints();
-        Assert.Null(secondError);
-        Assert.False(secondChanged);
+        Assert.True(board.Solve());
+        Assert.Equal(solved, board.GetState());
     }
 
     [Fact]
-    public void UpdateCellConstraints_ValidDatasetPuzzle_IterativelySolves()
+    public void Solve_WhenPuzzleRequiresGuessing_FindsValidSolution()
+    {
+        // 2x2 block where every run totals 10: constraint propagation alone cannot pick a cell value
+        Puzzle puzzle = Puzzle.Parse("test|1|Easy|10,2,1,0,0|10,2,2,0,0|10,2,0,1,1|10,2,0,2,1");
+        Board board = new(puzzle);
+
+        Assert.True(board.Solve());
+
+        Assert.True(board.IsSolved());
+        Assert.True(board.IsSolutionValid());
+    }
+
+    [Fact]
+    public void Solve_WhenUnsolvableOnlyAfterGuessing_ReturnsFalseAndRestoresBoard()
+    {
+        // row totals sum to 20 but column totals sum to 21, which propagation cannot detect up front
+        Puzzle puzzle = Puzzle.Parse("test|1|Easy|10,2,1,0,0|10,2,2,0,0|10,2,0,1,1|11,2,0,2,1");
+        Board board = new(puzzle);
+        Board.State initial = board.GetState();
+
+        Assert.False(board.Solve());
+
+        Assert.False(board.IsSolved());
+        Assert.Equal(initial, board.GetState());
+    }
+
+    [Fact]
+    public void Solve_ValidDatasetPuzzle_SolvesAndValidates()
     {
         string officialPuzzle = "The Official Book of Kakuro|41|Easy|13,2,0,1,1|11,3,0,2,1|9,3,0,6,1|14,2,0,7,1|17,2,1,0,0|16,5,1,3,1|8,2,1,5,0|34,5,1,5,1|7,3,2,0,0|23,3,2,4,0|15,3,2,4,1|15,5,3,1,0|13,3,4,2,0|21,3,4,2,1|18,3,4,6,1|35,5,5,1,0|6,2,5,1,1|9,2,5,7,1|7,3,6,0,0|24,3,6,4,0|12,2,7,0,0|5,2,7,5,0";
         Puzzle puzzle = Puzzle.Parse(officialPuzzle);
         Board board = new(puzzle);
 
-        string? error = null;
-        bool changed;
-        do
-        {
-            (error, changed) = board.UpdateCellConstraints();
-            Assert.Null(error);
-        } while (changed);
+        Assert.True(board.Solve());
 
         Assert.True(board.IsSolved());
         Assert.True(board.IsSolutionValid());
