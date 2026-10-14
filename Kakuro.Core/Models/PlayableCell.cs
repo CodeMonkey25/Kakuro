@@ -7,7 +7,7 @@ public sealed class PlayableCell : Cell
     public int Value { get; private set; }
     public bool IsSolved => Value != 0;
     
-    private readonly CandidateCollection _candidates = new CandidateCollectionList([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    private readonly CandidateCollection _candidates = CandidateCollection.Build([1, 2, 3, 4, 5, 6, 7, 8, 9]);
     public IReadOnlyList<int> Candidates => _candidates;
     
     private readonly List<PlayableCell> _linkedCells = [];
