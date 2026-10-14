@@ -37,7 +37,7 @@ public class BoardTests
 
         Assert.False(board.IsSolved());
 
-        bool solved = board.Solve();
+        bool solved = board.Solve(null);
 
         Assert.True(solved);
         Assert.True(board.IsSolved());
@@ -54,7 +54,7 @@ public class BoardTests
 
         Assert.False(board.IsSolved());
 
-        bool solved = board.Solve();
+        bool solved = board.Solve(null);
 
         Assert.True(solved);
         Assert.True(board.IsSolved());
@@ -90,7 +90,7 @@ public class BoardTests
         Puzzle singleCellPuzzle = Puzzle.Parse("test|1|Easy|9,1,1,1,0|9,1,1,1,1");
         Board board = new(singleCellPuzzle);
 
-        bool solved = board.Solve();
+        bool solved = board.Solve(null);
 
         Assert.True(solved);
         Assert.True(board.IsSolved());
@@ -123,7 +123,7 @@ public class BoardTests
         Puzzle puzzle = Puzzle.Parse(officialPuzzle);
         Board board = new(puzzle);
 
-        Assert.True(board.Solve());
+        Assert.True(board.Solve(null));
     }
 
     [Fact]
@@ -136,7 +136,7 @@ public class BoardTests
         Puzzle puzzle = Puzzle.Parse("test|1|Easy|3,2,1,0,0|4,2,0,1,1");
         Board board = new(puzzle);
 
-        Assert.True(board.Solve());
+        Assert.True(board.Solve(null));
         string boardDisplay = board.ToString();
         Assert.Contains("|1|", boardDisplay);
     }
@@ -151,7 +151,7 @@ public class BoardTests
         Board board = new(puzzle);
         Board.State initial = board.GetState();
 
-        Assert.False(board.Solve());
+        Assert.False(board.Solve(null));
 
         Assert.False(board.IsSolved());
         Assert.Equal(initial, board.GetState());
@@ -163,10 +163,10 @@ public class BoardTests
         Puzzle puzzle = Puzzle.Parse("test|1|Easy|3,2,1,0,0|4,2,0,1,1");
         Board board = new(puzzle);
 
-        Assert.True(board.Solve());
+        Assert.True(board.Solve(null));
         Board.State solved = board.GetState();
 
-        Assert.True(board.Solve());
+        Assert.True(board.Solve(null));
         Assert.Equal(solved, board.GetState());
     }
 
@@ -177,21 +177,46 @@ public class BoardTests
         Puzzle puzzle = Puzzle.Parse("test|1|Easy|10,2,1,0,0|10,2,2,0,0|10,2,0,1,1|10,2,0,2,1");
         Board board = new(puzzle);
 
-        Assert.True(board.Solve());
+        Assert.True(board.Solve(null));
 
         Assert.True(board.IsSolved());
         Assert.True(board.IsSolutionValid());
     }
 
     [Fact]
+    public void Solve_WhenGuessing_LogsEachGuess()
+    {
+        Puzzle puzzle = Puzzle.Parse("test|1|Easy|10,2,1,0,0|10,2,2,0,0|10,2,0,1,1|10,2,0,2,1");
+        Board board = new(puzzle);
+        List<string> log = [];
+
+        Assert.True(board.Solve(log.Add));
+
+        Assert.Contains(log, message => message.Contains("guessing"));
+    }
+
+    [Fact]
+    public void Solve_WhenGuessFails_LogsRevert()
+    {
+        // 3x3 block whose row totals (46) differ from its column totals (50); only guessing exposes the contradiction
+        Puzzle puzzle = Puzzle.Parse("test|1|Easy|19,3,1,0,0|13,3,2,0,0|14,3,3,0,0|18,3,0,1,1|18,3,0,2,1|14,3,0,3,1");
+        Board board = new(puzzle);
+        List<string> log = [];
+
+        Assert.False(board.Solve(log.Add));
+
+        Assert.Contains(log, message => message.Contains("reverting"));
+    }
+
+    [Fact]
     public void Solve_WhenUnsolvableOnlyAfterGuessing_ReturnsFalseAndRestoresBoard()
     {
-        // row totals sum to 20 but column totals sum to 21, which propagation cannot detect up front
-        Puzzle puzzle = Puzzle.Parse("test|1|Easy|10,2,1,0,0|10,2,2,0,0|10,2,0,1,1|11,2,0,2,1");
+        // 3x3 block whose row totals (46) differ from its column totals (50); only guessing exposes the contradiction
+        Puzzle puzzle = Puzzle.Parse("test|1|Easy|19,3,1,0,0|13,3,2,0,0|14,3,3,0,0|18,3,0,1,1|18,3,0,2,1|14,3,0,3,1");
         Board board = new(puzzle);
         Board.State initial = board.GetState();
 
-        Assert.False(board.Solve());
+        Assert.False(board.Solve(null));
 
         Assert.False(board.IsSolved());
         Assert.Equal(initial, board.GetState());
@@ -204,7 +229,7 @@ public class BoardTests
         Puzzle puzzle = Puzzle.Parse(officialPuzzle);
         Board board = new(puzzle);
 
-        Assert.True(board.Solve());
+        Assert.True(board.Solve(null));
 
         Assert.True(board.IsSolved());
         Assert.True(board.IsSolutionValid());

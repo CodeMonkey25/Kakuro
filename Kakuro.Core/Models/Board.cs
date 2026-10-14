@@ -120,7 +120,7 @@ public class Board
         }
     }
     
-    public bool Solve(Action<string>? log)
+    public bool Solve(Action<string>? log = null)
     {
         State initialState = GetState();
         if (TrySolve(log)) return true;

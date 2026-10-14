@@ -102,7 +102,7 @@ public class StateTests
         Board board = CreateBoard(SingleCellPuzzleString);
         Board.State before = board.GetState();
 
-        Assert.True(board.Solve());
+        Assert.True(board.Solve(null));
 
         Assert.NotEqual(before, board.GetState());
     }
@@ -113,7 +113,7 @@ public class StateTests
         Board board = CreateBoard(SingleCellPuzzleString);
         Board.State before = board.GetState();
 
-        board.Solve();
+        board.Solve(null);
         Assert.True(board.IsSolved());
         Assert.NotEqual(before, board.GetState());
 
@@ -128,7 +128,7 @@ public class StateTests
     {
         Board board = CreateBoard(SingleCellPuzzleString);
         Board.State initial = board.GetState();
-        board.Solve();
+        board.Solve(null);
         Board.State solved = board.GetState();
 
         board.SetState(initial);
@@ -161,7 +161,7 @@ public class StateTests
     {
         Board board = CreateBoard();
         Board.State valid = board.GetState();
-        board.Solve();
+        board.Solve(null);
         Board.State current = board.GetState();
 
         // put an EmptyCell state in the last position, where there is a playable cell,
