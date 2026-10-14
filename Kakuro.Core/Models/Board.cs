@@ -194,10 +194,51 @@ public class Board
         }
     }
     
-    public bool BruteForceCells()
+    public bool Solve()
     {
+        // update cell constraints
+        string? error;
+        bool changed;
+        do
+        {
+            (error, changed) = UpdateCellConstraints();
+            if (error != null) return false;
+        } while (changed);
+
+        PlayableCell? cell = GetCellWithLowestCandidates();
+        if (cell == null) return true; // no unsolved cells remain
+
+        State state = GetState();
+        foreach (int candidate in cell.Candidates.ToArray())
+        {
+            error = cell.Solve(candidate);
+            if (error == null)
+            {
+                bool solved = Solve();
+                if (solved) return true;
+            }
+            SetState(state);
+        }
         
         return false;
+    }
+
+    private PlayableCell? GetCellWithLowestCandidates()
+    {
+        PlayableCell? result = null;
+        
+        foreach (Cell cell in Cells)
+        {
+            if (cell is not PlayableCell playableCell) continue;
+            if (playableCell.IsSolved) continue;
+            if (playableCell.Candidates.Count == 2) return playableCell; // can't do better than that, bail early
+            if (result == null || playableCell.Candidates.Count < result.Candidates.Count)
+            {
+                result = playableCell;
+            }
+        }
+
+        return result;
     }
 
     private readonly struct Run(Puzzle.Run puzzleRun, ImmutableArray<PlayableCell> cells)

@@ -61,7 +61,7 @@ public sealed class PlayableCell : Cell
         return (error, removed);
     }
 
-    private string? Solve(int value)
+    public string? Solve(int value)
     {
         if (IsSolved)
         {
