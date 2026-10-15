@@ -337,8 +337,7 @@ public class Board
             ClearExclusions();
             for (int i = 0; i < _candidateCount; i++)
             {
-                int candidate = _candidates[i];
-                AddExclusion(candidate);
+                AddExclusion(_candidates[i]);
             }
         }
         
