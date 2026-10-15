@@ -335,8 +335,9 @@ public class Board
             cell.CopyCandidatesTo(Candidates);
 
             ClearExclusions();
-            foreach (int candidate in Candidates)
+            for (int i = 0; i < _candidateCount; i++)
             {
+                int candidate = _candidates[i];
                 AddExclusion(candidate);
             }
         }
