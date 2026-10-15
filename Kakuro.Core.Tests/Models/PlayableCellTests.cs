@@ -173,6 +173,93 @@ public class PlayableCellTests
         Assert.Equal([9], cell.Candidates);
     }
 
+    private static uint MaskOf(params int[] values) => values.Aggregate(0u, (m, v) => m | 1u << (v - 1));
+
+    [Fact]
+    public void RemoveCandidates_Mask_RemovesAllMaskedValues_IncludingNine()
+    {
+        PlayableCell cell = new(1, 1);
+
+        (string? error, bool removed) = cell.RemoveCandidates(MaskOf(2, 3, 4, 5, 6, 7, 8, 9));
+
+        Assert.Null(error);
+        Assert.True(removed);
+        Assert.True(cell.IsSolved);
+        Assert.Equal(1, cell.Value);
+    }
+
+    [Fact]
+    public void RemoveCandidates_Mask_WithEmptyMask_ChangesNothing()
+    {
+        PlayableCell cell = new(1, 1);
+
+        (string? error, bool removed) = cell.RemoveCandidates(0u);
+
+        Assert.Null(error);
+        Assert.False(removed);
+        Assert.Equal([1, 2, 3, 4, 5, 6, 7, 8, 9], cell.Candidates);
+    }
+
+    [Fact]
+    public void RemoveCandidates_Mask_WhenNothingToRemove_ReturnsFalseAndNoError()
+    {
+        PlayableCell cell = new(1, 1);
+        cell.RemoveCandidates(MaskOf(2, 3));
+
+        (string? error, bool removed) = cell.RemoveCandidates(MaskOf(2, 3));
+
+        Assert.Null(error);
+        Assert.False(removed);
+        Assert.Equal([1, 4, 5, 6, 7, 8, 9], cell.Candidates);
+    }
+
+    [Fact]
+    public void RemoveCandidates_Mask_LeavesSingleCandidate_SolvesCell()
+    {
+        PlayableCell cell = new(1, 1);
+
+        (string? error, bool removed) = cell.RemoveCandidates(MaskOf(1, 2, 3, 4, 5, 6, 7, 8));
+
+        Assert.Null(error);
+        Assert.True(removed);
+        Assert.True(cell.IsSolved);
+        Assert.Equal(9, cell.Value);
+    }
+
+    [Fact]
+    public void RemoveCandidates_Mask_WhenAllRemoved_ReturnsErrorAndReportsRemoval()
+    {
+        PlayableCell cell = new(3, 3);
+
+        (string? error, bool removed) = cell.RemoveCandidates(MaskOf(1, 2, 3, 4, 5, 6, 7, 8, 9));
+
+        Assert.Equal("Cell at row 3, column 3 has no candidates.", error);
+        Assert.True(removed);
+    }
+
+    [Fact]
+    public void RemoveCandidates_Mask_WhenSolved_ErrorsOnlyIfMaskContainsValue()
+    {
+        PlayableCell cell = new(0, 0);
+        cell.Solve(9);
+
+        Assert.Null(cell.RemoveCandidates(MaskOf(1, 2, 3)).error);
+        Assert.Equal("Cell at row 0, column 0 has no candidates.", cell.RemoveCandidates(MaskOf(3, 9)).error);
+    }
+
+    [Fact]
+    public void RemoveCandidates_Mask_MatchesEnumerableOverload()
+    {
+        int[] values = [1, 4, 9];
+        PlayableCell viaMask = new(0, 0);
+        PlayableCell viaEnumerable = new(0, 0);
+
+        viaMask.RemoveCandidates(MaskOf(values));
+        viaEnumerable.RemoveCandidates(values);
+
+        Assert.Equal(viaEnumerable.Candidates, viaMask.Candidates);
+    }
+
     [Fact]
     public void Candidates_ReturnsRemainingCandidatesInAscendingOrder()
     {

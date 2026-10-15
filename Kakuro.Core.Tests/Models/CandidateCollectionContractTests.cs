@@ -31,6 +31,50 @@ public abstract class CandidateCollectionContractTests
     }
 
     [Fact]
+    public void Get_ReturnsCandidateAtIndex_IncludingNine()
+    {
+        var collection = Create(1, 3, 7, 9);
+
+        Assert.Equal(1, collection.Get(0));
+        Assert.Equal(3, collection.Get(1));
+        Assert.Equal(7, collection.Get(2));
+        Assert.Equal(9, collection.Get(3));
+    }
+
+    [Fact]
+    public void Get_WithSingleCandidate_ReturnsIt()
+    {
+        Assert.Equal(9, Create(9).Get(0));
+    }
+
+    [Fact]
+    public void Get_AfterRemove_ReflectsRemoval()
+    {
+        var collection = Create(2, 4, 6);
+        collection.Remove(2);
+
+        Assert.Equal(4, collection.Get(0));
+        Assert.Equal(6, collection.Get(1));
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(3)]
+    [InlineData(10)]
+    public void Get_WithOutOfRangeIndex_Throws(int index)
+    {
+        var collection = Create(1, 5, 9);
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => collection.Get(index));
+    }
+
+    [Fact]
+    public void Get_WhenEmpty_Throws()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => Create().Get(0));
+    }
+
+    [Fact]
     public void CopyTo_WritesCandidatesInOrder()
     {
         var collection = Create(3, 5, 9);

@@ -74,6 +74,31 @@ public class BoardTests
     }
 
     [Fact]
+    public void Solve_WhenSolutionNeedsNineAndExcludesNineElsewhere_SolvesUniquely()
+    {
+        // Rows: (1,1)+(1,2)=3 -> {1,2}; (2,1)+(2,2)=17 -> {8,9}
+        // Cols: (1,1)+(2,1)=9 -> 1+8;   (1,2)+(2,2)=11 -> 2+9
+        // Digit 9 must be excluded from the 3-run cells and kept in the 17-run cells.
+        Puzzle puzzle = Puzzle.Parse("test|1|Easy|3,2,1,0,0|17,2,2,0,0|9,2,0,1,1|11,2,0,2,1");
+        Board board = new(puzzle);
+
+        Assert.True(board.Solve(null));
+        Assert.True(board.IsSolutionValid());
+
+        string expected = new StringBuilder()
+            .AppendLine("-------")
+            .AppendLine("|X|X|X|")
+            .AppendLine("-------")
+            .AppendLine("|X|1|2|")
+            .AppendLine("-------")
+            .AppendLine("|X|8|9|")
+            .AppendLine("-------")
+            .ToString().TrimEnd();
+
+        Assert.Equal(expected, board.ToString());
+    }
+
+    [Fact]
     public void IsSolutionValid_WhenUnsolved_ReturnsFalse()
     {
         Puzzle puzzle = Puzzle.Parse(SamplePuzzleString);

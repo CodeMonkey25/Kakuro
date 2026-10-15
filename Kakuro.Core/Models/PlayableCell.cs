@@ -1,3 +1,5 @@
+using System.Numerics;
+
 namespace Kakuro.Core.Models;
 
 public sealed class PlayableCell : Cell
@@ -17,6 +19,20 @@ public sealed class PlayableCell : Cell
     {
         Row = row;
         Column = column;
+    }
+
+    public (string? error, bool removed) RemoveCandidates(uint candidatesMask)
+    {
+        string? error = null;
+        bool removed = false;
+        for (uint mask = candidatesMask; mask != 0; mask &= mask - 1)
+        {
+            int candidate = BitOperations.TrailingZeroCount(mask) + 1;
+            (error, bool removedCandidate) = RemoveCandidate(candidate);
+            if (error != null) break;
+            if (removedCandidate) removed = true;
+        }
+        return (error, removed);
     }
 
     public (string? error, bool removed) RemoveCandidates(IEnumerable<int> candidates)
@@ -51,7 +67,7 @@ public sealed class PlayableCell : Cell
                     error = $"Cell at row {Row}, column {Column} has no candidates.";
                     break;
                 case 1:
-                    error = Solve(_candidates.First());
+                    error = Solve(_candidates.Get(0));
                     break;
             }
         }

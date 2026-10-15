@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Numerics;
 using System.Text;
 
 namespace Kakuro.Core.Models;
@@ -311,7 +312,7 @@ public class Board
             {
                 PlayableCell cell = _run.Cells[i];
 
-                (string? error, bool cellWasUpdated) = cell.RemoveCandidates(_cellCandidatesBuffer[i].GetExclusions());
+                (string? error, bool cellWasUpdated) = cell.RemoveCandidates(_cellCandidatesBuffer[i].GetExclusionsMask());
                 if (error != null) return (error, false);
                 if (cellWasUpdated) runWasUpdated = true;
             }
@@ -323,7 +324,7 @@ public class Board
     {
         private int _candidateCount;
         private readonly int[] _candidates = new int[9];
-        private readonly HashSet<int> _excluded = new();
+        private uint _excluded;
         
         public Span<int> Candidates => _candidates.AsSpan(0, _candidateCount);
 
@@ -342,22 +343,13 @@ public class Board
         
         public void ClearExclusions()
         {
-            _excluded.Clear();
+            _excluded = 0;
         }
 
-        public void AddExclusion(int number)
-        {
-            _excluded.Add(number);
-        }
+        public void AddExclusion(int number) => _excluded |= 1u << (number - 1);
 
-        public void RemoveExclusion(int number)
-        {
-            _excluded.Remove(number);
-        }
-
-        public IEnumerable<int> GetExclusions()
-        {
-            return _excluded;
-        }
+        public void RemoveExclusion(int number) => _excluded &= ~(1u << (number - 1));
+        
+        public uint GetExclusionsMask() => _excluded;
     }
 }

@@ -2,7 +2,7 @@ using System.Collections.Immutable;
 
 namespace Kakuro.Core.Models;
 
-public class CandidateCollectionList(IEnumerable<int>? candidates = null) : CandidateCollection
+public sealed class CandidateCollectionList(IEnumerable<int>? candidates = null) : CandidateCollection
 {
     private List<int> _candidates = candidates?.ToList() ?? [];
 
@@ -15,6 +15,8 @@ public class CandidateCollectionList(IEnumerable<int>? candidates = null) : Cand
     public override void Add(int candidate) => _candidates.Add(candidate);
 
     public override bool Remove(int candidate) => _candidates.Remove(candidate);
+    
+    public override int Get(int index) => _candidates[index];
     
     public override void Clear() => _candidates.Clear();
     

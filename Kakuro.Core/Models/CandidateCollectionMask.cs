@@ -6,7 +6,7 @@ namespace Kakuro.Core.Models;
 /// Bitmask-backed candidate set for values 1..9. Value <c>v</c> is stored in bit <c>v - 1</c>.
 /// Candidates are unique and enumerate in ascending order.
 /// </summary>
-public class CandidateCollectionMask : CandidateCollection
+public sealed class CandidateCollectionMask : CandidateCollection
 {
     private const int MinCandidate = 1;
     private const int MaxCandidate = 9;
@@ -51,6 +51,19 @@ public class CandidateCollectionMask : CandidateCollection
         bool removed = (_candidateMask & bit) != 0;
         _candidateMask &= ~bit;
         return removed;
+    }
+    
+    public override int Get(int index)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(index);
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(index, Count);
+
+        uint mask = _candidateMask;
+        for (int i = 0; i < index; i++)
+        {
+            mask &= mask - 1;
+        }
+        return BitOperations.TrailingZeroCount(mask) + 1;
     }
 
     public override void Clear()
