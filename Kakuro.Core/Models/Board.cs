@@ -198,17 +198,13 @@ public class Board
 
     private static void GetExcludedCandidates(int depth, int runningTotal, RunState runState)
     {
-        Span<int> numbers = runState.Numbers;
         Span<RunCellCandidates> cellCandidates = runState.CellCandidates;
         
         if (depth >= runState.Length)
         {
             if (runningTotal == runState.Total)
             {
-                for (int i = 0; i < runState.Length; i++)
-                {
-                    cellCandidates[i].Excluded.Remove(numbers[i]);
-                }
+                runState.KeepCurrentNumbers();
             }
             return;
         }
@@ -216,7 +212,7 @@ public class Board
         int remainingCellsAfterThis = runState.Length - depth - 1;
         foreach (int current in cellCandidates[depth].Candidates)
         {
-            if (runState.UsedNumbers[current]) continue;
+            if (runState.IsNumberUsed(current)) continue;
             
             int newRunningTotal = runningTotal + current;
             if (newRunningTotal > runState.Total) continue;
@@ -225,11 +221,9 @@ public class Board
             if (remainingSumNeeded < MinPossibleSum[remainingCellsAfterThis]) continue;
             if (remainingSumNeeded > MaxPossibleSum[remainingCellsAfterThis]) continue;
 
-            numbers[depth] = current;
-            runState.UsedNumbers[current] = true;
+            runState.UseNumber(depth, current);
             GetExcludedCandidates(depth + 1, newRunningTotal, runState);
-            numbers[depth] = 0;
-            runState.UsedNumbers[current] = false;
+            runState.ClearNumber(depth);
         }
     }
 
@@ -278,11 +272,10 @@ public class Board
     {
         private readonly RunCellCandidates[] _cellCandidatesBuffer = Enumerable.Range(0, 9).Select(_ => new RunCellCandidates()).ToArray();
         private readonly int[] _numbers = new int[9];
+        private readonly bool[] _usedNumbers = new bool[10]; // indices 1..9 for digits
 
         public int Length { get; private set; }
         public int Total { get; private set; }
-        public Span<int> Numbers => _numbers.AsSpan(0, Length);
-        public bool[] UsedNumbers { get; } = new bool[10]; // indices 1..9 for digits
         public Span<RunCellCandidates> CellCandidates => _cellCandidatesBuffer.AsSpan(0, Length);
 
         public void Load(Run run)
@@ -290,13 +283,35 @@ public class Board
             Length = run.Length;
             Total = run.Total;
             
-            Array.Clear(UsedNumbers);
+            Array.Clear(_usedNumbers);
             Array.Clear(_numbers);
             for (int i = 0; i < Length; i++)
             {
                 _cellCandidatesBuffer[i].Load(run.Cells[i]);
             }
         }
+
+        public void KeepCurrentNumbers()
+        {
+            for (int i = 0; i < Length; i++)
+            {
+                _cellCandidatesBuffer[i].Excluded.Remove(_numbers[i]);
+            }
+        }
+
+        public void UseNumber(int depth, int current)
+        {
+            _usedNumbers[current] = true;
+            _numbers[depth] = current;
+        }
+
+        public void ClearNumber(int depth)
+        {
+            _usedNumbers[_numbers[depth]] = false;
+            _numbers[depth] = 0;
+        }
+
+        public bool IsNumberUsed(int number) => _usedNumbers[number];
     }
 
     private sealed class RunCellCandidates
