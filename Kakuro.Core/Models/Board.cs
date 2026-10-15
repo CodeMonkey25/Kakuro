@@ -332,7 +332,7 @@ public class Board
         {
             _candidateCount = cell.Candidates.Count;
 
-            cell.CopyCandidatesTo(Candidates);
+            cell.CopyCandidatesTo(_candidates);
 
             ClearExclusions();
             for (int i = 0; i < _candidateCount; i++)
