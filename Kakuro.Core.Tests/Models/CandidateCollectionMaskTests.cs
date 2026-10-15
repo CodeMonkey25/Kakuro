@@ -66,15 +66,11 @@ public class CandidateCollectionMaskTests : CandidateCollectionContractTests
     }
 
     [Fact]
-    public void AllCandidates_RoundTripThroughEnumerationAndIndexer()
+    public void AllCandidates_RoundTripThroughEnumeration()
     {
         var mask = Create(1, 2, 3, 4, 5, 6, 7, 8, 9);
 
         Assert.Equal(9, mask.Count);
         Assert.Equal(Enumerable.Range(1, 9), mask.ToArray());
-        for (int i = 0; i < 9; i++)
-        {
-            Assert.Equal(i + 1, mask[i]);
-        }
     }
 }

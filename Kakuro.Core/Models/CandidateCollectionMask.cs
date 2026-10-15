@@ -38,23 +38,6 @@ public class CandidateCollectionMask : CandidateCollection
 
     public override int Count => BitOperations.PopCount(_candidateMask);
 
-    public override int this[int index]
-    {
-        get
-        {
-            ArgumentOutOfRangeException.ThrowIfNegative(index);
-            ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(index, Count);
-
-            uint mask = _candidateMask;
-            for (int i = 0; i < index; i++)
-            {
-                mask &= mask - 1;
-            }
-
-            return BitOperations.TrailingZeroCount(mask) + 1;
-        }
-    }
-
     public override void Add(int candidate)
     {
         _candidateMask |= BitFor(candidate);
@@ -82,6 +65,15 @@ public class CandidateCollectionMask : CandidateCollection
         if (state is not CandidateCollectionMaskState maskState)
             throw new ArgumentException("Invalid state type", nameof(state));
         _candidateMask = maskState.CandidateMask;
+    }
+    
+    public override void CopyTo(Span<int> candidates)
+    {
+        int i = 0;
+        for (uint m = _candidateMask; m != 0; m &= m - 1)
+        {
+            candidates[i++] = BitOperations.TrailingZeroCount(m) + 1;
+        }
     }
 
     private sealed class CandidateCollectionMaskState(uint candidateMask) : CandidateCollectionState, IEquatable<CandidateCollectionMaskState>

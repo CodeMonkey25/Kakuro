@@ -8,7 +8,7 @@ public sealed class PlayableCell : Cell
     public bool IsSolved => Value != 0;
     
     private readonly CandidateCollection _candidates = CandidateCollection.Build([1, 2, 3, 4, 5, 6, 7, 8, 9]);
-    public IReadOnlyList<int> Candidates => _candidates;
+    public IReadOnlyCollection<int> Candidates => _candidates;
     
     private readonly List<PlayableCell> _linkedCells = [];
     public IReadOnlyList<PlayableCell> LinkedCells => _linkedCells;
@@ -51,7 +51,7 @@ public sealed class PlayableCell : Cell
                     error = $"Cell at row {Row}, column {Column} has no candidates.";
                     break;
                 case 1:
-                    error = Solve(_candidates[0]);
+                    error = Solve(_candidates.First());
                     break;
             }
         }
@@ -108,6 +108,8 @@ public sealed class PlayableCell : Cell
         if (value is < 0 or > 9) return false;
         return candidates.IsStateValid(value);
     }
+
+    public void CopyCandidatesTo(in Span<int> candidates) => _candidates.CopyTo(candidates);
 
     private sealed record PlayableCellState(int Value, CandidateCollection.CandidateCollectionState Candidates) : Cell.State
     {

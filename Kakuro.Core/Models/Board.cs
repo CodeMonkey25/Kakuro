@@ -159,11 +159,8 @@ public class Board
         
         // load candidates for guessing
         Span<int> candidates = stackalloc int[cell.Candidates.Count];
-        for (int i = 0; i < cell.Candidates.Count; i++)
-        {
-            candidates[i] = cell.Candidates[i];
-        }
-
+        cell.CopyCandidatesTo(candidates);
+        
         // try each candidate in turn
         State state = GetState();
         foreach (int candidate in candidates)
@@ -191,7 +188,7 @@ public class Board
 
             for (int j = 0; j < run.Length; j++)
             {
-                currentCandidates[j] = run.Cells[j].Candidates;
+                currentCandidates[j] = run.Cells[j].Candidates.ToImmutableArray();
                 excludedCandidates[j].Clear();
                 excludedCandidates[j].UnionWith(currentCandidates[j]);
             }

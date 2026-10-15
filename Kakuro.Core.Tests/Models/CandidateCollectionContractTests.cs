@@ -31,31 +31,37 @@ public abstract class CandidateCollectionContractTests
     }
 
     [Fact]
-    public void Indexer_ReturnsCandidateAtIndex()
+    public void CopyTo_WritesCandidatesInOrder()
     {
-        var collection = Create(1, 3, 7, 9);
+        var collection = Create(3, 5, 9);
+        Span<int> buffer = stackalloc int[collection.Count];
 
-        Assert.Equal(1, collection[0]);
-        Assert.Equal(3, collection[1]);
-        Assert.Equal(7, collection[2]);
-        Assert.Equal(9, collection[3]);
+        collection.CopyTo(buffer);
+
+        Assert.Equal([3, 5, 9], buffer.ToArray());
     }
 
     [Fact]
-    public void Indexer_WhenOutOfRange_Throws()
-    {
-        var collection = Create(2, 5);
-
-        Assert.ThrowsAny<ArgumentOutOfRangeException>(() => _ = collection[-1]);
-        Assert.ThrowsAny<ArgumentOutOfRangeException>(() => _ = collection[2]);
-    }
-
-    [Fact]
-    public void Indexer_WhenEmpty_Throws()
+    public void CopyTo_WhenEmpty_WritesNothing()
     {
         var collection = Create();
+        Span<int> buffer = [];
 
-        Assert.ThrowsAny<ArgumentOutOfRangeException>(() => _ = collection[0]);
+        collection.CopyTo(buffer);
+
+        Assert.Empty(buffer.ToArray());
+    }
+
+    [Fact]
+    public void CopyTo_AfterRemove_ReflectsRemoval()
+    {
+        var collection = Create(1, 2, 3, 9);
+        collection.Remove(2);
+        Span<int> buffer = stackalloc int[collection.Count];
+
+        collection.CopyTo(buffer);
+
+        Assert.Equal([1, 3, 9], buffer.ToArray());
     }
 
     [Fact]

@@ -10,8 +10,6 @@ public class CandidateCollectionList(IEnumerable<int>? candidates = null) : Cand
     public override IEnumerator<int> GetEnumerator() => _candidates.GetEnumerator();
 
     public override int Count => _candidates.Count;
-
-    public override int this[int index] => _candidates[index];
     #endregion
 
     public override void Add(int candidate) => _candidates.Add(candidate);
@@ -32,6 +30,8 @@ public class CandidateCollectionList(IEnumerable<int>? candidates = null) : Cand
             _candidates.Add(candidate);
         }
     }
+    
+    public override void CopyTo(Span<int> candidates) => _candidates.CopyTo(candidates);
 
     private sealed class CandidateCollectionListState(ImmutableArray<int> candidates) : CandidateCollectionState, IEquatable<CandidateCollectionListState>
     {
