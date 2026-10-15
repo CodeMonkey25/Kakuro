@@ -268,7 +268,7 @@ public class Board
 
         public int Length => _run.Length;
         public int Total => _run.Total;
-        public RunCellCandidates GetRunCellCandidates(int depth) => _cellCandidatesBuffer[depth];
+        public RunCellCandidates GetRunCellCandidates(int index) => _cellCandidatesBuffer[index];
 
         public void Load(Run run)
         {
