@@ -179,18 +179,10 @@ public class Board
         foreach (Run run in Runs)
         {
             _runState.Load(run);
-
             GetExcludedCandidates(0, 0, _runState);
-
-            Span<RunCellCandidates> cellCandidates = _runState.CellCandidates;
-            for (int i = 0; i < run.Length; i++)
-            {
-                PlayableCell cell = run.Cells[i];
-
-                (string? error, bool cellWasUpdated) = cell.RemoveCandidates(cellCandidates[i].Excluded);
-                if (error != null) return (error, false);
-                if (cellWasUpdated) boardWasUpdated = true;
-            }
+            (string? error, bool runWasUpdated) = _runState.WriteExclusionsToRun();
+            if (error != null) return (error, false);
+            if (runWasUpdated) boardWasUpdated = true;
         }
 
         return (null, boardWasUpdated);
@@ -198,8 +190,6 @@ public class Board
 
     private static void GetExcludedCandidates(int depth, int runningTotal, RunState runState)
     {
-        Span<RunCellCandidates> cellCandidates = runState.CellCandidates;
-        
         if (depth >= runState.Length)
         {
             if (runningTotal == runState.Total)
@@ -210,10 +200,11 @@ public class Board
         }
 
         int remainingCellsAfterThis = runState.Length - depth - 1;
-        foreach (int current in cellCandidates[depth].Candidates)
+        RunCellCandidates runCellCandidates = runState.GetRunCellCandidates(depth);
+        foreach (int current in runCellCandidates.Candidates)
         {
             if (runState.IsNumberUsed(current)) continue;
-            
+
             int newRunningTotal = runningTotal + current;
             if (newRunningTotal > runState.Total) continue;
             
@@ -273,16 +264,16 @@ public class Board
         private readonly RunCellCandidates[] _cellCandidatesBuffer = Enumerable.Range(0, 9).Select(_ => new RunCellCandidates()).ToArray();
         private readonly int[] _numbers = new int[9];
         private readonly bool[] _usedNumbers = new bool[10]; // indices 1..9 for digits
+        private Run _run;
 
-        public int Length { get; private set; }
-        public int Total { get; private set; }
-        public Span<RunCellCandidates> CellCandidates => _cellCandidatesBuffer.AsSpan(0, Length);
+        public int Length => _run.Length;
+        public int Total => _run.Total;
+        public RunCellCandidates GetRunCellCandidates(int depth) => _cellCandidatesBuffer[depth];
 
         public void Load(Run run)
         {
-            Length = run.Length;
-            Total = run.Total;
-            
+            _run = run;
+
             Array.Clear(_usedNumbers);
             Array.Clear(_numbers);
             for (int i = 0; i < Length; i++)
@@ -312,6 +303,20 @@ public class Board
         }
 
         public bool IsNumberUsed(int number) => _usedNumbers[number];
+
+        public (string? error, bool changed) WriteExclusionsToRun()
+        {
+            bool runWasUpdated = false;
+            for (int i = 0; i < Length; i++)
+            {
+                PlayableCell cell = _run.Cells[i];
+
+                (string? error, bool cellWasUpdated) = cell.RemoveCandidates(_cellCandidatesBuffer[i].Excluded);
+                if (error != null) return (error, false);
+                if (cellWasUpdated) runWasUpdated = true;
+            }
+            return (null, runWasUpdated);
+        }
     }
 
     private sealed class RunCellCandidates
