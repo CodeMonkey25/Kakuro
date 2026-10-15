@@ -12,11 +12,10 @@ public class Board
     private Cell[] Cells { get; }
     private Run[] Runs { get; }
     
-    // buffers for use with GetExcludedCandidates()
+    // buffers for use with GetExcludedCandidates() and UpdateCellConstraints()
     private readonly int[] _numberBuffer = new int[9];
     private readonly bool[] _usedNumbersBuffer = new bool[10]; // indices 1..9 for digits
-    private readonly HashSet<int>[] _excludedCandidatesBuffer = Enumerable.Range(0, 9).Select(_ => new HashSet<int>()).ToArray();
-    private readonly RunCandidates[] _currentCandidatesBuffer = Enumerable.Range(0, 9).Select(_ => new RunCandidates()).ToArray();
+    private readonly RunCellCandidates[] _cellCandidatesBuffer = Enumerable.Range(0, 9).Select(_ => new RunCellCandidates()).ToArray();
     
     public Board(Puzzle puzzle)
     {
@@ -181,35 +180,23 @@ public class Board
 
         foreach (Run run in Runs)
         {
-            Span<RunCandidates> currentCandidates = _currentCandidatesBuffer.AsSpan(0, run.Length);
-            ReadOnlySpan<HashSet<int>> excludedCandidates = _excludedCandidatesBuffer.AsSpan(0, run.Length);
+            Span<RunCellCandidates> cellCandidates = _cellCandidatesBuffer.AsSpan(0, run.Length);
             Span<int> numbers = _numberBuffer.AsSpan(0, run.Length);
             Span<bool> usedNumbers = _usedNumbersBuffer.AsSpan();
 
             for (int i = 0; i < run.Length; i++)
             {
-                PlayableCell cell = run.Cells[i];
-                int count = cell.Candidates.Count;
-                currentCandidates[i].Count = count;
-
-                Span<int> candidates = currentCandidates[i].ItemsAsSpan;
-                cell.CopyCandidatesTo(candidates);
-
-                HashSet<int> excluded = excludedCandidates[i];
-                excluded.Clear();
-                foreach(int candidate in candidates)
-                    excluded.Add(candidate);
+                cellCandidates[i].Load(run.Cells[i]);
             }
             usedNumbers.Clear();
 
-            GetExcludedCandidates(0, run.Total, 0, currentCandidates, excludedCandidates, numbers, usedNumbers);
+            GetExcludedCandidates(0, run.Total, 0, cellCandidates, numbers, usedNumbers);
 
             for (int i = 0; i < run.Length; i++)
             {
                 PlayableCell cell = run.Cells[i];
-                HashSet<int> excluded = excludedCandidates[i];
 
-                (string? error, bool cellWasUpdated) = cell.RemoveCandidates(excluded);
+                (string? error, bool cellWasUpdated) = cell.RemoveCandidates(cellCandidates[i].Excluded);
                 if (error != null) return (error, false);
                 if (cellWasUpdated) boardWasUpdated = true;
             }
@@ -218,7 +205,7 @@ public class Board
         return (null, boardWasUpdated);
     }
 
-    private void GetExcludedCandidates(int depth, int total, int runningTotal, Span<RunCandidates> currentCandidates, ReadOnlySpan<HashSet<int>> excludedCandidates, Span<int> numbers, Span<bool> usedNumbers)
+    private void GetExcludedCandidates(int depth, int total, int runningTotal, Span<RunCellCandidates> cellCandidates, Span<int> numbers, Span<bool> usedNumbers)
     {
         if (depth >= numbers.Length)
         {
@@ -226,14 +213,14 @@ public class Board
             {
                 for (int i = 0; i < numbers.Length; i++)
                 {
-                    excludedCandidates[i].Remove(numbers[i]);
+                    cellCandidates[i].Excluded.Remove(numbers[i]);
                 }
             }
             return;
         }
 
         int remainingCellsAfterThis = numbers.Length - depth - 1;
-        foreach (int current in currentCandidates[depth].ItemsAsSpan)
+        foreach (int current in cellCandidates[depth].Candidates)
         {
             if (usedNumbers[current]) continue;
             
@@ -246,7 +233,7 @@ public class Board
 
             numbers[depth] = current;
             usedNumbers[current] = true;
-            GetExcludedCandidates(depth + 1, total, newRunningTotal, currentCandidates, excludedCandidates, numbers, usedNumbers);
+            GetExcludedCandidates(depth + 1, total, newRunningTotal, cellCandidates, numbers, usedNumbers);
             numbers[depth] = 0;
             usedNumbers[current] = false;
         }
@@ -293,11 +280,25 @@ public class Board
         }
     }
 
-    private sealed class RunCandidates
+    private sealed class RunCellCandidates
     {
-        public int Count { get; set; }
-        public int[] Items { get; } = new int[9];
+        private int _candidateCount;
+        private readonly int[] _candidates = new int[9];
 
-        public Span<int> ItemsAsSpan => Items.AsSpan(0, Count);
+        public HashSet<int> Excluded { get; } = new();
+        public Span<int> Candidates => _candidates.AsSpan(0, _candidateCount);
+
+        public void Load(PlayableCell cell)
+        {
+            _candidateCount = cell.Candidates.Count;
+
+            cell.CopyCandidatesTo(Candidates);
+
+            Excluded.Clear();
+            foreach (int candidate in Candidates)
+            {
+                Excluded.Add(candidate);
+            }
+        }
     }
 }

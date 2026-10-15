@@ -19,7 +19,7 @@ public sealed class PlayableCell : Cell
         Column = column;
     }
 
-    public (string? error, bool removed) RemoveCandidates(IEnumerable<int> candidates)
+    public (string? error, bool removed) RemoveCandidates(HashSet<int> candidates)
     {
         string? error = null;
         bool removed = false;
