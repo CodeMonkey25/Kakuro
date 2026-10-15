@@ -16,7 +16,8 @@ public class Board
     private readonly int[] _numberBuffer = new int[9];
     private readonly bool[] _usedNumbersBuffer = new bool[10]; // indices 1..9 for digits
     private readonly HashSet<int>[] _excludedCandidatesBuffer = Enumerable.Range(0, 9).Select(_ => new HashSet<int>()).ToArray();
-    private readonly IReadOnlyList<int>[] _currentCandidatesBuffer = Enumerable.Range(0, 9).Select(_ => (IReadOnlyList<int>)Array.Empty<int>()).ToArray();
+    private readonly int[][] _currentCandidatesBuffer = Enumerable.Range(0, 9).Select(_ => new int[9]).ToArray();
+    private readonly int[] _currentCandidatesCountBuffer = new int[9];
     
     public Board(Puzzle puzzle)
     {
@@ -181,20 +182,29 @@ public class Board
 
         foreach (Run run in Runs)
         {
-            Span<IReadOnlyList<int>> currentCandidates = _currentCandidatesBuffer.AsSpan(0, run.Length);
+            Span<int> currentCandidatesCount = _currentCandidatesCountBuffer.AsSpan(0, run.Length);
+            Span<int[]> currentCandidates = _currentCandidatesBuffer.AsSpan(0, run.Length);
             ReadOnlySpan<HashSet<int>> excludedCandidates = _excludedCandidatesBuffer.AsSpan(0, run.Length);
             Span<int> numbers = _numberBuffer.AsSpan(0, run.Length);
             Span<bool> usedNumbers = _usedNumbersBuffer.AsSpan();
 
             for (int j = 0; j < run.Length; j++)
             {
-                currentCandidates[j] = run.Cells[j].Candidates.ToImmutableArray();
-                excludedCandidates[j].Clear();
-                excludedCandidates[j].UnionWith(currentCandidates[j]);
+                PlayableCell cell = run.Cells[j];
+                int count = cell.Candidates.Count;
+                currentCandidatesCount[j] = count;
+
+                Span<int> span = currentCandidates[j].AsSpan(0, count);
+                cell.CopyCandidatesTo(span);
+
+                HashSet<int> excluded = excludedCandidates[j];
+                excluded.Clear();
+                for (int k = 0; k < count; k++)
+                    excluded.Add(span[k]);
             }
             usedNumbers.Clear();
 
-            GetExcludedCandidates(0, run.Total, 0, currentCandidates, excludedCandidates, numbers, usedNumbers);
+            GetExcludedCandidates(0, run.Total, 0, currentCandidatesCount, currentCandidates, excludedCandidates, numbers, usedNumbers);
 
             for (int j = 0; j < run.Length; j++)
             {
@@ -204,15 +214,13 @@ public class Board
                 (string? error, bool cellWasUpdated) = cell.RemoveCandidates(excluded);
                 if (error != null) return (error, false);
                 if (cellWasUpdated) boardWasUpdated = true;
-
-                currentCandidates[j] = Array.Empty<int>();
             }
         }
 
         return (null, boardWasUpdated);
     }
 
-    private void GetExcludedCandidates(int depth, int total, int runningTotal, Span<IReadOnlyList<int>> currentCandidates, ReadOnlySpan<HashSet<int>> excludedCandidates, Span<int> numbers, Span<bool> usedNumbers)
+    private void GetExcludedCandidates(int depth, int total, int runningTotal, Span<int> currentCandidatesCount, Span<int[]> currentCandidates, ReadOnlySpan<HashSet<int>> excludedCandidates, Span<int> numbers, Span<bool> usedNumbers)
     {
         if (depth >= numbers.Length)
         {
@@ -227,8 +235,8 @@ public class Board
         }
 
         int remainingCellsAfterThis = numbers.Length - depth - 1;
-        IReadOnlyList<int> currentCandidate = currentCandidates[depth];
-        int currentCandidateCount = currentCandidate.Count;
+        int currentCandidateCount = currentCandidatesCount[depth];
+        Span<int> currentCandidate = currentCandidates[depth].AsSpan(0, currentCandidateCount);
         for (int i = 0; i < currentCandidateCount; i++)
         {
             int current = currentCandidate[i];
@@ -243,7 +251,7 @@ public class Board
 
             numbers[depth] = current;
             usedNumbers[current] = true;
-            GetExcludedCandidates(depth + 1, total, newRunningTotal, currentCandidates, excludedCandidates, numbers, usedNumbers);
+            GetExcludedCandidates(depth + 1, total, newRunningTotal, currentCandidatesCount, currentCandidates, excludedCandidates, numbers, usedNumbers);
             numbers[depth] = 0;
             usedNumbers[current] = false;
         }

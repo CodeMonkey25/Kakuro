@@ -109,7 +109,7 @@ public sealed class PlayableCell : Cell
         return candidates.IsStateValid(value);
     }
 
-    public void CopyCandidatesTo(in Span<int> candidates) => _candidates.CopyTo(candidates);
+    public void CopyCandidatesTo(Span<int> candidates) => _candidates.CopyTo(candidates);
 
     private sealed record PlayableCellState(int Value, CandidateCollection.CandidateCollectionState Candidates) : Cell.State
     {
