@@ -333,11 +333,21 @@ public class Board
 
             cell.CopyCandidatesTo(Candidates);
 
-            _excluded.Clear();
+            ClearExclusions();
             foreach (int candidate in Candidates)
             {
-                _excluded.Add(candidate);
+                AddExclusion(candidate);
             }
+        }
+        
+        public void ClearExclusions()
+        {
+            _excluded.Clear();
+        }
+
+        public void AddExclusion(int number)
+        {
+            _excluded.Add(number);
         }
 
         public void RemoveExclusion(int number)
