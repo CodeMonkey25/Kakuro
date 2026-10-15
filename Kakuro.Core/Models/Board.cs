@@ -286,7 +286,7 @@ public class Board
         {
             for (int i = 0; i < Length; i++)
             {
-                _cellCandidatesBuffer[i].Excluded.Remove(_numbers[i]);
+                _cellCandidatesBuffer[i].RemoveExclusion(_numbers[i]);
             }
         }
 
@@ -311,7 +311,7 @@ public class Board
             {
                 PlayableCell cell = _run.Cells[i];
 
-                (string? error, bool cellWasUpdated) = cell.RemoveCandidates(_cellCandidatesBuffer[i].Excluded);
+                (string? error, bool cellWasUpdated) = cell.RemoveCandidates(_cellCandidatesBuffer[i].GetExclusions());
                 if (error != null) return (error, false);
                 if (cellWasUpdated) runWasUpdated = true;
             }
@@ -323,8 +323,8 @@ public class Board
     {
         private int _candidateCount;
         private readonly int[] _candidates = new int[9];
-
-        public HashSet<int> Excluded { get; } = new();
+        private readonly HashSet<int> _excluded = new();
+        
         public Span<int> Candidates => _candidates.AsSpan(0, _candidateCount);
 
         public void Load(PlayableCell cell)
@@ -333,11 +333,21 @@ public class Board
 
             cell.CopyCandidatesTo(Candidates);
 
-            Excluded.Clear();
+            _excluded.Clear();
             foreach (int candidate in Candidates)
             {
-                Excluded.Add(candidate);
+                _excluded.Add(candidate);
             }
+        }
+
+        public void RemoveExclusion(int number)
+        {
+            _excluded.Remove(number);
+        }
+
+        public IEnumerable<int> GetExclusions()
+        {
+            return _excluded;
         }
     }
 }
