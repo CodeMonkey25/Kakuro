@@ -13,7 +13,7 @@ public class Board
     private Run[] Runs { get; }
     
     // reusable scratch state for UpdateCellConstraints()
-    private readonly RunState _runState = new();
+    private readonly RunSolveState _runSolveState = new();
     
     public Board(Puzzle puzzle)
     {
@@ -178,9 +178,9 @@ public class Board
 
         foreach (Run run in Runs)
         {
-            _runState.Load(run);
-            GetExcludedCandidates(0, 0, _runState);
-            (string? error, bool runWasUpdated) = _runState.WriteExclusionsToRun();
+            _runSolveState.Load(run);
+            GetExcludedCandidates(0, 0, _runSolveState);
+            (string? error, bool runWasUpdated) = _runSolveState.WriteExclusionsToRun();
             if (error != null) return (error, false);
             if (runWasUpdated) boardWasUpdated = true;
         }
@@ -188,33 +188,33 @@ public class Board
         return (null, boardWasUpdated);
     }
 
-    private static void GetExcludedCandidates(int depth, int runningTotal, RunState runState)
+    private static void GetExcludedCandidates(int depth, int runningTotal, RunSolveState runSolveState)
     {
-        if (depth >= runState.Length)
+        if (depth >= runSolveState.Length)
         {
-            if (runningTotal == runState.Total)
+            if (runningTotal == runSolveState.Total)
             {
-                runState.KeepCurrentNumbers();
+                runSolveState.KeepCurrentNumbers();
             }
             return;
         }
 
-        int remainingCellsAfterThis = runState.Length - depth - 1;
-        RunCellCandidates runCellCandidates = runState.GetRunCellCandidates(depth);
+        int remainingCellsAfterThis = runSolveState.Length - depth - 1;
+        RunCellCandidates runCellCandidates = runSolveState.GetRunCellCandidates(depth);
         foreach (int current in runCellCandidates.Candidates)
         {
-            if (runState.IsNumberUsed(current)) continue;
+            if (runSolveState.IsNumberUsed(current)) continue;
 
             int newRunningTotal = runningTotal + current;
-            if (newRunningTotal > runState.Total) continue;
+            if (newRunningTotal > runSolveState.Total) continue;
             
-            int remainingSumNeeded = runState.Total - newRunningTotal;
+            int remainingSumNeeded = runSolveState.Total - newRunningTotal;
             if (remainingSumNeeded < MinPossibleSum[remainingCellsAfterThis]) continue;
             if (remainingSumNeeded > MaxPossibleSum[remainingCellsAfterThis]) continue;
 
-            runState.UseNumber(depth, current);
-            GetExcludedCandidates(depth + 1, newRunningTotal, runState);
-            runState.ClearNumber(depth);
+            runSolveState.UseNumber(depth, current);
+            GetExcludedCandidates(depth + 1, newRunningTotal, runSolveState);
+            runSolveState.ClearNumber(depth);
         }
     }
 
@@ -259,7 +259,7 @@ public class Board
         }
     }
 
-    private sealed class RunState
+    private sealed class RunSolveState
     {
         private readonly RunCellCandidates[] _cellCandidatesBuffer = Enumerable.Range(0, 9).Select(_ => new RunCellCandidates()).ToArray();
         private readonly int[] _numbers = new int[9];
