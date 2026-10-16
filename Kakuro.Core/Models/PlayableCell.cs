@@ -77,6 +77,14 @@ public sealed class PlayableCell : Cell
 
     public string? Solve(int value)
     {
+        ArgumentOutOfRangeException.ThrowIfLessThan(value, 1);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(value, 9);
+
+        if (!_candidates.Contains(value))
+        {
+            return $"Cell at row {Row}, column {Column} does not contain candidate {value}.";
+        }
+
         if (IsSolved)
         {
             return Value != value ? $"Cell at row {Row}, column {Column} is already solved." : null;

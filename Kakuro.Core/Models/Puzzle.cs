@@ -41,7 +41,8 @@ public sealed class Puzzle
     
     public override string ToString()
     {
-        return $"{Source}|{Number}|{Difficulty}|{string.Join('|', Runs)}";
+        string header = $"{Source}|{Number}|{Difficulty}";
+        return Runs.IsEmpty ? header : $"{header}|{string.Join('|', Runs)}";
     }
     
     public readonly record struct Run
@@ -77,6 +78,26 @@ public sealed class Puzzle
             int row = int.Parse(parts[2]);
             int column = int.Parse(parts[3]);
             int orientationValue = int.Parse(parts[4]);
+
+            if (total <= 0 || total > 45)
+            {
+                throw new FormatException($"Invalid run total '{total}'. Total must be greater than 0 and less than or equal to 45.");
+            }
+
+            if (length <= 0)
+            {
+                throw new FormatException($"Invalid run length '{length}'. Length must be greater than 0.");
+            }
+
+            if (length > 9)
+            {
+                throw new FormatException($"Invalid run length '{length}'. Length must be less than or equal to 9.");
+            }
+
+            if (row < 0 || column < 0)
+            {
+                throw new FormatException($"Invalid run coordinates '{row},{column}'. Row and column must be greater than or equal to 0.");
+            }
 
             if (!Enum.IsDefined(typeof(RunOrientation), orientationValue))
             {

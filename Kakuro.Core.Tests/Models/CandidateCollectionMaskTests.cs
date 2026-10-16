@@ -31,6 +31,29 @@ public class CandidateCollectionMaskTests : CandidateCollectionContractTests
         Assert.Single(mask);
     }
 
+    [Fact]
+    public void Add_KeepsAscendingOrder()
+    {
+        var mask = Create(5);
+
+        mask.Add(9);
+        mask.Add(1);
+
+        Assert.Equal([1, 5, 9], mask.ToArray());
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(9)]
+    public void Add_AcceptsBoundaryCandidates(int candidate)
+    {
+        var mask = Create();
+
+        mask.Add(candidate);
+
+        Assert.Equal([candidate], mask.ToArray());
+    }
+
     [Theory]
     [InlineData(0)]
     [InlineData(10)]
@@ -47,6 +70,7 @@ public class CandidateCollectionMaskTests : CandidateCollectionContractTests
     [Theory]
     [InlineData(0)]
     [InlineData(10)]
+    [InlineData(-1)]
     public void Constructor_WithOutOfRangeCandidate_Throws(int candidate)
     {
         Assert.Throws<ArgumentOutOfRangeException>(() => Create(1, candidate));
@@ -72,5 +96,48 @@ public class CandidateCollectionMaskTests : CandidateCollectionContractTests
 
         Assert.Equal(9, mask.Count);
         Assert.Equal(Enumerable.Range(1, 9), mask.ToArray());
+    }
+
+    [Fact]
+    public void SetState_WithListState_Throws()
+    {
+        var mask = Create(1);
+
+        Assert.Throws<ArgumentException>(() => mask.SetState(new CandidateCollectionList([1]).GetState()));
+    }
+
+    [Fact]
+    public void EverySubsetOfOneToNine_BehavesConsistently()
+    {
+        for (int bits = 0; bits < 1 << 9; bits++)
+        {
+            int[] expected = Enumerable.Range(1, 9).Where(v => (bits & 1 << (v - 1)) != 0).ToArray();
+            var mask = Create(expected);
+
+            Assert.Equal(expected, mask.ToArray());
+            Assert.Equal(expected.Length, mask.Count);
+
+            for (int i = 0; i < expected.Length; i++)
+            {
+                Assert.Equal(expected[i], mask.Get(i));
+            }
+
+            int[] copied = new int[expected.Length];
+            mask.CopyTo(copied);
+            Assert.Equal(expected, copied);
+
+            var state = mask.GetState();
+            Assert.Equal(expected.Length > 0, state.IsStateValid(0));
+            if (expected.Length == 1)
+            {
+                Assert.True(state.IsStateValid(expected[0]));
+            }
+
+            foreach (int candidate in expected)
+            {
+                Assert.True(mask.Remove(candidate));
+            }
+            Assert.Empty(mask);
+        }
     }
 }

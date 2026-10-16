@@ -19,6 +19,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="..\Kakuro.Console\puzzles.txt" Link="TestData\puzzles.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Kakuro.Core\Kakuro.Core.csproj" />
   </ItemGroup>
 

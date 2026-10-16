@@ -17,6 +17,8 @@ public sealed class CandidateCollectionList(IEnumerable<int>? candidates = null)
     public override bool Remove(int candidate) => _candidates.Remove(candidate);
     
     public override int Get(int index) => _candidates[index];
+
+    public override bool Contains(int candidate) => _candidates.Contains(candidate);
     
     public override void Clear() => _candidates.Clear();
     

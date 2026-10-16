@@ -7,25 +7,32 @@ public class EmptyCellTests
     [Fact]
     public void Instance_ReturnsSameSingletonInstance()
     {
-        EmptyCell first = EmptyCell.Instance;
-        EmptyCell second = EmptyCell.Instance;
-
-        Assert.Same(first, second);
+        Assert.Same(EmptyCell.Instance, EmptyCell.Instance);
     }
 
     [Fact]
     public void ToString_ReturnsX()
     {
-        EmptyCell cell = EmptyCell.Instance;
-
-        Assert.Equal("X", cell.ToString());
+        Assert.Equal("X", EmptyCell.Instance.ToString());
     }
 
     [Fact]
-    public void IsInstanceOfCell()
+    public void GetState_ReturnsEqualStatesEveryTime()
     {
-        EmptyCell cell = EmptyCell.Instance;
+        Assert.Equal(EmptyCell.Instance.GetState(), EmptyCell.Instance.GetState());
+        Assert.Equal(EmptyCell.Instance.GetState().GetHashCode(), EmptyCell.Instance.GetState().GetHashCode());
+    }
 
-        Assert.IsAssignableFrom<Cell>(cell);
+    [Fact]
+    public void State_IsNotEqualToPlayableCellState()
+    {
+        Assert.NotEqual(EmptyCell.Instance.GetState(), new PlayableCell(0, 0).GetState());
+    }
+
+    [Fact]
+    public void IsValidState_AcceptsItsOwnStateOnly()
+    {
+        Assert.True(EmptyCell.Instance.IsValidState(EmptyCell.Instance.GetState()));
+        Assert.False(EmptyCell.Instance.IsValidState(new PlayableCell(0, 0).GetState()));
     }
 }

@@ -66,6 +66,9 @@ public sealed class CandidateCollectionMask : CandidateCollection
         return BitOperations.TrailingZeroCount(mask) + 1;
     }
 
+    public override bool Contains(int candidate) =>
+        candidate is >= MinCandidate and <= MaxCandidate && (_candidateMask & (1u << (candidate - 1))) != 0;
+
     public override void Clear()
     {
         _candidateMask = 0;

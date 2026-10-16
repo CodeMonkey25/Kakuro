@@ -1,108 +1,132 @@
-using System.Text;
 using Kakuro.Core.Models;
+using Kakuro.Core.Tests.TestData;
 
 namespace Kakuro.Core.Tests.Models;
 
+/// <summary>Construction, rendering and the IsSolved / IsSolutionValid queries. Solving lives in <see cref="BoardSolveTests"/>.</summary>
 public class BoardTests
 {
-    // A 3x3 puzzle with intersecting runs:
-    // (0,1) -> horiz len 2: (0,2), (0,3) (Total 16)
-    // (0,2) -> vert len 2: (1,2), (2,2) (Total 12)
-    // (1,0) -> horiz len 2: (1,1), (1,2) (Total 3)
-    // (2,0) -> horiz len 2: (2,1), (2,2) (Total 7)
-    private const string SamplePuzzleString = "kakuro.com|1|Easy|16,2,0,1,0|12,2,0,2,1|3,2,1,0,0|7,2,2,0,0";
+    #region Construction / ToString
 
     [Fact]
-    public void Constructor_InstantiatesGridAndSharesIntersectingCells()
+    public void Constructor_InstantiatesGridAndLeavesItUnsolved()
     {
-        Puzzle puzzle = Puzzle.Parse(SamplePuzzleString);
+        Board board = new(Puzzle.Parse(TestPuzzles.Sample));
+
+        Assert.False(board.IsSolved());
+        Assert.Contains("-------", board.ToString());
+        Assert.Contains("|X|", board.ToString());
+    }
+
+    [Fact]
+    public void Constructor_DoesNotSolveAnything_EvenWhenPropagationCould()
+    {
+        Board board = new(Puzzle.Parse(TestPuzzles.ForcedCorner));
+
+        Assert.Equal(TestPuzzles.Grid("XXX", "X  ", "X X"), board.ToString());
+    }
+
+    [Fact]
+    public void ToString_UnsolvedCellsAreBlank()
+    {
+        Board board = new(Puzzle.Parse("test|1|Easy|4,1,1,0,0|4,1,0,1,1"));
+
+        Assert.Equal(TestPuzzles.Grid("XX", "X "), board.ToString());
+    }
+
+    [Fact]
+    public void ToString_HasOneRowPerPuzzleRowAndDividersBetweenThem()
+    {
+        Puzzle puzzle = Puzzle.Parse(TestPuzzles.Sample);
         Board board = new(puzzle);
 
-        // Verify the board initially is not solved
-        Assert.False(board.IsSolved());
+        string[] lines = board.ToString().Split(Environment.NewLine);
 
-        // Check ToString format initially contains expected dividers and 'X' for non-cells
-        string boardString = board.ToString();
-        Assert.Contains("-------", boardString);
-        Assert.Contains("|X|", boardString);
+        Assert.Equal(puzzle.Rows * 2 + 1, lines.Length);
+        Assert.All(lines.Where((_, i) => i % 2 == 0), line => Assert.Equal(new string('-', puzzle.Columns * 2 + 1), line));
+        Assert.All(lines.Where((_, i) => i % 2 == 1), line => Assert.Equal(puzzle.Columns * 2 + 1, line.Length));
     }
 
     [Fact]
-    public void IsSolved_ReturnsFalseWhenAnyCellIsUnsolved_AndTrueWhenAllSolved()
+    public void ToString_WithNoRuns_RendersSingleEmptyCell()
     {
-        // 2x2 board: 1 horizontal run (1,1 len 1 -> (1,1)) and 1 vertical run (1,1 len 1 -> (1,1))
-        // Run with Total 9, Length 1 -> Candidates {9}, Exclusions {1..8}
-        Puzzle singleCellPuzzle = Puzzle.Parse("test|1|Easy|9,1,1,1,0|9,1,1,1,1");
-        Board board = new(singleCellPuzzle);
+        Board board = new(Puzzle.Parse("test|1|Easy"));
 
-        Assert.False(board.IsSolved());
-
-        bool solved = board.Solve(null);
-
-        Assert.True(solved);
-        Assert.True(board.IsSolved());
-        Assert.True(board.IsSolutionValid());
-        Assert.Contains("|9|", board.ToString());
-    }
-    
-    [Fact]
-    public void IsSolved_ReturnsFalseWhenAnyCellIsUnsolved_AndTrueWhenAllSolved2()
-    {
-        // 2x2 block of cells at rows 1-2, columns 1-2, with clue cells in row 0 and column 0
-        Puzzle singleCellPuzzle = Puzzle.Parse("test|1|Easy|16,2,1,0,0|17,2,2,0,0|17,2,0,1,1|16,2,0,2,1");
-        Board board = new(singleCellPuzzle);
-
-        Assert.False(board.IsSolved());
-
-        bool solved = board.Solve(null);
-
-        Assert.True(solved);
-        Assert.True(board.IsSolved());
-        Assert.True(board.IsSolutionValid());
-
-        string expected = new StringBuilder()
-            .AppendLine("-------")
-            .AppendLine("|X|X|X|")
-            .AppendLine("-------")
-            .AppendLine("|X|9|7|")
-            .AppendLine("-------")
-            .AppendLine("|X|8|9|")
-            .AppendLine("-------")
-            .ToString().TrimEnd();
-
-        Assert.Equal(expected, board.ToString());
+        Assert.Equal(TestPuzzles.Grid("X"), board.ToString());
     }
 
-    [Fact]
-    public void Solve_WhenSolutionNeedsNineAndExcludesNineElsewhere_SolvesUniquely()
+    [Theory]
+    [InlineData("test|1|Easy|3,2,0,1,1|4,2,4,0,0")] // horizontal run on row 4 exceeds the vertical run's extent
+    [InlineData("test|2|Easy|4,2,0,0,0|3,2,0,4,1")] // vertical run on column 4 exceeds the horizontal run's extent
+    [InlineData("test|3|Easy|4,2,2,0,0")] // only horizontal runs
+    [InlineData("test|4|Easy|4,2,0,2,1")] // only vertical runs
+    public void Constructor_WhenRunCoordinatesExceedOppositeOrientationDimensions_InstantiatesBoardSuccessfully(string puzzleString)
     {
-        // Rows: (1,1)+(1,2)=3 -> {1,2}; (2,1)+(2,2)=17 -> {8,9}
-        // Cols: (1,1)+(2,1)=9 -> 1+8;   (1,2)+(2,2)=11 -> 2+9
-        // Digit 9 must be excluded from the 3-run cells and kept in the 17-run cells.
-        Puzzle puzzle = Puzzle.Parse("test|1|Easy|3,2,1,0,0|17,2,2,0,0|9,2,0,1,1|11,2,0,2,1");
+        Puzzle puzzle = Puzzle.Parse(puzzleString);
+
+        // dimensions must account for both orientations, or cell instantiation would index out of range
         Board board = new(puzzle);
 
-        Assert.True(board.Solve(null));
-        Assert.True(board.IsSolutionValid());
-
-        string expected = new StringBuilder()
-            .AppendLine("-------")
-            .AppendLine("|X|X|X|")
-            .AppendLine("-------")
-            .AppendLine("|X|1|2|")
-            .AppendLine("-------")
-            .AppendLine("|X|8|9|")
-            .AppendLine("-------")
-            .ToString().TrimEnd();
-
-        Assert.Equal(expected, board.ToString());
+        string[] lines = board.ToString().Split(Environment.NewLine);
+        Assert.Equal(puzzle.Rows * 2 + 1, lines.Length);
     }
+
+    [Fact]
+    public void Constructor_RunsSharingACell_ShareTheSameCellInstance()
+    {
+        // (1,1) belongs to both runs; solving it through one run must be visible through the other
+        Board board = new(Puzzle.Parse(TestPuzzles.ForcedCorner));
+
+        Assert.True(board.Solve());
+
+        Assert.Equal(TestPuzzles.Grid("XXX", "X12", "X3X"), board.ToString());
+    }
+
+    #endregion
+
+    #region IsSolved
+
+    [Fact]
+    public void IsSolved_FreshBoard_IsFalse()
+    {
+        Assert.False(new Board(Puzzle.Parse(TestPuzzles.TwoSingleCells)).IsSolved());
+    }
+
+    [Fact]
+    public void IsSolved_AfterSolve_IsTrue()
+    {
+        Board board = new(Puzzle.Parse(TestPuzzles.TwoSingleCells));
+
+        Assert.True(board.Solve());
+
+        Assert.True(board.IsSolved());
+        Assert.Equal(TestPuzzles.Grid("XXX", "XX9", "X9X"), board.ToString());
+    }
+
+    [Fact]
+    public void IsSolved_WithSomeCellsSolved_IsFalse()
+    {
+        Board board = new(Puzzle.Parse(TestPuzzles.TwoSingleCells));
+
+        board.SetState(TestPuzzles.WithPlayableValues(board, 9, 0));
+
+        Assert.False(board.IsSolved());
+    }
+
+    [Fact]
+    public void IsSolved_WithNoPlayableCells_IsTrue()
+    {
+        Assert.True(new Board(Puzzle.Parse("test|1|Easy")).IsSolved());
+    }
+
+    #endregion
+
+    #region IsSolutionValid
 
     [Fact]
     public void IsSolutionValid_WhenUnsolved_ReturnsFalse()
     {
-        Puzzle puzzle = Puzzle.Parse(SamplePuzzleString);
-        Board board = new(puzzle);
+        Board board = new(Puzzle.Parse(TestPuzzles.Sample));
 
         Assert.False(board.IsSolved());
         Assert.False(board.IsSolutionValid());
@@ -111,183 +135,72 @@ public class BoardTests
     [Fact]
     public void IsSolutionValid_WhenSolvedWithCorrectTotals_ReturnsTrue()
     {
-        // 2x2 board: 1 horizontal run (1,1 len 1 -> (1,1)) and 1 vertical run (1,1 len 1 -> (1,1))
-        Puzzle singleCellPuzzle = Puzzle.Parse("test|1|Easy|9,1,1,1,0|9,1,1,1,1");
-        Board board = new(singleCellPuzzle);
+        Board board = new(Puzzle.Parse("test|1|Easy|3,2,1,0,0"));
 
-        bool solved = board.Solve(null);
-
-        Assert.True(solved);
-        Assert.True(board.IsSolved());
-        Assert.True(board.IsSolutionValid());
-    }
-
-    [Fact]
-    public void ToString_FormatsGridWithDividersAndCells()
-    {
-        // Puzzle with 2 rows, 2 columns: Cell at (1,1) after the clue cell at (1,0) and (0,1)
-        Puzzle puzzle = Puzzle.Parse("test|1|Easy|4,1,1,0,0|4,1,0,1,1");
-        Board board = new(puzzle);
-
-        string expectedUnsolved = new StringBuilder()
-            .AppendLine("-----")
-            .AppendLine("|X|X|")
-            .AppendLine("-----")
-            .AppendLine("|X| |")
-            .AppendLine("-----")
-            .ToString().TrimEnd();
-
-        Assert.Equal(expectedUnsolved, board.ToString());
-    }
-
-    [Fact]
-    public void Solve_OfficialPuzzle_ReturnsTrue()
-    {
-        // Puzzle #1 from calendar/official dataset
-        string officialPuzzle = "The Official Book of Kakuro|41|Easy|13,2,0,1,1|11,3,0,2,1|9,3,0,6,1|14,2,0,7,1|17,2,1,0,0|16,5,1,3,1|8,2,1,5,0|34,5,1,5,1|7,3,2,0,0|23,3,2,4,0|15,3,2,4,1|15,5,3,1,0|13,3,4,2,0|21,3,4,2,1|18,3,4,6,1|35,5,5,1,0|6,2,5,1,1|9,2,5,7,1|7,3,6,0,0|24,3,6,4,0|12,2,7,0,0|5,2,7,5,0";
-        Puzzle puzzle = Puzzle.Parse(officialPuzzle);
-        Board board = new(puzzle);
-
-        Assert.True(board.Solve(null));
-    }
-
-    [Fact]
-    public void Solve_WhenRunForcesNakedSingle_SolvesCell()
-    {
-        // Run with Total 3, Length 2 has candidates {1, 2} and exclusions {3, 4, 5, 6, 7, 8, 9}
-        // Run with Total 4, Length 2 has candidates {1, 3} and exclusions {2, 4, 5, 6, 7, 8, 9}
-        // When these two runs intersect on a cell, exclusions {2..9} and {2,4..9} leave only digit 1.
-        // Therefore, the intersecting cell should automatically solve to 1.
-        Puzzle puzzle = Puzzle.Parse("test|1|Easy|3,2,1,0,0|4,2,0,1,1");
-        Board board = new(puzzle);
-
-        Assert.True(board.Solve(null));
-        string boardDisplay = board.ToString();
-        Assert.Contains("|1|", boardDisplay);
-    }
-
-    [Fact]
-    public void Solve_ContradictoryIntersectingRuns_ReturnsFalseAndRestoresBoard()
-    {
-        // Horizontal run with Total 3, Length 2 -> candidates {1, 2}, exclusions {3..9}
-        // Vertical run with Total 17, Length 2 -> candidates {8, 9}, exclusions {1..7}
-        // Intersecting at (1, 1), union of exclusions is {1..9}, leaving no valid candidate.
-        Puzzle puzzle = Puzzle.Parse("test|1|Easy|3,2,1,0,0|17,2,0,1,1");
-        Board board = new(puzzle);
-        Board.State initial = board.GetState();
-
-        Assert.False(board.Solve(null));
-
-        Assert.False(board.IsSolved());
-        Assert.Equal(initial, board.GetState());
-    }
-
-    [Fact]
-    public void Solve_WhenPropagationFindsConflict_LogsConflictAndDoesNotGuess()
-    {
-        // same contradictory puzzle as above: rejected by constraint propagation alone
-        Puzzle puzzle = Puzzle.Parse("test|1|Easy|3,2,1,0,0|17,2,0,1,1");
-        Board board = new(puzzle);
-        List<string> log = [];
-
-        Assert.False(board.Solve(log.Add));
-
-        Assert.Single(log, message => message.Contains("constraints conflict detected"));
-        Assert.DoesNotContain(log, message => message.Contains("guessing"));
-    }
-
-    [Fact]
-    public void Solve_WhenAlreadySolved_ReturnsTrueAndLeavesStateUnchanged()
-    {
-        Puzzle puzzle = Puzzle.Parse("test|1|Easy|3,2,1,0,0|4,2,0,1,1");
-        Board board = new(puzzle);
-
-        Assert.True(board.Solve(null));
-        Board.State solved = board.GetState();
-
-        Assert.True(board.Solve(null));
-        Assert.Equal(solved, board.GetState());
-    }
-
-    [Fact]
-    public void Solve_WhenPuzzleRequiresGuessing_FindsValidSolution()
-    {
-        // 2x2 block where every run totals 10: constraint propagation alone cannot pick a cell value
-        Puzzle puzzle = Puzzle.Parse("test|1|Easy|10,2,1,0,0|10,2,2,0,0|10,2,0,1,1|10,2,0,2,1");
-        Board board = new(puzzle);
-
-        Assert.True(board.Solve(null));
+        board.SetState(TestPuzzles.WithPlayableValues(board, 1, 2));
 
         Assert.True(board.IsSolved());
         Assert.True(board.IsSolutionValid());
     }
 
     [Fact]
-    public void Solve_WhenGuessing_LogsEachGuess()
+    public void IsSolutionValid_WhenRunHasDuplicateDigits_ReturnsFalse()
     {
-        Puzzle puzzle = Puzzle.Parse("test|1|Easy|10,2,1,0,0|10,2,2,0,0|10,2,0,1,1|10,2,0,2,1");
-        Board board = new(puzzle);
-        List<string> log = [];
+        // 1 + 1 equals the run total of 2, so only the distinct-digits rule can reject it
+        Board board = new(Puzzle.Parse("test|1|Easy|2,2,1,0,0"));
 
-        Assert.True(board.Solve(log.Add));
-
-        Assert.Contains(log, message => message.Contains("guessing"));
-    }
-
-    [Fact]
-    public void Solve_WhenGuessFails_LogsRevert()
-    {
-        // 3x3 block whose row totals (46) differ from its column totals (50); only guessing exposes the contradiction
-        Puzzle puzzle = Puzzle.Parse("test|1|Easy|19,3,1,0,0|13,3,2,0,0|14,3,3,0,0|18,3,0,1,1|18,3,0,2,1|14,3,0,3,1");
-        Board board = new(puzzle);
-        List<string> log = [];
-
-        Assert.False(board.Solve(log.Add));
-
-        Assert.Contains(log, message => message.Contains("reverting"));
-    }
-
-    [Fact]
-    public void Solve_WhenUnsolvableOnlyAfterGuessing_ReturnsFalseAndRestoresBoard()
-    {
-        // 3x3 block whose row totals (46) differ from its column totals (50); only guessing exposes the contradiction
-        Puzzle puzzle = Puzzle.Parse("test|1|Easy|19,3,1,0,0|13,3,2,0,0|14,3,3,0,0|18,3,0,1,1|18,3,0,2,1|14,3,0,3,1");
-        Board board = new(puzzle);
-        Board.State initial = board.GetState();
-
-        Assert.False(board.Solve(null));
-
-        Assert.False(board.IsSolved());
-        Assert.Equal(initial, board.GetState());
-    }
-
-    [Fact]
-    public void Solve_ValidDatasetPuzzle_SolvesAndValidates()
-    {
-        string officialPuzzle = "The Official Book of Kakuro|41|Easy|13,2,0,1,1|11,3,0,2,1|9,3,0,6,1|14,2,0,7,1|17,2,1,0,0|16,5,1,3,1|8,2,1,5,0|34,5,1,5,1|7,3,2,0,0|23,3,2,4,0|15,3,2,4,1|15,5,3,1,0|13,3,4,2,0|21,3,4,2,1|18,3,4,6,1|35,5,5,1,0|6,2,5,1,1|9,2,5,7,1|7,3,6,0,0|24,3,6,4,0|12,2,7,0,0|5,2,7,5,0";
-        Puzzle puzzle = Puzzle.Parse(officialPuzzle);
-        Board board = new(puzzle);
-
-        Assert.True(board.Solve(null));
+        board.SetState(TestPuzzles.WithPlayableValues(board, 1, 1));
 
         Assert.True(board.IsSolved());
+        Assert.False(board.IsSolutionValid());
+    }
+
+    [Fact]
+    public void IsSolutionValid_WhenRunSumIsWrong_ReturnsFalse()
+    {
+        Board board = new(Puzzle.Parse("test|1|Easy|3,2,1,0,0"));
+
+        board.SetState(TestPuzzles.WithPlayableValues(board, 1, 3));
+
+        Assert.True(board.IsSolved());
+        Assert.False(board.IsSolutionValid());
+    }
+
+    [Fact]
+    public void IsSolutionValid_ChecksEveryRun_NotJustTheFirst()
+    {
+        // first run (1+2=3) is right, second run (1+1 vs 4) is wrong
+        Board board = new(Puzzle.Parse("test|1|Easy|3,2,1,0,0|4,2,2,0,0"));
+
+        board.SetState(TestPuzzles.WithPlayableValues(board, 1, 2, 1, 1));
+
+        Assert.False(board.IsSolutionValid());
+    }
+
+    [Fact]
+    public void IsSolutionValid_WhenOnlySomeRunsAreSolved_ReturnsFalse()
+    {
+        Board board = new(Puzzle.Parse("test|1|Easy|3,2,1,0,0|4,2,2,0,0"));
+
+        board.SetState(TestPuzzles.WithPlayableValues(board, 1, 2, 0, 0));
+
+        Assert.False(board.IsSolutionValid());
+    }
+
+    [Fact]
+    public void IsSolutionValid_WhenSolvedByTheSolver_ReturnsTrue()
+    {
+        Board board = new(Puzzle.Parse(TestPuzzles.UniqueBlock));
+        board.Solve();
+
         Assert.True(board.IsSolutionValid());
     }
 
-    [Theory]
-    [InlineData("test|1|Easy|3,2,0,1,1|4,2,4,0,0")] // Horizontal run on row 4 exceeds vertical run extent (row 2)
-    [InlineData("test|2|Easy|4,2,0,0,0|3,2,0,4,1")] // Vertical run on column 4 exceeds horizontal run extent (column 2)
-    [InlineData("test|3|Easy|4,2,2,0,0")]             // Only horizontal runs (Rows defaults to 1, but row 2 is needed)
-    [InlineData("test|4|Easy|4,2,0,2,1")]             // Only vertical runs (Columns defaults to 1, but column 2 is needed)
-    public void Constructor_WhenRunCoordinatesExceedOppositeOrientationDimensions_InstantiatesBoardSuccessfully(string puzzleString)
+    [Fact]
+    public void IsSolutionValid_WithNoRuns_IsVacuouslyTrue()
     {
-        Puzzle puzzle = Puzzle.Parse(puzzleString);
-
-        // Verifies that board dimensions correctly account for both orientations and edge cases (e.g. single-orientation puzzles),
-        // preventing IndexOutOfRangeException during cell instantiation.
-        Board board = new(puzzle);
-
-        Assert.NotNull(board);
-        Assert.False(string.IsNullOrEmpty(board.ToString()));
+        Assert.True(new Board(Puzzle.Parse("test|1|Easy")).IsSolutionValid());
     }
+
+    #endregion
 }

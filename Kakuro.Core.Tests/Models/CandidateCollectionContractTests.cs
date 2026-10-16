@@ -9,6 +9,8 @@ public abstract class CandidateCollectionContractTests
 {
     protected abstract CandidateCollection Create(params int[] candidates);
 
+    #region Count / enumeration / Get
+
     [Fact]
     public void Count_ReflectsCandidates()
     {
@@ -17,17 +19,65 @@ public abstract class CandidateCollectionContractTests
     }
 
     [Fact]
-    public void Enumeration_ReturnsAllCandidates_IncludingNine()
+    public void Enumeration_ReturnsAllCandidates_IncludingBoundaries()
     {
-        var collection = Create(1, 3, 7, 9);
-
-        Assert.Equal([1, 3, 7, 9], collection.ToArray());
+        Assert.Equal([1, 3, 7, 9], Create(1, 3, 7, 9).ToArray());
     }
 
     [Fact]
     public void Enumeration_WhenEmpty_ReturnsNothing()
     {
         Assert.Empty(Create());
+    }
+
+    [Fact]
+    public void Enumeration_CanBeRepeated()
+    {
+        var collection = Create(2, 4, 6);
+
+        Assert.Equal(collection.ToArray(), collection.ToArray());
+    }
+
+    [Fact]
+    public void Contains_ReportsMembership()
+    {
+        var collection = Create(2, 9);
+
+        Assert.True(collection.Contains(2));
+        Assert.True(collection.Contains(9));
+        Assert.False(collection.Contains(1));
+        Assert.False(collection.Contains(8));
+    }
+
+    [Fact]
+    public void Contains_ReflectsAddRemoveAndClear()
+    {
+        var collection = Create(2);
+
+        collection.Add(7);
+        Assert.True(collection.Contains(7));
+
+        collection.Remove(2);
+        Assert.False(collection.Contains(2));
+
+        collection.Clear();
+        Assert.False(collection.Contains(7));
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(0)]
+    [InlineData(10)]
+    [InlineData(33)]
+    public void Contains_WithOutOfRangeCandidate_ReturnsFalse(int candidate)
+    {
+        Assert.False(Create(1, 9).Contains(candidate));
+    }
+
+    [Fact]
+    public void Contains_WhenEmpty_IsFalse()
+    {
+        Assert.False(Create().Contains(1));
     }
 
     [Fact]
@@ -75,6 +125,19 @@ public abstract class CandidateCollectionContractTests
     }
 
     [Fact]
+    public void Get_AfterClear_Throws()
+    {
+        var collection = Create(1, 2);
+        collection.Clear();
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => collection.Get(0));
+    }
+
+    #endregion
+
+    #region CopyTo
+
+    [Fact]
     public void CopyTo_WritesCandidatesInOrder()
     {
         var collection = Create(3, 5, 9);
@@ -109,6 +172,31 @@ public abstract class CandidateCollectionContractTests
     }
 
     [Fact]
+    public void CopyTo_IntoLargerBuffer_LeavesTrailingElementsUntouched()
+    {
+        // Board relies on this: it reuses a 9-element buffer and slices it by Count.
+        var collection = Create(4, 6);
+        int[] buffer = [-1, -1, -1, -1];
+
+        collection.CopyTo(buffer);
+
+        Assert.Equal([4, 6, -1, -1], buffer);
+    }
+
+    [Fact]
+    public void CopyTo_IntoTooSmallBuffer_Throws()
+    {
+        var collection = Create(1, 2, 3);
+
+        // implementations differ in the exception type (IndexOutOfRange vs Argument), but both must refuse
+        Assert.ThrowsAny<Exception>(() => collection.CopyTo(new int[2]));
+    }
+
+    #endregion
+
+    #region Add / Remove / Clear
+
+    [Fact]
     public void Add_AddsCandidate()
     {
         var collection = Create(2);
@@ -140,6 +228,34 @@ public abstract class CandidateCollectionContractTests
     }
 
     [Fact]
+    public void Remove_SameCandidateTwice_SecondCallReturnsFalse()
+    {
+        var collection = Create(2, 5);
+
+        Assert.True(collection.Remove(2));
+        Assert.False(collection.Remove(2));
+        Assert.Equal([5], collection.ToArray());
+    }
+
+    [Fact]
+    public void Remove_FromEmptyCollection_ReturnsFalse()
+    {
+        Assert.False(Create().Remove(1));
+    }
+
+    [Fact]
+    public void Remove_EveryCandidate_LeavesEmptyCollection()
+    {
+        var collection = Create(1, 5, 9);
+
+        Assert.True(collection.Remove(9));
+        Assert.True(collection.Remove(1));
+        Assert.True(collection.Remove(5));
+
+        Assert.Empty(collection);
+    }
+
+    [Fact]
     public void Clear_RemovesAllCandidates()
     {
         var collection = Create(1, 2, 3);
@@ -148,6 +264,31 @@ public abstract class CandidateCollectionContractTests
 
         Assert.Empty(collection);
     }
+
+    [Fact]
+    public void Clear_WhenAlreadyEmpty_IsHarmless()
+    {
+        var collection = Create();
+
+        collection.Clear();
+
+        Assert.Empty(collection);
+    }
+
+    [Fact]
+    public void Clear_ThenAdd_StartsFromScratch()
+    {
+        var collection = Create(1, 2, 3);
+
+        collection.Clear();
+        collection.Add(7);
+
+        Assert.Equal([7], collection.ToArray());
+    }
+
+    #endregion
+
+    #region State
 
     [Fact]
     public void SetState_RestoresStateCapturedByGetState()
@@ -163,6 +304,43 @@ public abstract class CandidateCollectionContractTests
     }
 
     [Fact]
+    public void SetState_CanRestoreAnEmptyCollection()
+    {
+        var collection = Create();
+        var state = collection.GetState();
+
+        collection.Add(3);
+        collection.SetState(state);
+
+        Assert.Empty(collection);
+    }
+
+    [Fact]
+    public void SetState_CanBeAppliedToADifferentInstance()
+    {
+        var source = Create(2, 3, 8);
+        var target = Create(1);
+
+        target.SetState(source.GetState());
+
+        Assert.Equal([2, 3, 8], target.ToArray());
+    }
+
+    [Fact]
+    public void SetState_CanBeAppliedRepeatedly()
+    {
+        var collection = Create(1, 2, 3);
+        var state = collection.GetState();
+
+        collection.Clear();
+        collection.SetState(state);
+        collection.Remove(1);
+        collection.SetState(state);
+
+        Assert.Equal([1, 2, 3], collection.ToArray());
+    }
+
+    [Fact]
     public void GetState_IsNotAffectedByLaterMutation()
     {
         var collection = Create(1, 2);
@@ -174,12 +352,25 @@ public abstract class CandidateCollectionContractTests
     }
 
     [Fact]
+    public void GetState_IsNotAffectedByMutationAfterSetState()
+    {
+        var collection = Create(1, 2);
+        var state = collection.GetState();
+
+        collection.SetState(state);
+        collection.Remove(1);
+
+        Assert.True(state.Equals(Create(1, 2).GetState()));
+    }
+
+    [Fact]
     public void SetState_WithForeignStateType_Throws()
     {
         var collection = Create(1);
         var foreign = new ForeignState();
 
         Assert.Throws<ArgumentException>(() => collection.SetState(foreign));
+        Assert.Equal([1], collection.ToArray());
     }
 
     [Fact]
@@ -192,6 +383,25 @@ public abstract class CandidateCollectionContractTests
         Assert.Equal(a, b);
         Assert.Equal(a.GetHashCode(), b.GetHashCode());
         Assert.NotEqual(a, c);
+    }
+
+    [Fact]
+    public void State_OfClearedCollectionEqualsStateOfEmptyCollection()
+    {
+        var cleared = Create(1, 2, 3);
+        cleared.Clear();
+
+        Assert.Equal(Create().GetState(), cleared.GetState());
+    }
+
+    [Fact]
+    public void State_IsNotEqualToNullOrOtherTypes()
+    {
+        var state = Create(1).GetState();
+
+        Assert.False(state.Equals(null));
+        Assert.False(state.Equals("1"));
+        Assert.True(state.Equals((object)state));
     }
 
     [Fact]
@@ -233,60 +443,22 @@ public abstract class CandidateCollectionContractTests
         Assert.False(state.IsStateValid(33));
     }
 
+    [Fact]
+    public void IsStateValid_WithAllNineCandidates_IsValidOnlyForUnsolved()
+    {
+        var state = Create(1, 2, 3, 4, 5, 6, 7, 8, 9).GetState();
+
+        Assert.True(state.IsStateValid(0));
+        for (int value = 1; value <= 9; value++)
+        {
+            Assert.False(state.IsStateValid(value));
+        }
+    }
+
     private sealed class ForeignState : CandidateCollection.CandidateCollectionState
     {
         public override bool IsStateValid(int value) => true;
     }
-}
 
-public class CandidateCollectionListTests : CandidateCollectionContractTests
-{
-    protected override CandidateCollection Create(params int[] candidates) => new CandidateCollectionList(candidates);
-
-    [Fact]
-    public void Constructor_WithNoArguments_IsEmpty()
-    {
-        Assert.Empty(new CandidateCollectionList());
-    }
-
-    [Fact]
-    public void Enumeration_PreservesInsertionOrder()
-    {
-        Assert.Equal([5, 2, 8], Create(5, 2, 8).ToArray());
-    }
-
-    [Fact]
-    public void Remove_WithDuplicates_RemovesOnlyFirstOccurrence()
-    {
-        var collection = Create(3, 3, 4);
-
-        Assert.True(collection.Remove(3));
-
-        Assert.Equal([3, 4], collection.ToArray());
-    }
-
-    [Fact]
-    public void IsStateValid_WithZeroAndOutOfRangeCandidate_ReturnsFalse()
-    {
-        var state = Create(1, 12).GetState();
-
-        Assert.False(state.IsStateValid(0));
-    }
-}
-
-public class CandidateCollectionBuildTests
-{
-    [Fact]
-    public void Build_ReturnsCollectionContainingCandidates()
-    {
-        var collection = CandidateCollection.Build([2, 4, 6]);
-
-        Assert.Equal([2, 4, 6], collection.ToArray());
-    }
-
-    [Fact]
-    public void Build_WithNoCandidates_ReturnsEmptyCollection()
-    {
-        Assert.Empty(CandidateCollection.Build([]));
-    }
+    #endregion
 }
