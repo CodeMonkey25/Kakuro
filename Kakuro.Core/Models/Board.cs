@@ -83,10 +83,11 @@ public class Board
 
     public bool IsSolutionValid()
     {
+        HashSet<int> seen = [];
         foreach (Run run in _runs)
         {
+            seen.Clear();
             int sum = 0;
-            HashSet<int> seen = [];
             foreach (PlayableCell playableCell in run.Cells)
             {
                 if (!playableCell.IsSolved) return false;
