@@ -260,14 +260,16 @@ public class BoardSolveTests
     }
 
     [Fact]
-    public void Solve_WhenPropagationSuffices_LogsNothing()
+    public void Solve_WhenPropagationSuffices_LogsOnlyPropagationProgress()
     {
         Board board = new(Puzzle.Parse(TestPuzzles.ForcedBlock));
         List<string> log = [];
 
         Assert.True(board.Solve(log.Add));
 
-        Assert.Empty(log);
+        Assert.NotEmpty(log);
+        Assert.DoesNotContain(log, message => message.Contains("guess"));
+        Assert.DoesNotContain(log, message => message.Contains("conflict"));
     }
 
     [Fact]

@@ -4,6 +4,9 @@ namespace Kakuro.Core.Models;
 
 public abstract class CandidateCollection : IReadOnlyCollection<int>
 {
+    protected const int MinCandidate = 1;
+    protected const int MaxCandidate = 9;
+    
     public static CandidateCollection Build(IEnumerable<int> candidates) => new CandidateCollectionMask(candidates);
     
     public abstract IEnumerator<int> GetEnumerator();

@@ -8,9 +8,6 @@ namespace Kakuro.Core.Models;
 /// </summary>
 public sealed class CandidateCollectionMask : CandidateCollection
 {
-    private const int MinCandidate = 1;
-    private const int MaxCandidate = 9;
-
     private uint _candidateMask;
 
     public CandidateCollectionMask(IEnumerable<int> candidates)
