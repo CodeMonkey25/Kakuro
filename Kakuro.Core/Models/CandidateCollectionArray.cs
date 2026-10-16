@@ -96,10 +96,8 @@ public sealed class CandidateCollectionArray : CandidateCollection
         Array.Copy(arrayState.Candidates, _candidates, _candidates.Length);
     }
     
-    private sealed class CandidateCollectionArrayState(bool[] candidates) : CandidateCollectionState, IEquatable<CandidateCollectionArrayState>
+    private sealed record CandidateCollectionArrayState(bool[] Candidates) : CandidateCollectionState
     {
-        public readonly bool[] Candidates = candidates;
-        
         public override bool IsStateValid(int value)
         {
             if (Candidates.Length != 9) return false;
@@ -124,8 +122,6 @@ public sealed class CandidateCollectionArray : CandidateCollection
             return Candidates.SequenceEqual(other.Candidates);
         }
 
-        public override bool Equals(object? obj) => ReferenceEquals(this, obj) || obj is CandidateCollectionArrayState other && Equals(other);
-        
         public override int GetHashCode()
         {
             HashCode hashCode = new();

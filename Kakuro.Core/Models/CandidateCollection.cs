@@ -22,7 +22,7 @@ public abstract class CandidateCollection : IReadOnlyCollection<int>
     public abstract void SetState(CandidateCollectionState state);
     public abstract void CopyTo(Span<int> destination);
 
-    public abstract class CandidateCollectionState
+    public abstract record CandidateCollectionState
     {
         public abstract bool IsStateValid(int value);
     }

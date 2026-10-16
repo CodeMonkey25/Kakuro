@@ -455,7 +455,7 @@ public abstract class CandidateCollectionContractTests
         }
     }
 
-    private sealed class ForeignState : CandidateCollection.CandidateCollectionState
+    private sealed record ForeignState : CandidateCollection.CandidateCollectionState
     {
         public override bool IsStateValid(int value) => true;
     }

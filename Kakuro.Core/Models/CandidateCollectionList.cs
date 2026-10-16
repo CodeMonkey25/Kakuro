@@ -50,9 +50,8 @@ public sealed class CandidateCollectionList : CandidateCollection
     
     public override void CopyTo(Span<int> destination) => _candidates.CopyTo(destination);
 
-    private sealed class CandidateCollectionListState(ImmutableArray<int> candidates) : CandidateCollectionState, IEquatable<CandidateCollectionListState>
+    private sealed record CandidateCollectionListState(ImmutableArray<int> Candidates) : CandidateCollectionState
     {
-        public readonly ImmutableArray<int> Candidates = candidates;
         public override bool IsStateValid(int value)
         {
             if (Candidates.IsDefault) return false;
@@ -66,8 +65,6 @@ public sealed class CandidateCollectionList : CandidateCollection
             if (ReferenceEquals(this, other)) return true;
             return Candidates.AsSpan().SequenceEqual(other.Candidates.AsSpan());
         }
-
-        public override bool Equals(object? obj) => ReferenceEquals(this, obj) || obj is CandidateCollectionListState other && Equals(other);
 
         public override int GetHashCode()
         {

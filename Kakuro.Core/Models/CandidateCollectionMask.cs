@@ -89,11 +89,9 @@ public sealed class CandidateCollectionMask : CandidateCollection
         }
     }
 
-    private sealed class CandidateCollectionMaskState(uint candidateMask) : CandidateCollectionState, IEquatable<CandidateCollectionMaskState>
+    private sealed record CandidateCollectionMaskState(uint CandidateMask) : CandidateCollectionState
     {
         private const uint ValidBits = (1u << MaxCandidate) - 1;
-
-        public readonly uint CandidateMask = candidateMask;
 
         public override bool IsStateValid(int value)
         {
@@ -104,16 +102,5 @@ public sealed class CandidateCollectionMask : CandidateCollection
 
             return CandidateMask != 0 && (CandidateMask & ~ValidBits) == 0;
         }
-
-        public bool Equals(CandidateCollectionMaskState? other)
-        {
-            if (other is null) return false;
-            if (ReferenceEquals(this, other)) return true;
-            return CandidateMask == other.CandidateMask;
-        }
-
-        public override bool Equals(object? obj) => ReferenceEquals(this, obj) || obj is CandidateCollectionMaskState other && Equals(other);
-
-        public override int GetHashCode() => (int)CandidateMask;
     }
 }
