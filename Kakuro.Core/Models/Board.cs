@@ -189,15 +189,16 @@ public class Board
         return (null, boardWasUpdated);
     }
 
-    private static void GetExcludedCandidates(int depth, int runningTotal, RunSolveState runSolveState)
+    private static bool GetExcludedCandidates(int depth, int runningTotal, RunSolveState runSolveState)
     {
         if (depth >= runSolveState.Length)
         {
+            bool done = false;
             if (runningTotal == runSolveState.Total)
             {
-                runSolveState.KeepCurrentNumbers();
+                done = runSolveState.KeepCurrentNumbers();
             }
-            return;
+            return done;
         }
 
         int remainingCellsAfterThis = runSolveState.Length - depth - 1;
@@ -214,9 +215,11 @@ public class Board
             if (remainingSumNeeded > MaxPossibleSum[remainingCellsAfterThis]) continue;
 
             runSolveState.UseNumber(depth, current);
-            GetExcludedCandidates(depth + 1, newRunningTotal, runSolveState);
+            bool done = GetExcludedCandidates(depth + 1, newRunningTotal, runSolveState);
             runSolveState.ClearNumber(depth);
+            if (done) return true; // every candidate has been confirmed viable, nothing left to exclude
         }
+        return false;
     }
 
     private PlayableCell? GetCellWithLowestCandidates()
@@ -283,12 +286,15 @@ public class Board
             }
         }
 
-        public void KeepCurrentNumbers()
+        public bool KeepCurrentNumbers()
         {
+            uint remaining = 0;
             for (int i = 0; i < Length; i++)
             {
                 _cellCandidatesBuffer[i].RemoveExclusion(_numbers[i]);
+                remaining |= _cellCandidatesBuffer[i].GetExclusionsMask();
             }
+            return remaining == 0;
         }
 
         public void UseNumber(int depth, int current)
