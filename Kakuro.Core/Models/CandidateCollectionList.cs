@@ -35,7 +35,7 @@ public sealed class CandidateCollectionList(IEnumerable<int>? candidates = null)
         }
     }
     
-    public override void CopyTo(Span<int> candidates) => _candidates.CopyTo(candidates);
+    public override void CopyTo(Span<int> destination) => _candidates.CopyTo(destination);
 
     private sealed class CandidateCollectionListState(ImmutableArray<int> candidates) : CandidateCollectionState, IEquatable<CandidateCollectionListState>
     {

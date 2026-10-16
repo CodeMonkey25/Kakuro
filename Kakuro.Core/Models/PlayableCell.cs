@@ -80,16 +80,16 @@ public sealed class PlayableCell : Cell
         ArgumentOutOfRangeException.ThrowIfLessThan(value, 1);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(value, 9);
 
+        if (IsSolved)
+        {
+            return Value != value ? $"Cell at row {Row}, column {Column} is already solved." : null;
+        }
+
         if (!_candidates.Contains(value))
         {
             return $"Cell at row {Row}, column {Column} does not contain candidate {value}.";
         }
 
-        if (IsSolved)
-        {
-            return Value != value ? $"Cell at row {Row}, column {Column} is already solved." : null;
-        }
-        
         Value = value;
         _candidates.Clear();
         _candidates.Add(value);

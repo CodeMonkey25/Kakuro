@@ -540,9 +540,23 @@ public class PlayableCellTests
         cell.Solve(4);
 
         Assert.Null(cell.Solve(4));
-        Assert.Equal("Cell at row 2, column 3 does not contain candidate 5.", cell.Solve(5));
+        Assert.Equal("Cell at row 2, column 3 is already solved.", cell.Solve(5));
         Assert.Equal(4, cell.Value);
         Assert.Equal([4], cell.Candidates);
+    }
+
+    [Fact]
+    public void Solve_WhenAlreadySolved_ReportsAlreadySolvedRatherThanMissingCandidate()
+    {
+        PlayableCell cell = new(0, 0);
+        PlayableCell peer = new(0, 1);
+        cell.Bind([peer]);
+        cell.Solve(4);
+        Cell.State before = cell.GetState();
+
+        // 7 is not a candidate (the cell collapsed to {4}), but the solved check takes precedence
+        Assert.Equal("Cell at row 0, column 0 is already solved.", cell.Solve(7));
+        Assert.Equal(before, cell.GetState());
     }
 
     [Fact]

@@ -17,7 +17,7 @@ public abstract class CandidateCollection : IReadOnlyCollection<int>
     public abstract void Clear();
     public abstract CandidateCollectionState GetState();
     public abstract void SetState(CandidateCollectionState state);
-    public abstract void CopyTo(Span<int> candidates);
+    public abstract void CopyTo(Span<int> destination);
 
     public abstract class CandidateCollectionState
     {

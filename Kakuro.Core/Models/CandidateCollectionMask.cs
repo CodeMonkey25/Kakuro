@@ -83,12 +83,12 @@ public sealed class CandidateCollectionMask : CandidateCollection
         _candidateMask = maskState.CandidateMask;
     }
     
-    public override void CopyTo(Span<int> candidates)
+    public override void CopyTo(Span<int> destination)
     {
         int i = 0;
         for (uint m = _candidateMask; m != 0; m &= m - 1)
         {
-            candidates[i++] = BitOperations.TrailingZeroCount(m) + 1;
+            destination[i++] = BitOperations.TrailingZeroCount(m) + 1;
         }
     }
 
