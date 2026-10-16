@@ -184,10 +184,4 @@ public class PuzzleRunTests
 
         Assert.Equal(coordinates.ToArray(), coordinates.ToArray());
     }
-
-    [Fact]
-    public void CellCoordinates_OfDefaultRun_IsEmpty()
-    {
-        Assert.Empty(default(Puzzle.Run).GetCellCoordinates());
-    }
 }

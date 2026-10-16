@@ -2,7 +2,7 @@
 
 namespace Kakuro.Core.Models;
 
-public sealed class Puzzle
+public sealed record Puzzle
 {
     public string Source { get; }
     public string Number { get; }
@@ -39,13 +39,37 @@ public sealed class Puzzle
         return new Puzzle(source, number, difficulty, runs);
     }
     
+    // ImmutableArray<T> compares by reference, so the synthesized record equality would not compare runs by value
+    public bool Equals(Puzzle? other)
+    {
+        return other is not null
+               && Source == other.Source
+               && Number == other.Number
+               && Difficulty == other.Difficulty
+               && Runs.AsSpan().SequenceEqual(other.Runs.AsSpan());
+    }
+
+    public override int GetHashCode()
+    {
+        HashCode hash = new();
+        hash.Add(Source);
+        hash.Add(Number);
+        hash.Add(Difficulty);
+        foreach (Run run in Runs)
+        {
+            hash.Add(run);
+        }
+
+        return hash.ToHashCode();
+    }
+
     public override string ToString()
     {
         string header = $"{Source}|{Number}|{Difficulty}";
         return Runs.IsEmpty ? header : $"{header}|{string.Join('|', Runs)}";
     }
     
-    public readonly record struct Run
+    public sealed record Run
     {
         public int Total { get; }
         public int Length { get; }
