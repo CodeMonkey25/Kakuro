@@ -1,0 +1,114 @@
+using BenchmarkDotNet.Attributes;
+using Kakuro.Core.Models;
+
+namespace Kakuro.Benchmarks;
+
+[MemoryDiagnoser]
+public class CandidateCollectionBenchmarks
+{
+    private static readonly int[] Source = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+    private CandidateCollection _list = null!;
+    private CandidateCollection _mask = null!;
+    private CandidateCollection.CandidateCollectionState _listState = null!;
+    private CandidateCollection.CandidateCollectionState _maskState = null!;
+    private readonly int[] _buffer = new int[9];
+
+    [GlobalSetup]
+    public void Setup()
+    {
+        _list = new CandidateCollectionList(Source);
+        _mask = new CandidateCollectionMask(Source);
+        _listState = _list.GetState();
+        _maskState = _mask.GetState();
+    }
+
+    [Benchmark] public CandidateCollection Construct_List() => new CandidateCollectionList(Source);
+    [Benchmark] public CandidateCollection Construct_Mask() => new CandidateCollectionMask(Source);
+
+    [Benchmark]
+    public int Enumerate_List()
+    {
+        int sum = 0;
+        foreach (int c in _list) sum += c;
+        return sum;
+    }
+
+    [Benchmark]
+    public int Enumerate_Mask()
+    {
+        int sum = 0;
+        foreach (int c in _mask) sum += c;
+        return sum;
+    }
+
+    [Benchmark]
+    public int Contains_List()
+    {
+        int hits = 0;
+        for (int i = 1; i <= 9; i++) if (_list.Contains(i)) hits++;
+        return hits;
+    }
+
+    [Benchmark]
+    public int Contains_Mask()
+    {
+        int hits = 0;
+        for (int i = 1; i <= 9; i++) if (_mask.Contains(i)) hits++;
+        return hits;
+    }
+
+    [Benchmark]
+    public int Count_List() => _list.Count;
+
+    [Benchmark]
+    public int Count_Mask() => _mask.Count;
+
+    [Benchmark]
+    public int Get_List()
+    {
+        int sum = 0;
+        for (int i = 0; i < 9; i++) sum += _list.Get(i);
+        return sum;
+    }
+
+    [Benchmark]
+    public int Get_Mask()
+    {
+        int sum = 0;
+        for (int i = 0; i < 9; i++) sum += _mask.Get(i);
+        return sum;
+    }
+
+    [Benchmark]
+    public void RemoveAdd_List()
+    {
+        for (int i = 1; i <= 9; i++) _list.Remove(i);
+        for (int i = 1; i <= 9; i++) _list.Add(i);
+    }
+
+    [Benchmark]
+    public void RemoveAdd_Mask()
+    {
+        for (int i = 1; i <= 9; i++) _mask.Remove(i);
+        for (int i = 1; i <= 9; i++) _mask.Add(i);
+    }
+
+    [Benchmark]
+    public void CopyTo_List() => _list.CopyTo(_buffer);
+
+    [Benchmark]
+    public void CopyTo_Mask() => _mask.CopyTo(_buffer);
+
+    [Benchmark]
+    public CandidateCollection.CandidateCollectionState GetState_List() => _list.GetState();
+
+    [Benchmark]
+    public CandidateCollection.CandidateCollectionState GetState_Mask() => _mask.GetState();
+
+    [Benchmark]
+    public void SetState_List() => _list.SetState(_listState);
+
+    [Benchmark]
+    public void SetState_Mask() => _mask.SetState(_maskState);
+}

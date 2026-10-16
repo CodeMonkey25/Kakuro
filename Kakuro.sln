@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kakuro.Core", "Kakuro.Core\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kakuro.Core.Tests", "Kakuro.Core.Tests\Kakuro.Core.Tests.csproj", "{C54B1EC7-229E-472D-9466-D71205146F28}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kakuro.Benchmarks", "Kakuro.Benchmarks\Kakuro.Benchmarks.csproj", "{99E59917-E0EF-4D1E-A613-F156633DFB96}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -52,6 +54,18 @@ Global
 		{C54B1EC7-229E-472D-9466-D71205146F28}.Release|x64.Build.0 = Release|Any CPU
 		{C54B1EC7-229E-472D-9466-D71205146F28}.Release|x86.ActiveCfg = Release|Any CPU
 		{C54B1EC7-229E-472D-9466-D71205146F28}.Release|x86.Build.0 = Release|Any CPU
+		{99E59917-E0EF-4D1E-A613-F156633DFB96}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{99E59917-E0EF-4D1E-A613-F156633DFB96}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{99E59917-E0EF-4D1E-A613-F156633DFB96}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{99E59917-E0EF-4D1E-A613-F156633DFB96}.Debug|x64.Build.0 = Debug|Any CPU
+		{99E59917-E0EF-4D1E-A613-F156633DFB96}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{99E59917-E0EF-4D1E-A613-F156633DFB96}.Debug|x86.Build.0 = Debug|Any CPU
+		{99E59917-E0EF-4D1E-A613-F156633DFB96}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{99E59917-E0EF-4D1E-A613-F156633DFB96}.Release|Any CPU.Build.0 = Release|Any CPU
+		{99E59917-E0EF-4D1E-A613-F156633DFB96}.Release|x64.ActiveCfg = Release|Any CPU
+		{99E59917-E0EF-4D1E-A613-F156633DFB96}.Release|x64.Build.0 = Release|Any CPU
+		{99E59917-E0EF-4D1E-A613-F156633DFB96}.Release|x86.ActiveCfg = Release|Any CPU
+		{99E59917-E0EF-4D1E-A613-F156633DFB96}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
