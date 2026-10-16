@@ -19,12 +19,16 @@ public class BoardStateTests
         Assert.Equal(board.GetState().GetHashCode(), board.GetState().GetHashCode());
     }
 
-    [Fact]
-    public void GetState_HasOneEntryPerGridCell()
+    [Theory]
+    [InlineData(TestPuzzles.Sample)]
+    [InlineData(TestPuzzles.ForcedCorner)]
+    [InlineData(TestPuzzles.TwoSingleCells)]
+    public void GetState_HasOneEntryPerPlayableCell(string puzzleText)
     {
-        Puzzle puzzle = Puzzle.Parse(TestPuzzles.Sample);
+        Puzzle puzzle = Puzzle.Parse(puzzleText);
+        int playableCells = puzzle.Runs.SelectMany(run => run.GetCellCoordinates()).Distinct().Count();
 
-        Assert.Equal(puzzle.Rows * puzzle.Columns, new Board(puzzle).GetState().CellStates.Length);
+        Assert.Equal(playableCells, new Board(puzzle).GetState().CellStates.Length);
     }
 
     [Fact]
@@ -168,27 +172,12 @@ public class BoardStateTests
         board.Solve();
         Board.State current = board.GetState();
 
-        // put an EmptyCell state where the last playable cell is, after earlier entries that would otherwise be applied
+        // put an EmptyCell state at the last entry, after earlier entries that would otherwise be applied
         ImmutableArray<Cell.State> cellStates = valid.CellStates;
-        int playableIndex = cellStates.Select((s, i) => (s, i))
-            .Last(t => !t.s.Equals(EmptyCell.Instance.GetState())).i;
-        Board.State bad = new(cellStates.SetItem(playableIndex, EmptyCell.Instance.GetState()));
+        Board.State bad = new(cellStates.SetItem(cellStates.Length - 1, EmptyCell.Instance.GetState()));
 
         Assert.Throws<ArgumentException>(() => board.SetState(bad));
         Assert.Equal(current, board.GetState());
-    }
-
-    [Fact]
-    public void SetState_RejectsPlayableStateInAnEmptyCellPosition_AndLeavesBoardUnchanged()
-    {
-        Board board = CreateBoard(TestPuzzles.ForcedCorner);
-        Board.State before = board.GetState();
-        Cell.State playable = new PlayableCell(0, 0).GetState();
-
-        Board.State bad = new(before.CellStates.SetItem(0, playable)); // grid cell (0,0) is an EmptyCell
-
-        Assert.Throws<ArgumentException>(() => board.SetState(bad));
-        Assert.Equal(before, board.GetState());
     }
 
     #endregion

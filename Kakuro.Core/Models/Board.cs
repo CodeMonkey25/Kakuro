@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Kakuro.Core.Models;
@@ -8,59 +9,61 @@ public class Board
     private static readonly int[] MinPossibleSum = [0, 1, 3, 6, 10, 15, 21, 28, 36, 45];
     private static readonly int[] MaxPossibleSum = [0, 9, 17, 24, 30, 35, 39, 42, 44, 45];
 
-    private Puzzle Puzzle { get; }
-    private Cell[] Cells { get; }
-    private Run[] Runs { get; }
+    private readonly Puzzle _puzzle;
+    private readonly Cell[] _cells;
+    private readonly PlayableCell[] _playableCells;
+    private readonly Run[] _runs;
     
     // reusable scratch state for UpdateCellConstraints()
     private readonly RunSolveState _runSolveState = new();
     
     public Board(Puzzle puzzle)
     {
-        Puzzle = puzzle;
+        _puzzle = puzzle;
         
         // prepare Cells array
-        Cells = new Cell[Puzzle.Rows * Puzzle.Columns];
-        Array.Fill(Cells, EmptyCell.Instance);
+        _cells = new Cell[_puzzle.Rows * _puzzle.Columns];
+        Array.Fill(_cells, EmptyCell.Instance);
         
         // instantiate cells from puzzle runs
         // instantiate Board Runs
         // bind cells together
-        Runs = new Run[Puzzle.Runs.Length];
+        _runs = new Run[_puzzle.Runs.Length];
         int i = 0;
-        foreach (Puzzle.Run puzzleRun in Puzzle.Runs)
+        foreach (Puzzle.Run puzzleRun in _puzzle.Runs)
         {
             PlayableCell[] runCells = new PlayableCell[puzzleRun.Length];
             int j = 0;
             foreach ((int row, int column) in puzzleRun.GetCellCoordinates())
             {
-                int index = row * Puzzle.Columns + column;
-                if (Cells[index] is not PlayableCell playableCell)
+                int index = row * _puzzle.Columns + column;
+                if (_cells[index] is not PlayableCell playableCell)
                 {
                     playableCell = new PlayableCell(row, column);
-                    Cells[index] = playableCell;
+                    _cells[index] = playableCell;
                 }
                 runCells[j++] = playableCell;
             }
-            Runs[i++] = new Run(puzzleRun, runCells.ToImmutableArray());
+            _runs[i++] = new Run(puzzleRun, runCells.ToImmutableArray());
             foreach (PlayableCell cell in runCells)
             {
                 cell.Bind(runCells);
             }
         }
+        _playableCells = _cells.OfType<PlayableCell>().ToArray();
     }
     
     public override string ToString()
     {
-        string rowDivider = new('-', Puzzle.Columns * 2 + 1);
+        string rowDivider = new('-', _puzzle.Columns * 2 + 1);
         StringBuilder sb = new();
-        for (int r = 0; r < Puzzle.Rows; r++)
+        for (int r = 0; r < _puzzle.Rows; r++)
         {
             sb.AppendLine(rowDivider);
-            for (int c = 0; c < Puzzle.Columns; c++)
+            for (int c = 0; c < _puzzle.Columns; c++)
             {
                 sb.Append('|');
-                sb.Append(Cells[r * Puzzle.Columns + c]);
+                sb.Append(_cells[r * _puzzle.Columns + c]);
             }
             sb.Append('|');
             sb.AppendLine();
@@ -71,17 +74,16 @@ public class Board
 
     public bool IsSolved()
     {
-        foreach (Cell cell in Cells)
+        foreach (PlayableCell cell in _playableCells)
         {
-            if (cell is PlayableCell playableCell && !playableCell.IsSolved)
-                return false;
+            if (!cell.IsSolved) return false;
         }
         return true;
     }
 
     public bool IsSolutionValid()
     {
-        foreach (Run run in Runs)
+        foreach (Run run in _runs)
         {
             int sum = 0;
             HashSet<int> seen = [];
@@ -98,22 +100,30 @@ public class Board
         return true;
     }
     
-    public State GetState() => new(Cells.Select(cell => cell.GetState()).ToImmutableArray());
+    public State GetState()
+    {
+        Cell.State[] states = new Cell.State[_playableCells.Length];
+        for (int i = 0; i < states.Length; i++)
+        {
+            states[i] = _playableCells[i].GetState();
+        }
+        return new State(ImmutableCollectionsMarshal.AsImmutableArray(states));
+    }
 
     public void SetState(State state)
     {
-        if (state is null || state.CellStates.IsDefault || state.CellStates.Length != Cells.Length)
+        if (state is null || state.CellStates.IsDefault || state.CellStates.Length != _playableCells.Length)
             throw new ArgumentException("Invalid state");
         
-        for (int i = 0; i < Cells.Length; i++)
+        for (int i = 0; i < _playableCells.Length; i++)
         {
-            if (!Cells[i].IsValidState(state.CellStates[i]))
+            if (!_playableCells[i].IsValidState(state.CellStates[i]))
                 throw new ArgumentException("Invalid state");
         }
 
-        for (int i = 0; i < Cells.Length; i++)
+        for (int i = 0; i < _playableCells.Length; i++)
         {
-            Cells[i].SetState(state.CellStates[i]);
+            _playableCells[i].SetState(state.CellStates[i]);
         }
     }
     
@@ -155,7 +165,7 @@ public class Board
     {
         bool boardWasUpdated = false;
 
-        foreach (Run run in Runs)
+        foreach (Run run in _runs)
         {
             _runSolveState.Load(run);
             GetExcludedCandidates(0, 0, _runSolveState);
@@ -228,9 +238,8 @@ public class Board
     {
         PlayableCell? result = null;
         
-        foreach (Cell cell in Cells)
+        foreach (PlayableCell playableCell in _playableCells)
         {
-            if (cell is not PlayableCell playableCell) continue;
             if (playableCell.IsSolved) continue;
             if (playableCell.Candidates.Count == 2) return playableCell; // can't do better than that, bail early
             if (result == null || playableCell.Candidates.Count < result.Candidates.Count)

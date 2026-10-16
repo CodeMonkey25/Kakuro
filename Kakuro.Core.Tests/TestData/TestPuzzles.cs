@@ -79,20 +79,16 @@ internal static class TestPuzzles
     /// </summary>
     public static Board.State WithPlayableValues(Board board, params int[] values)
     {
-        Cell.State empty = EmptyCell.Instance.GetState();
         ImmutableArray<Cell.State>.Builder cells = board.GetState().CellStates.ToBuilder();
-        int next = 0;
+        Assert.Equal(values.Length, cells.Count);
         for (int i = 0; i < cells.Count; i++)
         {
-            if (cells[i].Equals(empty)) continue;
-            int value = values[next++];
-            if (value == 0) continue;
+            if (values[i] == 0) continue;
 
             PlayableCell cell = new(0, 0);
-            Assert.Null(cell.Solve(value));
+            Assert.Null(cell.Solve(values[i]));
             cells[i] = cell.GetState();
         }
-        Assert.Equal(values.Length, next);
         return new Board.State(cells.ToImmutable());
     }
 }
