@@ -122,7 +122,8 @@ public class Board
     {
         State initialState = GetState();
 
-        string? error = PropagateConstraints();
+        log?.Invoke("propagating initial constraints...");
+        string? error = PropagateConstraints(log);
         if (error == null)
         {
             if (SolveByGuessing(log)) return true;
@@ -138,11 +139,13 @@ public class Board
     }
 
     // repeats UpdateCellConstraints() until nothing changes; returns null on success or the first error
-    private string? PropagateConstraints()
+    private string? PropagateConstraints(Action<string>? log = null)
     {
+        int pass = 0;
         bool changed;
         do
         {
+            log?.Invoke($"\tpass {++pass}...");
             (string? error, changed) = UpdateCellConstraints();
             if (error != null) return error;
         } while (changed);
