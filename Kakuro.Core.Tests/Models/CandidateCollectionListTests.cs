@@ -7,9 +7,9 @@ public class CandidateCollectionListTests : CandidateCollectionContractTests
     protected override CandidateCollection Create(params int[] candidates) => new CandidateCollectionList(candidates);
 
     [Fact]
-    public void Constructor_WithNoArguments_IsEmpty()
+    public void Constructor_WithEmptySequence_IsEmpty()
     {
-        Assert.Empty(new CandidateCollectionList());
+        Assert.Empty(new CandidateCollectionList([]));
     }
 
     [Fact]
@@ -52,14 +52,50 @@ public class CandidateCollectionListTests : CandidateCollectionContractTests
     }
 
     [Theory]
-    [InlineData(12)]
     [InlineData(0)]
-    [InlineData(-3)]
-    public void IsStateValid_WithOutOfRangeCandidate_ReturnsFalse(int outOfRange)
+    [InlineData(10)]
+    [InlineData(-1)]
+    [InlineData(33)]
+    public void Add_WithOutOfRangeCandidate_Throws(int candidate)
     {
-        var state = Create(1, outOfRange).GetState();
+        var collection = Create(1);
 
-        Assert.False(state.IsStateValid(0));
+        Assert.Throws<ArgumentOutOfRangeException>(() => collection.Add(candidate));
+        Assert.Equal([1], collection.ToArray());
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(9)]
+    public void Add_AcceptsBoundaryCandidates(int candidate)
+    {
+        var collection = Create();
+
+        collection.Add(candidate);
+
+        Assert.Equal([candidate], collection.ToArray());
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(10)]
+    [InlineData(-1)]
+    public void Constructor_WithOutOfRangeCandidate_Throws(int candidate)
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => Create(1, candidate));
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(10)]
+    [InlineData(-1)]
+    [InlineData(33)]
+    public void Remove_WithOutOfRangeCandidate_ReturnsFalse(int candidate)
+    {
+        var collection = Create(1, 9);
+
+        Assert.False(collection.Remove(candidate));
+        Assert.Equal([1, 9], collection.ToArray());
     }
 
     [Fact]

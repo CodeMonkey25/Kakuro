@@ -2,9 +2,17 @@ using System.Collections.Immutable;
 
 namespace Kakuro.Core.Models;
 
-public sealed class CandidateCollectionList(IEnumerable<int>? candidates = null) : CandidateCollection
+public sealed class CandidateCollectionList : CandidateCollection
 {
-    private List<int> _candidates = candidates?.ToList() ?? [];
+    private readonly List<int> _candidates = [];
+
+    public CandidateCollectionList(IEnumerable<int> candidates)
+    {
+        foreach (int candidate in candidates)
+        {
+            Add(candidate);
+        }
+    }
 
     #region interfaces
     public override IEnumerator<int> GetEnumerator() => _candidates.GetEnumerator();
@@ -12,7 +20,12 @@ public sealed class CandidateCollectionList(IEnumerable<int>? candidates = null)
     public override int Count => _candidates.Count;
     #endregion
 
-    public override void Add(int candidate) => _candidates.Add(candidate);
+    public override void Add(int candidate)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(candidate, MinCandidate);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(candidate, MaxCandidate);
+        _candidates.Add(candidate);
+    }
 
     public override bool Remove(int candidate) => _candidates.Remove(candidate);
     
