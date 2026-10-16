@@ -349,10 +349,7 @@ public class Board
             }
         }
         
-        public void ClearExclusions()
-        {
-            _excluded = 0;
-        }
+        public void ClearExclusions() => _excluded = 0;
 
         public void AddExclusion(int number) => _excluded |= 1u << (number - 1);
 
