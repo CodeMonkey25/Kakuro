@@ -2,10 +2,10 @@ using System.Numerics;
 
 namespace Kakuro.Core.Models;
 
-public sealed class PlayableCell : Cell
+public sealed class PlayableCell(int row, int column) : Cell
 {
-    public int Row { get; }
-    public int Column { get; }
+    public int Row { get; } = row;
+    public int Column { get; } = column;
     public int Value { get; private set; }
     public bool IsSolved => Value != 0;
     
@@ -14,12 +14,6 @@ public sealed class PlayableCell : Cell
     
     private readonly List<PlayableCell> _linkedCells = [];
     public IReadOnlyList<PlayableCell> LinkedCells => _linkedCells;
-    
-    public PlayableCell(int row, int column)
-    {
-        Row = row;
-        Column = column;
-    }
 
     public (string? error, bool removed) RemoveCandidates(uint candidatesMask)
     {
