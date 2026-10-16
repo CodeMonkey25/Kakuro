@@ -269,7 +269,7 @@ public class Board
     {
         private readonly RunCellCandidates[] _cellCandidatesBuffer = Enumerable.Range(0, 9).Select(_ => new RunCellCandidates()).ToArray();
         private readonly int[] _numbers = new int[9];
-        private readonly bool[] _usedNumbers = new bool[10]; // indices 1..9 for digits
+        private readonly bool[] _usedNumbers = new bool[9];
         private Run _run;
 
         public int Length => _run.Length;
@@ -301,17 +301,17 @@ public class Board
 
         public void UseNumber(int depth, int current)
         {
-            _usedNumbers[current] = true;
+            _usedNumbers[current - 1] = true;
             _numbers[depth] = current;
         }
 
         public void ClearNumber(int depth)
         {
-            _usedNumbers[_numbers[depth]] = false;
+            _usedNumbers[_numbers[depth] - 1] = false;
             _numbers[depth] = 0;
         }
 
-        public bool IsNumberUsed(int number) => _usedNumbers[number];
+        public bool IsNumberUsed(int number) => _usedNumbers[number - 1];
 
         public (string? error, bool changed) WriteExclusionsToRun()
         {
