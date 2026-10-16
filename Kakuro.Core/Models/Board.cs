@@ -74,9 +74,9 @@ public class Board
 
     public bool IsSolved()
     {
-        foreach (PlayableCell cell in _playableCells)
+        foreach (PlayableCell playableCell in _playableCells)
         {
-            if (!cell.IsSolved) return false;
+            if (!playableCell.IsSolved) return false;
         }
         return true;
     }
