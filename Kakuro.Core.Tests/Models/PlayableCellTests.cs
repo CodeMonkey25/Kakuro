@@ -27,7 +27,7 @@ public class PlayableCellTests
     [Fact]
     public void IsInstanceOfCell()
     {
-        Assert.IsAssignableFrom<Cell>(new PlayableCell(0, 0));
+        Assert.IsAssignableFrom<ICell>(new PlayableCell(0, 0));
     }
 
     [Theory]
@@ -552,7 +552,7 @@ public class PlayableCellTests
         PlayableCell peer = new(0, 1);
         cell.Bind([peer]);
         cell.Solve(4);
-        Cell.State before = cell.GetState();
+        ICell.State before = cell.GetState();
 
         // 7 is not a candidate (the cell collapsed to {4}), but the solved check takes precedence
         Assert.Equal("Cell at row 0, column 0 is already solved.", cell.Solve(7));
@@ -635,7 +635,7 @@ public class PlayableCellTests
     {
         PlayableCell cell = new(2, 3);
         cell.RemoveCandidate(5);
-        Cell.State before = cell.GetState();
+        ICell.State before = cell.GetState();
 
         string? error = cell.Solve(5);
 
@@ -664,7 +664,7 @@ public class PlayableCellTests
     public void Solve_WithOutOfRangeValue_ThrowsAndLeavesCellUnchanged(int value)
     {
         PlayableCell cell = new(0, 0);
-        Cell.State before = cell.GetState();
+        ICell.State before = cell.GetState();
 
         Assert.Throws<ArgumentOutOfRangeException>(() => cell.Solve(value));
 

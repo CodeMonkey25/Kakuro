@@ -10,7 +10,7 @@ public class Board
     private static readonly int[] MaxPossibleSum = [0, 9, 17, 24, 30, 35, 39, 42, 44, 45];
 
     private readonly Puzzle _puzzle;
-    private readonly Cell[] _cells;
+    private readonly ICell[] _cells;
     private readonly PlayableCell[] _playableCells;
     private readonly Run[] _runs;
     
@@ -22,7 +22,7 @@ public class Board
         _puzzle = puzzle;
         
         // prepare Cells array
-        _cells = new Cell[_puzzle.Rows * _puzzle.Columns];
+        _cells = new ICell[_puzzle.Rows * _puzzle.Columns];
         Array.Fill(_cells, EmptyCell.Instance);
         
         // instantiate cells from puzzle runs
@@ -103,7 +103,7 @@ public class Board
     
     public State GetState()
     {
-        Cell.State[] states = new Cell.State[_playableCells.Length];
+        ICell.State[] states = new ICell.State[_playableCells.Length];
         for (int i = 0; i < states.Length; i++)
         {
             states[i] = _playableCells[i].GetState();
@@ -259,7 +259,7 @@ public class Board
         public int Total => puzzleRun.Total;
     }
     
-    public sealed record State(ImmutableArray<Cell.State> CellStates)
+    public sealed record State(ImmutableArray<ICell.State> CellStates)
     {
         public bool Equals(State? other) =>
             other is not null && (CellStates.IsDefault || other.CellStates.IsDefault
@@ -270,7 +270,7 @@ public class Board
         {
             HashCode hash = new();
             if (!CellStates.IsDefault)
-                foreach (Cell.State s in CellStates) hash.Add(s);
+                foreach (ICell.State s in CellStates) hash.Add(s);
             return hash.ToHashCode();
         }
     }

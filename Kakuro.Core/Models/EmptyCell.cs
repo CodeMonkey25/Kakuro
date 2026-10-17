@@ -1,6 +1,6 @@
 namespace Kakuro.Core.Models;
 
-public sealed class EmptyCell : Cell
+public sealed class EmptyCell : ICell
 {
     public static EmptyCell Instance { get; } = new();
 
@@ -8,17 +8,17 @@ public sealed class EmptyCell : Cell
     
     private EmptyCell() { }
 
-    public override State GetState() => EmptyCellState.Instance;
+    public ICell.State GetState() => EmptyCellState.Instance;
 
-    public override void SetState(State state)
+    public void SetState(ICell.State state)
     {
         if (state is EmptyCellState) return;
         throw new ArgumentException("Invalid state");
     }
 
-    public override bool IsValidState(State state) => state is EmptyCellState;
+    public bool IsValidState(ICell.State state) => state is EmptyCellState;
 
-    private sealed record EmptyCellState : Cell.State
+    private sealed record EmptyCellState : ICell.State
     {
         public static EmptyCellState Instance { get; } = new();
     }

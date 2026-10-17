@@ -2,7 +2,7 @@ using System.Numerics;
 
 namespace Kakuro.Core.Models;
 
-public sealed class PlayableCell(int row, int column) : Cell
+public sealed class PlayableCell(int row, int column) : ICell
 {
     public int Row { get; } = row;
     public int Column { get; } = column;
@@ -109,9 +109,9 @@ public sealed class PlayableCell(int row, int column) : Cell
     
     public override string ToString() => Value == 0 ? " " : Value.ToString();
     
-    public override State GetState() => new PlayableCellState(Value, _candidates.GetState());
+    public ICell.State GetState() => new PlayableCellState(Value, _candidates.GetState());
 
-    public override void SetState(State state)
+    public void SetState(ICell.State state)
     {
         if (state is not PlayableCellState playableCellState || !IsValidState(playableCellState))
             throw new ArgumentException("Invalid state");
@@ -120,7 +120,7 @@ public sealed class PlayableCell(int row, int column) : Cell
         _candidates.SetState(playableCellState.Candidates);
     }
 
-    public override bool IsValidState(State state)
+    public bool IsValidState(ICell.State state)
     {
         if (state is not PlayableCellState { Value: var value, Candidates: var candidates }) return false;
         if (value is < 0 or > 9) return false;
@@ -129,7 +129,7 @@ public sealed class PlayableCell(int row, int column) : Cell
 
     public void CopyCandidatesTo(Span<int> candidates) => _candidates.CopyTo(candidates);
 
-    private sealed record PlayableCellState(int Value, CandidateCollection.CandidateCollectionState Candidates) : Cell.State
+    private sealed record PlayableCellState(int Value, CandidateCollection.CandidateCollectionState Candidates) : ICell.State
     {
         public bool Equals(PlayableCellState? other) =>
             other is not null && Value == other.Value && Candidates.Equals(other.Candidates);
