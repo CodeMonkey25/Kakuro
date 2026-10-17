@@ -1,4 +1,5 @@
 using System.Numerics;
+using Kakuro.Core.Interfaces;
 
 namespace Kakuro.Core.Models;
 

@@ -1,4 +1,4 @@
-namespace Kakuro.Core.Models;
+namespace Kakuro.Core.Interfaces;
 
 public interface ICell
 {

@@ -1,11 +1,12 @@
+using Kakuro.Core.Interfaces;
 using Kakuro.Core.Models;
 
-namespace Kakuro.Core.Tests.Models;
+namespace Kakuro.Core.Tests.Interfaces;
 
 /// <summary>
 /// The state contract shared by every <see cref="ICell"/> subtype, exercised polymorphically.
 /// </summary>
-public class CellTests
+public class ICellTests
 {
     public static TheoryData<string> CellKinds() => ["empty", "playable"];
 

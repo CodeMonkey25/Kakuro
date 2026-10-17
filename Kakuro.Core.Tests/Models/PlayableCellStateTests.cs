@@ -1,3 +1,4 @@
+using Kakuro.Core.Interfaces;
 using Kakuro.Core.Models;
 
 namespace Kakuro.Core.Tests.Models;

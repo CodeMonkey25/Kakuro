@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using System.Text;
+using Kakuro.Core.Interfaces;
 
 namespace Kakuro.Core.Models;
 

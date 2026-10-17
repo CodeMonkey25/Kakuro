@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Kakuro.Core.Interfaces;
 using Kakuro.Core.Models;
 
 namespace Kakuro.Core.Tests.TestData;
