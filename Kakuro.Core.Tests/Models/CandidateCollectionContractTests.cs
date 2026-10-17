@@ -288,6 +288,42 @@ public abstract class CandidateCollectionContractTests
 
     #endregion
 
+    #region Equality
+
+    [Fact]
+    public void Equality_FollowsContents()
+    {
+        var a = Create(1, 2, 3);
+        var b = Create(1, 2, 3);
+        var c = Create(1, 2);
+
+        Assert.Equal(a, b);
+        Assert.Equal(a.GetHashCode(), b.GetHashCode());
+        Assert.NotEqual(a, c);
+    }
+
+    [Fact]
+    public void Equality_OfClearedCollectionEqualsEmptyCollection()
+    {
+        var cleared = Create(1, 2, 3);
+        cleared.Clear();
+
+        Assert.Equal(Create(), cleared);
+        Assert.Equal(Create().GetHashCode(), cleared.GetHashCode());
+    }
+
+    [Fact]
+    public void Equality_IsNotEqualToNullOrOtherTypes()
+    {
+        var collection = Create(1);
+
+        Assert.False(collection.Equals(null));
+        Assert.False(collection.Equals("1"));
+        Assert.True(collection.Equals((object)collection));
+    }
+
+    #endregion
+
     #region State
 
     [Fact]

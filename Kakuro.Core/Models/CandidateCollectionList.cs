@@ -2,7 +2,7 @@ using System.Collections.Immutable;
 
 namespace Kakuro.Core.Models;
 
-public sealed class CandidateCollectionList : CandidateCollection
+public sealed record CandidateCollectionList : CandidateCollection
 {
     private readonly List<int> _candidates = [];
 
@@ -19,6 +19,23 @@ public sealed class CandidateCollectionList : CandidateCollection
 
     public override int Count => _candidates.Count;
     #endregion
+
+    public bool Equals(CandidateCollectionList? other)
+    {
+        if (other is null) return false;
+        if (ReferenceEquals(this, other)) return true;
+        return _candidates.SequenceEqual(other._candidates);
+    }
+
+    public override int GetHashCode()
+    {
+        HashCode hashCode = new();
+        foreach (int candidate in _candidates)
+        {
+            hashCode.Add(candidate);
+        }
+        return hashCode.ToHashCode();
+    }
 
     public override void Add(int candidate)
     {

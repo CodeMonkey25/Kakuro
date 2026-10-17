@@ -1,6 +1,6 @@
 namespace Kakuro.Core.Models;
 
-public sealed class CandidateCollectionArray : CandidateCollection
+public sealed record CandidateCollectionArray : CandidateCollection
 {
     private readonly bool[] _candidates = new bool[9];
 
@@ -37,6 +37,23 @@ public sealed class CandidateCollectionArray : CandidateCollection
         {
             Add(candidate);
         }
+    }
+
+    public bool Equals(CandidateCollectionArray? other)
+    {
+        if (other is null) return false;
+        if (ReferenceEquals(this, other)) return true;
+        return _candidates.SequenceEqual(other._candidates);
+    }
+
+    public override int GetHashCode()
+    {
+        HashCode hashCode = new();
+        foreach (bool candidate in _candidates)
+        {
+            hashCode.Add(candidate);
+        }
+        return hashCode.ToHashCode();
     }
 
     public override void Add(int candidate)
