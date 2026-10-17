@@ -36,7 +36,7 @@ public class PlayableCellStateTests
     public void GetState_IsASnapshot_NotAffectedByLaterChanges()
     {
         PlayableCell cell = new(0, 0);
-        ICell.State snapshot = cell.GetState();
+        ICell.IState snapshot = cell.GetState();
 
         cell.RemoveCandidates([1, 2, 3]);
 
@@ -47,7 +47,7 @@ public class PlayableCellStateTests
     public void SetState_RestoresCandidates()
     {
         PlayableCell cell = new(0, 0);
-        ICell.State original = cell.GetState();
+        ICell.IState original = cell.GetState();
 
         cell.RemoveCandidates([1, 2, 3]);
         Assert.NotEqual(original, cell.GetState());
@@ -63,7 +63,7 @@ public class PlayableCellStateTests
     public void SetState_RestoresUnsolvedValue()
     {
         PlayableCell cell = new(0, 0);
-        ICell.State original = cell.GetState();
+        ICell.IState original = cell.GetState();
 
         cell.RemoveCandidates([1, 2, 3, 4, 5, 6, 7, 8]);
         Assert.True(cell.IsSolved);
@@ -81,7 +81,7 @@ public class PlayableCellStateTests
     {
         PlayableCell cell = new(0, 0);
         cell.Solve(6);
-        ICell.State solved = cell.GetState();
+        ICell.IState solved = cell.GetState();
 
         cell.SetState(new PlayableCell(0, 0).GetState());
         Assert.False(cell.IsSolved);
@@ -114,7 +114,7 @@ public class PlayableCellStateTests
         PlayableCell cell = new(0, 0);
         PlayableCell peer = new(0, 1);
         cell.Bind([peer]);
-        ICell.State original = cell.GetState();
+        ICell.IState original = cell.GetState();
 
         cell.RemoveCandidate(1);
         cell.SetState(original);
@@ -169,7 +169,7 @@ public class PlayableCellStateTests
     {
         PlayableCell cell = new(0, 0);
         cell.RemoveCandidate(2);
-        ICell.State before = cell.GetState();
+        ICell.IState before = cell.GetState();
 
         Assert.Throws<ArgumentException>(() => cell.SetState(EmptyCell.Instance.GetState()));
         Assert.Equal(before, cell.GetState());

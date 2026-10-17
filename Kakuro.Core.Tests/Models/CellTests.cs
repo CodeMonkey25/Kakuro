@@ -27,7 +27,7 @@ public class CellTests
     public void SetState_WithOwnState_DoesNotThrowOrChangeState(string kind)
     {
         ICell cell = CreateCell(kind);
-        ICell.State before = cell.GetState();
+        ICell.IState before = cell.GetState();
 
         cell.SetState(before);
 
@@ -53,7 +53,7 @@ public class CellTests
     public void IsValidState_RejectsStateOfTheOtherKind(string kind)
     {
         ICell cell = CreateCell(kind);
-        ICell.State foreign = CreateOtherKind(kind).GetState();
+        ICell.IState foreign = CreateOtherKind(kind).GetState();
 
         Assert.False(cell.IsValidState(foreign));
         Assert.Throws<ArgumentException>(() => cell.SetState(foreign));

@@ -8,17 +8,17 @@ public sealed class EmptyCell : ICell
     
     private EmptyCell() { }
 
-    public ICell.State GetState() => EmptyCellState.Instance;
+    public ICell.IState GetState() => EmptyCellState.Instance;
 
-    public void SetState(ICell.State state)
+    public void SetState(ICell.IState state)
     {
         if (state is EmptyCellState) return;
         throw new ArgumentException("Invalid state");
     }
 
-    public bool IsValidState(ICell.State state) => state is EmptyCellState;
+    public bool IsValidState(ICell.IState state) => state is EmptyCellState;
 
-    private sealed record EmptyCellState : ICell.State
+    private sealed record EmptyCellState : ICell.IState
     {
         public static EmptyCellState Instance { get; } = new();
     }

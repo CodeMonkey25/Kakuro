@@ -103,7 +103,7 @@ public class Board
     
     public State GetState()
     {
-        ICell.State[] states = new ICell.State[_playableCells.Length];
+        ICell.IState[] states = new ICell.IState[_playableCells.Length];
         for (int i = 0; i < states.Length; i++)
         {
             states[i] = _playableCells[i].GetState();
@@ -259,7 +259,7 @@ public class Board
         public int Total => puzzleRun.Total;
     }
     
-    public sealed record State(ImmutableArray<ICell.State> CellStates)
+    public sealed record State(ImmutableArray<ICell.IState> CellStates)
     {
         public bool Equals(State? other) =>
             other is not null && (CellStates.IsDefault || other.CellStates.IsDefault
@@ -270,7 +270,7 @@ public class Board
         {
             HashCode hash = new();
             if (!CellStates.IsDefault)
-                foreach (ICell.State s in CellStates) hash.Add(s);
+                foreach (ICell.IState s in CellStates) hash.Add(s);
             return hash.ToHashCode();
         }
     }

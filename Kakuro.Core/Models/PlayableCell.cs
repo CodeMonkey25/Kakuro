@@ -109,9 +109,9 @@ public sealed class PlayableCell(int row, int column) : ICell
     
     public override string ToString() => Value == 0 ? " " : Value.ToString();
     
-    public ICell.State GetState() => new PlayableCellState(Value, _candidates.GetState());
+    public ICell.IState GetState() => new PlayableCellState(Value, _candidates.GetState());
 
-    public void SetState(ICell.State state)
+    public void SetState(ICell.IState state)
     {
         if (state is not PlayableCellState playableCellState || !IsValidState(playableCellState))
             throw new ArgumentException("Invalid state");
@@ -120,7 +120,7 @@ public sealed class PlayableCell(int row, int column) : ICell
         _candidates.SetState(playableCellState.Candidates);
     }
 
-    public bool IsValidState(ICell.State state)
+    public bool IsValidState(ICell.IState state)
     {
         if (state is not PlayableCellState { Value: var value, Candidates: var candidates }) return false;
         if (value is < 0 or > 9) return false;
@@ -129,7 +129,7 @@ public sealed class PlayableCell(int row, int column) : ICell
 
     public void CopyCandidatesTo(Span<int> candidates) => _candidates.CopyTo(candidates);
 
-    private sealed record PlayableCellState(int Value, CandidateCollection.CandidateCollectionState Candidates) : ICell.State
+    private sealed record PlayableCellState(int Value, CandidateCollection.CandidateCollectionState Candidates) : ICell.IState
     {
         public bool Equals(PlayableCellState? other) =>
             other is not null && Value == other.Value && Candidates.Equals(other.Candidates);

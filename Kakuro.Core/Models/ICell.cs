@@ -2,12 +2,9 @@ namespace Kakuro.Core.Models;
 
 public interface ICell
 {
-    public ICell.State GetState();
-    public void SetState(ICell.State state);
-    public bool IsValidState(ICell.State state);
+    public ICell.IState GetState();
+    public void SetState(ICell.IState state);
+    public bool IsValidState(ICell.IState state);
 
-    public abstract record State
-    {
-        private protected State() { }
-    }
+    public interface IState { }
 }

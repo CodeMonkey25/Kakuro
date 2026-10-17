@@ -173,7 +173,7 @@ public class BoardStateTests
         Board.State current = board.GetState();
 
         // put an EmptyCell state at the last entry, after earlier entries that would otherwise be applied
-        ImmutableArray<ICell.State> cellStates = valid.CellStates;
+        ImmutableArray<ICell.IState> cellStates = valid.CellStates;
         Board.State bad = new(cellStates.SetItem(cellStates.Length - 1, EmptyCell.Instance.GetState()));
 
         Assert.Throws<ArgumentException>(() => board.SetState(bad));
