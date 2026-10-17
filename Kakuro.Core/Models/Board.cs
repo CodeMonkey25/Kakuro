@@ -7,9 +7,6 @@ namespace Kakuro.Core.Models;
 
 public sealed class Board
 {
-    private static readonly int[] MinPossibleSum = [0, 1, 3, 6, 10, 15, 21, 28, 36, 45];
-    private static readonly int[] MaxPossibleSum = [0, 9, 17, 24, 30, 35, 39, 42, 44, 45];
-
     private readonly Puzzle _puzzle;
     private readonly ICell[] _cells;
     private readonly PlayableCell[] _playableCells;
@@ -201,8 +198,8 @@ public sealed class Board
             if (newRunningTotal > runSolveState.Total) continue;
             
             int remainingSumNeeded = runSolveState.Total - newRunningTotal;
-            if (remainingSumNeeded < MinPossibleSum[remainingCellsAfterThis]) continue;
-            if (remainingSumNeeded > MaxPossibleSum[remainingCellsAfterThis]) continue;
+            if (remainingSumNeeded < Constants.MinPossibleSum[remainingCellsAfterThis]) continue;
+            if (remainingSumNeeded > Constants.MaxPossibleSum[remainingCellsAfterThis]) continue;
 
             runSolveState.UseNumber(depth, current);
             bool done = GetExcludedCandidates(depth + 1, newRunningTotal, runSolveState);

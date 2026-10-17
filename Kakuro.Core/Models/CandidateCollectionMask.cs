@@ -20,8 +20,8 @@ public sealed class CandidateCollectionMask : CandidateCollection
 
     private static uint BitFor(int candidate)
     {
-        ArgumentOutOfRangeException.ThrowIfLessThan(candidate, MinCandidate);
-        ArgumentOutOfRangeException.ThrowIfGreaterThan(candidate, MaxCandidate);
+        ArgumentOutOfRangeException.ThrowIfLessThan(candidate, Constants.MinCandidate);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(candidate, Constants.MaxCandidate);
         return 1u << (candidate - 1);
     }
 
@@ -42,7 +42,7 @@ public sealed class CandidateCollectionMask : CandidateCollection
 
     public override bool Remove(int candidate)
     {
-        if (candidate is < MinCandidate or > MaxCandidate) return false;
+        if (candidate is < Constants.MinCandidate or > Constants.MaxCandidate) return false;
 
         uint bit = 1u << (candidate - 1);
         bool removed = (_candidateMask & bit) != 0;
@@ -64,7 +64,7 @@ public sealed class CandidateCollectionMask : CandidateCollection
     }
 
     public override bool Contains(int candidate) =>
-        candidate is >= MinCandidate and <= MaxCandidate && (_candidateMask & (1u << (candidate - 1))) != 0;
+        candidate is >= Constants.MinCandidate and <= Constants.MaxCandidate && (_candidateMask & (1u << (candidate - 1))) != 0;
 
     public override void Clear()
     {
@@ -91,13 +91,13 @@ public sealed class CandidateCollectionMask : CandidateCollection
 
     private sealed record CandidateCollectionMaskState(uint CandidateMask) : CandidateCollectionState
     {
-        private const uint ValidBits = (1u << MaxCandidate) - 1;
+        private const uint ValidBits = (1u << Constants.MaxCandidate) - 1;
 
         public override bool IsStateValid(int value)
         {
             if (value != 0)
             {
-                return value is >= MinCandidate and <= MaxCandidate && CandidateMask == 1u << (value - 1);
+                return value is >= Constants.MinCandidate and <= Constants.MaxCandidate && CandidateMask == 1u << (value - 1);
             }
 
             return CandidateMask != 0 && (CandidateMask & ~ValidBits) == 0;

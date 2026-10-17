@@ -2,7 +2,7 @@ namespace Kakuro.Core.Models;
 
 public sealed class CandidateCollectionArray : CandidateCollection
 {
-    private readonly bool[] _candidates = new bool[9];
+    private readonly bool[] _candidates = new bool[Constants.MaxCandidate];
 
     #region interfaces
     public override IEnumerator<int> GetEnumerator()
@@ -41,14 +41,14 @@ public sealed class CandidateCollectionArray : CandidateCollection
 
     public override void Add(int candidate)
     {
-        ArgumentOutOfRangeException.ThrowIfLessThan(candidate, MinCandidate);
-        ArgumentOutOfRangeException.ThrowIfGreaterThan(candidate, MaxCandidate);
+        ArgumentOutOfRangeException.ThrowIfLessThan(candidate, Constants.MinCandidate);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(candidate, Constants.MaxCandidate);
         _candidates[candidate - 1] = true;
     }
 
     public override bool Remove(int candidate)
     {
-        if (candidate is < MinCandidate or > MaxCandidate) return false;
+        if (candidate is < Constants.MinCandidate or > Constants.MaxCandidate) return false;
         if (!Contains(candidate)) return false;
         _candidates[candidate - 1] = false;
         return true;
@@ -56,6 +56,9 @@ public sealed class CandidateCollectionArray : CandidateCollection
 
     public override int Get(int index)
     {
+        ArgumentOutOfRangeException.ThrowIfNegative(index);
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(index, Count);
+
         var j = 0;
         for (int i = 0; i < _candidates.Length; i++)
         {
@@ -68,10 +71,10 @@ public sealed class CandidateCollectionArray : CandidateCollection
                 j++;
             }
         }
-        throw new ArgumentOutOfRangeException();
+        throw new ArgumentOutOfRangeException(nameof(index));
     }
 
-    public override bool Contains(int candidate) => candidate is >= MinCandidate and <= MaxCandidate && _candidates[candidate - 1];
+    public override bool Contains(int candidate) => candidate is >= Constants.MinCandidate and <= Constants.MaxCandidate && _candidates[candidate - 1];
 
     public override void Clear() => Array.Clear(_candidates);
 
@@ -100,8 +103,8 @@ public sealed class CandidateCollectionArray : CandidateCollection
     {
         public override bool IsStateValid(int value)
         {
-            if (Candidates.Length != 9) return false;
-            if (value is < 0 or > 9) return false;
+            if (Candidates.Length != Constants.MaxCandidate) return false;
+            if (value is < 0 or > Constants.MaxCandidate) return false;
             if (!Candidates.Any(b => b)) return false;
             if (value != 0)
             {
@@ -119,7 +122,7 @@ public sealed class CandidateCollectionArray : CandidateCollection
         {
             if (other is null) return false;
             if (ReferenceEquals(this, other)) return true;
-            return Candidates.SequenceEqual(other.Candidates);
+            return Candidates.AsSpan().SequenceEqual(other.Candidates.AsSpan());
         }
 
         public override int GetHashCode()

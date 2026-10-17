@@ -10,7 +10,7 @@ public sealed class PlayableCell(int row, int column) : ICell
     public int Value { get; private set; }
     public bool IsSolved => Value != 0;
     
-    private readonly CandidateCollection _candidates = CandidateCollection.Build([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    private readonly CandidateCollection _candidates = CandidateCollection.Build(Constants.AllCandidates);
     public IReadOnlyCollection<int> Candidates => _candidates;
     
     private readonly List<PlayableCell> _linkedCells = [];
@@ -72,8 +72,8 @@ public sealed class PlayableCell(int row, int column) : ICell
 
     public string? Solve(int value)
     {
-        ArgumentOutOfRangeException.ThrowIfLessThan(value, 1);
-        ArgumentOutOfRangeException.ThrowIfGreaterThan(value, 9);
+        ArgumentOutOfRangeException.ThrowIfLessThan(value, Constants.MinCandidate);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(value, Constants.MaxCandidate);
 
         if (IsSolved)
         {
@@ -124,7 +124,7 @@ public sealed class PlayableCell(int row, int column) : ICell
     public bool IsValidState(ICell.IState state)
     {
         if (state is not PlayableCellState { Value: var value, Candidates: var candidates }) return false;
-        if (value is < 0 or > 9) return false;
+        if (value is < 0 or > Constants.MaxCandidate) return false;
         return candidates.IsStateValid(value);
     }
 

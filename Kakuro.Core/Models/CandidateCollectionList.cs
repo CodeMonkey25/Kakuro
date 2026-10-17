@@ -22,8 +22,8 @@ public sealed class CandidateCollectionList : CandidateCollection
 
     public override void Add(int candidate)
     {
-        ArgumentOutOfRangeException.ThrowIfLessThan(candidate, MinCandidate);
-        ArgumentOutOfRangeException.ThrowIfGreaterThan(candidate, MaxCandidate);
+        ArgumentOutOfRangeException.ThrowIfLessThan(candidate, Constants.MinCandidate);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(candidate, Constants.MaxCandidate);
         _candidates.Add(candidate);
     }
 
@@ -56,7 +56,7 @@ public sealed class CandidateCollectionList : CandidateCollection
         {
             if (Candidates.IsDefault) return false;
             if (value != 0) return Candidates.Length == 1 && Candidates[0] == value;
-            return Candidates.Length > 0 && Candidates.All(c => c is >= 1 and <= 9);
+            return Candidates.Length > 0 && Candidates.All(c => c is >= Constants.MinCandidate and <= Constants.MaxCandidate);
         }
 
         public bool Equals(CandidateCollectionListState? other)
