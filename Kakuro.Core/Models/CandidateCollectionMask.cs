@@ -95,7 +95,7 @@ public sealed class CandidateCollectionMask : CandidateCollection
 
         public override bool IsStateValid(int value)
         {
-            if (value != 0)
+            if (value != Constants.UnsolvedCell)
             {
                 return value is >= Constants.MinCandidate and <= Constants.MaxCandidate && CandidateMask == 1u << (value - 1);
             }

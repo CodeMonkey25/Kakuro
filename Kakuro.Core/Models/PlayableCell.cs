@@ -8,7 +8,7 @@ public sealed class PlayableCell(int row, int column) : ICell
     public int Row { get; } = row;
     public int Column { get; } = column;
     public int Value { get; private set; }
-    public bool IsSolved => Value != 0;
+    public bool IsSolved => Value != Constants.UnsolvedCell;
     
     private readonly CandidateCollection _candidates = CandidateCollection.Build(Constants.AllCandidates);
     public IReadOnlyCollection<int> Candidates => _candidates;
@@ -108,7 +108,7 @@ public sealed class PlayableCell(int row, int column) : ICell
         }
     }
     
-    public override string ToString() => Value == 0 ? " " : Value.ToString();
+    public override string ToString() => Value == Constants.UnsolvedCell ? " " : Value.ToString();
     
     public ICell.IState GetState() => new PlayableCellState(Value, _candidates.GetState());
 
@@ -124,7 +124,7 @@ public sealed class PlayableCell(int row, int column) : ICell
     public bool IsValidState(ICell.IState state)
     {
         if (state is not PlayableCellState { Value: var value, Candidates: var candidates }) return false;
-        if (value is < 0 or > Constants.MaxCandidate) return false;
+        if (value != Constants.UnsolvedCell && value is < Constants.MinCandidate or > Constants.MaxCandidate) return false;
         return candidates.IsStateValid(value);
     }
 

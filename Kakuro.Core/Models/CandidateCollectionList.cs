@@ -55,7 +55,7 @@ public sealed class CandidateCollectionList : CandidateCollection
         public override bool IsStateValid(int value)
         {
             if (Candidates.IsDefault) return false;
-            if (value != 0) return Candidates.Length == 1 && Candidates[0] == value;
+            if (value != Constants.UnsolvedCell) return Candidates.Length == 1 && Candidates[0] == value;
             return Candidates.Length > 0 && Candidates.All(c => c is >= Constants.MinCandidate and <= Constants.MaxCandidate);
         }
 

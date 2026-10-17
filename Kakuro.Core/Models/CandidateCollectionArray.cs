@@ -104,9 +104,9 @@ public sealed class CandidateCollectionArray : CandidateCollection
         public override bool IsStateValid(int value)
         {
             if (Candidates.Length != Constants.MaxCandidate) return false;
-            if (value is < 0 or > Constants.MaxCandidate) return false;
+            if (value != Constants.UnsolvedCell && value is < Constants.MinCandidate or > Constants.MaxCandidate) return false;
             if (!Candidates.Any(b => b)) return false;
-            if (value != 0)
+            if (value != Constants.UnsolvedCell)
             {
                 int count = 0;
                 foreach (bool b in Candidates)

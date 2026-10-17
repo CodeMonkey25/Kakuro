@@ -4,6 +4,7 @@ namespace Kakuro.Core;
 
 public static class Constants
 {
+    public const int UnsolvedCell = 0;
     public const int MinCandidate = 1;
     public const int MaxCandidate = 9;
     public static ImmutableArray<int> AllCandidates { get; } = [1, 2, 3, 4, 5, 6, 7, 8, 9];
