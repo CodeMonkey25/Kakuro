@@ -6,7 +6,7 @@ namespace Kakuro.Core.Models;
 /// Bitmask-backed candidate set for values 1..9. Value <c>v</c> is stored in bit <c>v - 1</c>.
 /// Candidates are unique and enumerate in ascending order.
 /// </summary>
-public sealed record CandidateCollectionMask : CandidateCollection
+public sealed class CandidateCollectionMask : CandidateCollection
 {
     private uint _candidateMask;
 

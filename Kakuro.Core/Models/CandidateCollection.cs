@@ -2,7 +2,7 @@ using System.Collections;
 
 namespace Kakuro.Core.Models;
 
-public abstract record CandidateCollection : IReadOnlyCollection<int>
+public abstract class CandidateCollection : IReadOnlyCollection<int>
 {
     protected const int MinCandidate = 1;
     protected const int MaxCandidate = 9;
