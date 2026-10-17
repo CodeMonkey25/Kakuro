@@ -5,7 +5,7 @@ using Kakuro.Core.Interfaces;
 
 namespace Kakuro.Core.Models;
 
-public class Board
+public sealed class Board
 {
     private static readonly int[] MinPossibleSum = [0, 1, 3, 6, 10, 15, 21, 28, 36, 45];
     private static readonly int[] MaxPossibleSum = [0, 9, 17, 24, 30, 35, 39, 42, 44, 45];
@@ -26,7 +26,7 @@ public class Board
         _cells = new ICell[_puzzle.Rows * _puzzle.Columns];
         Array.Fill(_cells, EmptyCell.Instance);
         
-        // instantiate cells from puzzle runs
+        // instantiate playable cells from puzzle runs
         // instantiate Board Runs
         // bind cells together
         _runs = new Run[_puzzle.Runs.Length];

@@ -2,37 +2,30 @@ using Kakuro.Core.Models;
 
 namespace Kakuro.Core;
 
-public class Engine
+public sealed class Engine(Action<string>? log = null)
 {
-    private Action<string>? Log { get; }
-
-    public Engine(Action<string>? log = null)
-    {
-        Log = log;
-    }
-
     public bool Solve(Puzzle puzzle)
     {
         Board board = new(puzzle);
         
-        Log?.Invoke("Solving puzzle...");
+        log?.Invoke("Solving puzzle...");
         
-        bool solved = board.Solve(Log);
+        bool solved = board.Solve(log);
         if (solved)
         {
-            Log?.Invoke(board.ToString());
+            log?.Invoke(board.ToString());
             if (board.IsSolutionValid())
             {
-                Log?.Invoke("Solution is valid");
+                log?.Invoke("Solution is valid");
             }
             else
             {
-                Log?.Invoke("Solution is invalid");
+                log?.Invoke("Solution is invalid");
             }
         }
         else
         {
-            Log?.Invoke("Unable to solve puzzle");
+            log?.Invoke("Unable to solve puzzle");
         }
         
         return solved;
