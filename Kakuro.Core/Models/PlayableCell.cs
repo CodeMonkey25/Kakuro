@@ -11,7 +11,7 @@ public sealed class PlayableCell(int row, int column) : ICell
     public bool IsSolved => Value != Constants.UnsolvedCell;
     
     private readonly CandidateCollection _candidates = CandidateCollection.Build(Constants.AllCandidates);
-    public IReadOnlyCollection<int> Candidates => _candidates;
+    public int CandidateCount => _candidates.Count;
     
     private readonly List<PlayableCell> _linkedCells = [];
     public IReadOnlyList<PlayableCell> LinkedCells => _linkedCells;

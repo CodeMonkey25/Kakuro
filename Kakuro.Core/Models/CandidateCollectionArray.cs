@@ -4,18 +4,6 @@ public sealed class CandidateCollectionArray : CandidateCollection
 {
     private readonly bool[] _candidates = new bool[Constants.MaxCandidate];
 
-    #region interfaces
-    public override IEnumerator<int> GetEnumerator()
-    {
-        for (var i = 0; i < _candidates.Length; i++)
-        {
-            if (_candidates[i])
-            {
-                yield return i + 1;
-            }
-        }
-    }
-
     public override int Count
     {
         get
@@ -28,8 +16,6 @@ public sealed class CandidateCollectionArray : CandidateCollection
             return count;
         }
     }
-
-    #endregion
 
     public CandidateCollectionArray(IEnumerable<int> candidates)
     {

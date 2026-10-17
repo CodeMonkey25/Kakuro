@@ -15,7 +15,7 @@ public class CandidateCollectionBuildTests
     [Fact]
     public void Build_WithNoCandidates_ReturnsEmptyCollection()
     {
-        Assert.Empty(CandidateCollection.Build([]));
+        Assert.Equal(0, CandidateCollection.Build([]).Count);
     }
 
     [Fact]

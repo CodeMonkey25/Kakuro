@@ -56,7 +56,7 @@ public class PlayableCellStateTests
         cell.SetState(original);
 
         Assert.Equal(original, cell.GetState());
-        Assert.Equal(9, cell.Candidates.Count);
+        Assert.Equal(9, cell.CandidateCount);
         Assert.False(cell.IsSolved);
     }
 
@@ -74,7 +74,7 @@ public class PlayableCellStateTests
 
         Assert.False(cell.IsSolved);
         Assert.Equal(0, cell.Value);
-        Assert.Equal(9, cell.Candidates.Count);
+        Assert.Equal(9, cell.CandidateCount);
     }
 
     [Fact]
@@ -91,7 +91,7 @@ public class PlayableCellStateTests
 
         Assert.True(cell.IsSolved);
         Assert.Equal(6, cell.Value);
-        Assert.Equal([6], cell.Candidates);
+        Assert.Equal([6], cell.CandidatesArray());
         Assert.Equal("6", cell.ToString());
     }
 
@@ -104,7 +104,7 @@ public class PlayableCellStateTests
 
         target.SetState(source.GetState());
 
-        Assert.Equal([8, 9], target.Candidates);
+        Assert.Equal([8, 9], target.CandidatesArray());
         Assert.Equal(5, target.Row);
         Assert.Equal(5, target.Column);
     }
@@ -136,7 +136,7 @@ public class PlayableCellStateTests
 
         Assert.True(cell.IsSolved);
         Assert.False(peer.IsSolved);
-        Assert.Contains(4, peer.Candidates);
+        Assert.Contains(4, peer.CandidatesArray());
     }
 
     [Fact]
@@ -161,7 +161,7 @@ public class PlayableCellStateTests
         (string? error, _) = contradicted.RemoveCandidates([1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
         Assert.NotNull(error);
-        Assert.Equal([9], contradicted.Candidates);
+        Assert.Equal([9], contradicted.CandidatesArray());
         Assert.True(new PlayableCell(1, 1).IsValidState(contradicted.GetState()));
     }
 

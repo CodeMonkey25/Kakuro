@@ -32,26 +32,26 @@ public class CandidateCollectionBenchmarks
     [Benchmark] public CandidateCollection Construct_Array() => new CandidateCollectionArray(Source);
 
     [Benchmark]
-    public int Enumerate_List()
+    public int Iterate_List()
     {
         int sum = 0;
-        foreach (int c in _list) sum += c;
+        for (int i = 0; i < _list.Count; i++) sum += _list.Get(i);
         return sum;
     }
 
     [Benchmark]
-    public int Enumerate_Mask()
+    public int Iterate_Mask()
     {
         int sum = 0;
-        foreach (int c in _mask) sum += c;
+        for (int i = 0; i < _mask.Count; i++) sum += _mask.Get(i);
         return sum;
     }
 
     [Benchmark]
-    public int Enumerate_Array()
+    public int Iterate_Array()
     {
         int sum = 0;
-        foreach (int c in _array) sum += c;
+        for (int i = 0; i < _array.Count; i++) sum += _array.Get(i);
         return sum;
     }
 

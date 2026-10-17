@@ -2,12 +2,10 @@ using System.Collections;
 
 namespace Kakuro.Core.Models;
 
-public abstract class CandidateCollection : IReadOnlyCollection<int>
+public abstract class CandidateCollection
 {
     public static CandidateCollection Build(IEnumerable<int> candidates) => new CandidateCollectionMask(candidates);
     
-    public abstract IEnumerator<int> GetEnumerator();
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     public abstract int Count { get; }
 
     public abstract void Add(int candidate);

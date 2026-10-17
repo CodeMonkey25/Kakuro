@@ -16,7 +16,7 @@ public class CandidateCollectionMaskTests : CandidateCollectionContractTests
     }
 
     [Fact]
-    public void Enumeration_IsAscending()
+    public void Candidates_AreAscending()
     {
         Assert.Equal([2, 5, 8], Create(8, 2, 5).ToArray());
     }
@@ -28,7 +28,7 @@ public class CandidateCollectionMaskTests : CandidateCollectionContractTests
 
         mask.Add(4);
 
-        Assert.Single(mask);
+        Assert.Equal(1, mask.Count);
     }
 
     [Fact]
@@ -90,7 +90,7 @@ public class CandidateCollectionMaskTests : CandidateCollectionContractTests
     }
 
     [Fact]
-    public void AllCandidates_RoundTripThroughEnumeration()
+    public void AllCandidates_RoundTripThroughCopy()
     {
         var mask = Create(1, 2, 3, 4, 5, 6, 7, 8, 9);
 
@@ -137,7 +137,7 @@ public class CandidateCollectionMaskTests : CandidateCollectionContractTests
             {
                 Assert.True(mask.Remove(candidate));
             }
-            Assert.Empty(mask);
+            Assert.Equal(0, mask.Count);
         }
     }
 }

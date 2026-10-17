@@ -216,7 +216,7 @@ public sealed class Board
         if (cell == null) return true; // no unsolved cells remain
         
         // load candidates for guessing
-        Span<int> candidates = stackalloc int[cell.Candidates.Count];
+        Span<int> candidates = stackalloc int[cell.CandidateCount];
         cell.CopyCandidatesTo(candidates);
         
         // try each candidate in turn
@@ -240,8 +240,8 @@ public sealed class Board
         foreach (PlayableCell playableCell in _playableCells)
         {
             if (playableCell.IsSolved) continue;
-            if (playableCell.Candidates.Count == 2) return playableCell; // can't do better than that, bail early
-            if (result == null || playableCell.Candidates.Count < result.Candidates.Count)
+            if (playableCell.CandidateCount == 2) return playableCell; // can't do better than that, bail early
+            if (result == null || playableCell.CandidateCount < result.CandidateCount)
             {
                 result = playableCell;
             }
@@ -346,7 +346,7 @@ public sealed class Board
 
         public void Load(PlayableCell cell)
         {
-            _candidateCount = cell.Candidates.Count;
+            _candidateCount = cell.CandidateCount;
 
             cell.CopyCandidatesTo(_candidates);
 

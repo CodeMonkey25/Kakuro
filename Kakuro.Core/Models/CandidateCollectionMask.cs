@@ -25,14 +25,6 @@ public sealed class CandidateCollectionMask : CandidateCollection
         return 1u << (candidate - 1);
     }
 
-    public override IEnumerator<int> GetEnumerator()
-    {
-        for (uint mask = _candidateMask; mask != 0; mask &= mask - 1)
-        {
-            yield return BitOperations.TrailingZeroCount(mask) + 1;
-        }
-    }
-
     public override int Count => BitOperations.PopCount(_candidateMask);
 
     public override void Add(int candidate)

@@ -14,24 +14,24 @@ public abstract class CandidateCollectionContractTests
     [Fact]
     public void Count_ReflectsCandidates()
     {
-        Assert.Empty(Create());
+        Assert.Equal(0, Create().Count);
         Assert.Equal(4, Create(1, 3, 7, 9).Count);
     }
 
     [Fact]
-    public void Enumeration_ReturnsAllCandidates_IncludingBoundaries()
+    public void Copy_ReturnsAllCandidates_IncludingBoundaries()
     {
         Assert.Equal([1, 3, 7, 9], Create(1, 3, 7, 9).ToArray());
     }
 
     [Fact]
-    public void Enumeration_WhenEmpty_ReturnsNothing()
+    public void Copy_WhenEmpty_ReturnsNothing()
     {
-        Assert.Empty(Create());
+        Assert.Equal(0, Create().Count);
     }
 
     [Fact]
-    public void Enumeration_CanBeRepeated()
+    public void Copy_CanBeRepeated()
     {
         var collection = Create(2, 4, 6);
 
@@ -204,7 +204,7 @@ public abstract class CandidateCollectionContractTests
         collection.Add(9);
 
         Assert.Equal(2, collection.Count);
-        Assert.Contains(9, collection);
+        Assert.True(collection.Contains(9));
     }
 
     [Fact]
@@ -252,7 +252,7 @@ public abstract class CandidateCollectionContractTests
         Assert.True(collection.Remove(1));
         Assert.True(collection.Remove(5));
 
-        Assert.Empty(collection);
+        Assert.Equal(0, collection.Count);
     }
 
     [Fact]
@@ -262,7 +262,7 @@ public abstract class CandidateCollectionContractTests
 
         collection.Clear();
 
-        Assert.Empty(collection);
+        Assert.Equal(0, collection.Count);
     }
 
     [Fact]
@@ -272,7 +272,7 @@ public abstract class CandidateCollectionContractTests
 
         collection.Clear();
 
-        Assert.Empty(collection);
+        Assert.Equal(0, collection.Count);
     }
 
     [Fact]
@@ -312,7 +312,7 @@ public abstract class CandidateCollectionContractTests
         collection.Add(3);
         collection.SetState(state);
 
-        Assert.Empty(collection);
+        Assert.Equal(0, collection.Count);
     }
 
     [Fact]

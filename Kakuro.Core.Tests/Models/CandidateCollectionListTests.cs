@@ -9,7 +9,7 @@ public class CandidateCollectionListTests : CandidateCollectionContractTests
     [Fact]
     public void Constructor_WithEmptySequence_IsEmpty()
     {
-        Assert.Empty(new CandidateCollectionList([]));
+        Assert.Equal(0, new CandidateCollectionList([]).Count);
     }
 
     [Fact]
@@ -26,7 +26,7 @@ public class CandidateCollectionListTests : CandidateCollectionContractTests
     }
 
     [Fact]
-    public void Enumeration_PreservesInsertionOrder()
+    public void Candidates_PreserveInsertionOrder()
     {
         Assert.Equal([5, 2, 8], Create(5, 2, 8).ToArray());
     }

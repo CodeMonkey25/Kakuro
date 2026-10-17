@@ -20,7 +20,7 @@ public class PlayableCellTests
         Assert.Equal(5, cell.Column);
         Assert.Equal(0, cell.Value);
         Assert.False(cell.IsSolved);
-        Assert.Equal([1, 2, 3, 4, 5, 6, 7, 8, 9], cell.Candidates);
+        Assert.Equal([1, 2, 3, 4, 5, 6, 7, 8, 9], cell.CandidatesArray());
         Assert.Empty(cell.LinkedCells);
         Assert.Equal(" ", cell.ToString());
     }
@@ -44,15 +44,14 @@ public class PlayableCellTests
     }
 
     [Fact]
-    public void Candidates_IsALiveViewOfTheCell()
+    public void CandidateCount_ReflectsRemovals()
     {
         PlayableCell cell = new(0, 0);
-        IReadOnlyCollection<int> view = cell.Candidates;
 
         cell.RemoveCandidate(9);
 
-        Assert.Equal(8, view.Count);
-        Assert.DoesNotContain(9, view);
+        Assert.Equal(8, cell.CandidateCount);
+        Assert.DoesNotContain(9, cell.CandidatesArray());
     }
 
     [Fact]
@@ -62,7 +61,7 @@ public class PlayableCellTests
         var (_, removed) = cell.RemoveCandidates([7, 2, 5]);
 
         Assert.True(removed);
-        Assert.Equal([1, 3, 4, 6, 8, 9], cell.Candidates);
+        Assert.Equal([1, 3, 4, 6, 8, 9], cell.CandidatesArray());
     }
 
     #endregion
@@ -140,7 +139,7 @@ public class PlayableCellTests
         Assert.True(removed);
         Assert.False(cell.IsSolved);
         Assert.Equal(0, cell.Value);
-        Assert.Equal([1, 2, 4, 5, 6, 7, 8, 9], cell.Candidates);
+        Assert.Equal([1, 2, 4, 5, 6, 7, 8, 9], cell.CandidatesArray());
         Assert.Equal(" ", cell.ToString());
     }
 
@@ -155,7 +154,7 @@ public class PlayableCellTests
         Assert.Null(error);
         Assert.False(removed);
         Assert.False(cell.IsSolved);
-        Assert.Equal([1, 2, 4, 5, 6, 7, 8, 9], cell.Candidates);
+        Assert.Equal([1, 2, 4, 5, 6, 7, 8, 9], cell.CandidatesArray());
     }
 
     [Theory]
@@ -171,7 +170,7 @@ public class PlayableCellTests
 
         Assert.Null(error);
         Assert.False(removed);
-        Assert.Equal([1, 2, 3, 4, 5, 6, 7, 8, 9], cell.Candidates);
+        Assert.Equal([1, 2, 3, 4, 5, 6, 7, 8, 9], cell.CandidatesArray());
     }
 
     [Fact]
@@ -187,7 +186,7 @@ public class PlayableCellTests
             Assert.True(removed);
             Assert.False(cell.IsSolved);
         }
-        Assert.Equal([8, 9], cell.Candidates);
+        Assert.Equal([8, 9], cell.CandidatesArray());
 
         (string? finalError, bool finalRemoved) = cell.RemoveCandidate(8);
 
@@ -195,7 +194,7 @@ public class PlayableCellTests
         Assert.True(finalRemoved);
         Assert.True(cell.IsSolved);
         Assert.Equal(9, cell.Value);
-        Assert.Equal([9], cell.Candidates);
+        Assert.Equal([9], cell.CandidatesArray());
         Assert.Equal("9", cell.ToString());
     }
 
@@ -274,7 +273,7 @@ public class PlayableCellTests
         Assert.Null(result);
         Assert.True(removed);
         Assert.False(cell.IsSolved);
-        Assert.Equal([1, 9], cell.Candidates);
+        Assert.Equal([1, 9], cell.CandidatesArray());
     }
 
     [Fact]
@@ -288,7 +287,7 @@ public class PlayableCellTests
         Assert.Null(result);
         Assert.False(removed);
         Assert.False(cell.IsSolved);
-        Assert.Equal([1, 4, 5, 6, 7, 8, 9], cell.Candidates);
+        Assert.Equal([1, 4, 5, 6, 7, 8, 9], cell.CandidatesArray());
     }
 
     [Fact]
@@ -300,7 +299,7 @@ public class PlayableCellTests
 
         Assert.Null(error);
         Assert.False(removed);
-        Assert.Equal([1, 2, 3, 4, 5, 6, 7, 8, 9], cell.Candidates);
+        Assert.Equal([1, 2, 3, 4, 5, 6, 7, 8, 9], cell.CandidatesArray());
     }
 
     [Fact]
@@ -312,7 +311,7 @@ public class PlayableCellTests
 
         Assert.Null(error);
         Assert.True(removed);
-        Assert.Equal([1, 2, 4, 5, 6, 7, 8, 9], cell.Candidates);
+        Assert.Equal([1, 2, 4, 5, 6, 7, 8, 9], cell.CandidatesArray());
     }
 
     [Fact]
@@ -326,7 +325,7 @@ public class PlayableCellTests
         Assert.True(removed);
         Assert.True(cell.IsSolved);
         Assert.Equal(9, cell.Value);
-        Assert.Equal([9], cell.Candidates);
+        Assert.Equal([9], cell.CandidatesArray());
     }
 
     [Fact]
@@ -389,7 +388,7 @@ public class PlayableCellTests
 
         Assert.Null(error);
         Assert.False(removed);
-        Assert.Equal([1, 2, 3, 4, 5, 6, 7, 8, 9], cell.Candidates);
+        Assert.Equal([1, 2, 3, 4, 5, 6, 7, 8, 9], cell.CandidatesArray());
     }
 
     [Fact]
@@ -402,7 +401,7 @@ public class PlayableCellTests
 
         Assert.Null(error);
         Assert.False(removed);
-        Assert.Equal([1, 4, 5, 6, 7, 8, 9], cell.Candidates);
+        Assert.Equal([1, 4, 5, 6, 7, 8, 9], cell.CandidatesArray());
     }
 
     [Fact]
@@ -414,7 +413,7 @@ public class PlayableCellTests
 
         Assert.Null(error);
         Assert.False(removed);
-        Assert.Equal([1, 2, 3, 4, 5, 6, 7, 8, 9], cell.Candidates);
+        Assert.Equal([1, 2, 3, 4, 5, 6, 7, 8, 9], cell.CandidatesArray());
     }
 
     [Fact]
@@ -461,7 +460,7 @@ public class PlayableCellTests
         viaMask.RemoveCandidates(MaskOf(values));
         viaEnumerable.RemoveCandidates(values);
 
-        Assert.Equal(viaEnumerable.Candidates, viaMask.Candidates);
+        Assert.Equal(viaEnumerable.CandidatesArray(), viaMask.CandidatesArray());
     }
 
     [Fact]
@@ -476,7 +475,7 @@ public class PlayableCellTests
             var singleResult = viaSingle.RemoveCandidate(candidate);
 
             Assert.Equal(singleResult, maskResult);
-            Assert.Equal(viaSingle.Candidates, viaMask.Candidates);
+            Assert.Equal(viaSingle.CandidatesArray(), viaMask.CandidatesArray());
         }
     }
 
@@ -494,7 +493,7 @@ public class PlayableCellTests
         Assert.Null(error);
         Assert.True(cell.IsSolved);
         Assert.Equal(4, cell.Value);
-        Assert.Equal([4], cell.Candidates);
+        Assert.Equal([4], cell.CandidatesArray());
     }
 
     [Theory]
@@ -519,8 +518,8 @@ public class PlayableCellTests
         string? error = cell.Solve(4);
 
         Assert.Null(error);
-        Assert.DoesNotContain(4, peer.Candidates);
-        Assert.Equal(8, peer.Candidates.Count);
+        Assert.DoesNotContain(4, peer.CandidatesArray());
+        Assert.Equal(8, peer.CandidateCount);
     }
 
     [Fact]
@@ -531,7 +530,7 @@ public class PlayableCellTests
 
         cell.Solve(4);
 
-        Assert.Equal(9, stranger.Candidates.Count);
+        Assert.Equal(9, stranger.CandidateCount);
     }
 
     [Fact]
@@ -543,7 +542,7 @@ public class PlayableCellTests
         Assert.Null(cell.Solve(4));
         Assert.Equal("Cell at row 2, column 3 is already solved.", cell.Solve(5));
         Assert.Equal(4, cell.Value);
-        Assert.Equal([4], cell.Candidates);
+        Assert.Equal([4], cell.CandidatesArray());
     }
 
     [Fact]
@@ -655,7 +654,7 @@ public class PlayableCellTests
 
         cell.Solve(5);
 
-        Assert.Equal(9, peer.Candidates.Count);
+        Assert.Equal(9, peer.CandidateCount);
     }
 
     [Theory]

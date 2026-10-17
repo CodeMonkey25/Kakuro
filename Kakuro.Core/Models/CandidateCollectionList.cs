@@ -14,11 +14,7 @@ public sealed class CandidateCollectionList : CandidateCollection
         }
     }
 
-    #region interfaces
-    public override IEnumerator<int> GetEnumerator() => _candidates.GetEnumerator();
-
     public override int Count => _candidates.Count;
-    #endregion
 
     public override void Add(int candidate)
     {
