@@ -1,4 +1,3 @@
-using System.Numerics;
 using Kakuro.Core.Interfaces;
 
 namespace Kakuro.Core.Models;
@@ -18,56 +17,48 @@ public sealed class PlayableCell(int row, int column) : ICell
 
     public (string? error, bool removed) RemoveCandidates(uint candidatesMask)
     {
-        string? error = null;
-        bool removed = false;
-        for (uint mask = candidatesMask; mask != 0; mask &= mask - 1)
+        if (IsSolved)
         {
-            int candidate = BitOperations.TrailingZeroCount(mask) + 1;
-            (error, bool removedCandidate) = RemoveCandidate(candidate);
-            if (error != null) break;
-            if (removedCandidate) removed = true;
+            bool removesValue = (candidatesMask & (1u << (Value - 1))) != 0;
+            return (removesValue ? NoCandidatesError() : null, false);
         }
-        return (error, removed);
+
+        return AfterRemoval(_candidates.RemoveAll(candidatesMask));
     }
 
     public (string? error, bool removed) RemoveCandidates(IEnumerable<int> candidates)
     {
-        string? error = null;
-        bool removed = false;
-        foreach (int c in candidates)
+        if (IsSolved)
         {
-            (error, bool removedCandidate) = RemoveCandidate(c);
-            if (error != null) break;
-            if (removedCandidate) removed = true;
+            return (candidates.Contains(Value) ? NoCandidatesError() : null, false);
         }
-        return (error, removed);
+
+        return AfterRemoval(_candidates.RemoveAll(candidates));
     }
 
     public (string? error, bool removed) RemoveCandidate(int candidate)
     {
-        string? error = null;
-        bool removed = false;
-        
         if (IsSolved)
         {
-            error = Value == candidate ? $"Cell at row {Row}, column {Column} has no candidates." : null;
+            return (Value == candidate ? NoCandidatesError() : null, false);
         }
-        else if (_candidates.Remove(candidate))
+
+        return AfterRemoval(_candidates.Remove(candidate));
+    }
+
+    private string NoCandidatesError() => $"Cell at row {Row}, column {Column} has no candidates.";
+
+    private (string? error, bool removed) AfterRemoval(bool removed)
+    {
+        if (!removed) return (null, false);
+
+        string? error = _candidates.Count switch
         {
-            removed = true;
-            
-            switch (_candidates.Count)
-            {
-                case 0:
-                    error = $"Cell at row {Row}, column {Column} has no candidates.";
-                    break;
-                case 1:
-                    error = Solve(_candidates.Get(0));
-                    break;
-            }
-        }
-        
-        return (error, removed);
+            0 => NoCandidatesError(),
+            1 => Solve(_candidates.Get(0)),
+            _ => null
+        };
+        return (error, true);
     }
 
     public string? Solve(int value)

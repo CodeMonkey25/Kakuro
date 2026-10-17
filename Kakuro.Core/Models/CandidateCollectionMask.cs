@@ -8,6 +8,7 @@ namespace Kakuro.Core.Models;
 /// </summary>
 public sealed class CandidateCollectionMask : CandidateCollection
 {
+    private const uint ValidBits = (1u << Constants.MaxCandidate) - 1;
     private uint _candidateMask;
 
     public CandidateCollectionMask(IEnumerable<int> candidates)
@@ -81,10 +82,16 @@ public sealed class CandidateCollectionMask : CandidateCollection
         }
     }
 
+    public override bool RemoveAll(uint candidatesMask)
+    {
+        uint toRemove = _candidateMask & candidatesMask & ValidBits;
+        if (toRemove == 0) return false;
+        _candidateMask &= ~toRemove;
+        return true;
+    }
+
     private sealed record CandidateCollectionMaskState(uint CandidateMask) : CandidateCollectionState
     {
-        private const uint ValidBits = (1u << Constants.MaxCandidate) - 1;
-
         public override bool IsStateValid(int value)
         {
             if (value != Constants.UnsolvedCell)

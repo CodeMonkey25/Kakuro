@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Numerics;
 
 namespace Kakuro.Core.Models;
 
@@ -16,6 +17,27 @@ public abstract class CandidateCollection
     public abstract CandidateCollectionState GetState();
     public abstract void SetState(CandidateCollectionState state);
     public abstract void CopyTo(Span<int> destination);
+
+    public virtual bool RemoveAll(uint candidatesMask)
+    {
+        bool removed = false;
+        for (uint mask = candidatesMask; mask != 0; mask &= mask - 1)
+        {
+            int candidate = BitOperations.TrailingZeroCount(mask) + 1;
+            removed |= Remove(candidate);
+        }
+        return removed;
+    }
+
+    public virtual bool RemoveAll(IEnumerable<int> candidates)
+    {
+        bool removed = false;
+        foreach (int candidate in candidates)
+        {
+            removed |= Remove(candidate);
+        }
+        return removed;
+    }
 
     public abstract record CandidateCollectionState
     {

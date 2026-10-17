@@ -340,31 +340,46 @@ public class PlayableCellTests
     }
 
     [Fact]
-    public void RemoveCandidates_StopsProcessingAfterTheFirstError()
+    public void RemoveCandidates_OnSolvedCell_WhenValueIsNotListed_ReturnsNoErrorAndChangesNothing()
     {
         PlayableCell cell = new(0, 0);
         cell.Solve(9);
 
-        // 9 errors; the later 8 must not be examined (it would be a harmless no-op, so check via a lazy sequence)
-        int enumerated = 0;
-        IEnumerable<int> Candidates()
-        {
-            foreach (int c in new[] { 9, 8, 7 })
-            {
-                enumerated++;
-                yield return c;
-            }
-        }
+        (string? error, bool removed) = cell.RemoveCandidates([1, 2, 3]);
 
-        (string? error, _) = cell.RemoveCandidates(Candidates());
+        Assert.Null(error);
+        Assert.False(removed);
+        Assert.Equal(9, cell.Value);
+        Assert.Equal([9], cell.CandidatesArray());
+    }
+
+    [Fact]
+    public void RemoveCandidates_OnSolvedCell_WhenValueIsListed_ReturnsErrorAndKeepsValue()
+    {
+        PlayableCell cell = new(0, 0);
+        cell.Solve(9);
+
+        (string? error, bool removed) = cell.RemoveCandidates([8, 9, 7]);
 
         Assert.Equal(NoCandidatesAt00, error);
-        Assert.Equal(1, enumerated);
+        Assert.False(removed);
+        Assert.Equal(9, cell.Value);
     }
 
     #endregion
 
     #region RemoveCandidates (mask)
+
+    [Fact]
+    public void RemoveCandidates_Mask_OnSolvedCell_ReportsErrorOnlyWhenValueIsMasked()
+    {
+        PlayableCell cell = new(0, 0);
+        cell.Solve(4);
+
+        Assert.Equal((null, false), cell.RemoveCandidates(MaskOf(1, 2, 3, 9)));
+        Assert.Equal((NoCandidatesAt00, false), cell.RemoveCandidates(MaskOf(4)));
+        Assert.Equal(4, cell.Value);
+    }
 
     [Fact]
     public void RemoveCandidates_Mask_RemovesAllMaskedValues_IncludingNine()

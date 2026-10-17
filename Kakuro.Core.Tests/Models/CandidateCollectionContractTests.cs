@@ -256,6 +256,68 @@ public abstract class CandidateCollectionContractTests
     }
 
     [Fact]
+    public void RemoveAll_Mask_RemovesOnlyPresentCandidatesAndReturnsTrue()
+    {
+        var collection = Create(1, 3, 5, 9);
+
+        Assert.True(collection.RemoveAll((1u << 0) | (1u << 1) | (1u << 8))); // 1, 2 (absent), 9
+
+        Assert.Equal([3, 5], collection.ToArray());
+    }
+
+    [Fact]
+    public void RemoveAll_Mask_WhenNothingPresent_ReturnsFalseAndLeavesCollectionUnchanged()
+    {
+        var collection = Create(1, 3);
+
+        Assert.False(collection.RemoveAll(1u << 4));
+        Assert.False(collection.RemoveAll(0u));
+
+        Assert.Equal([1, 3], collection.ToArray());
+    }
+
+    [Fact]
+    public void RemoveAll_Mask_IgnoresBitsAboveNine()
+    {
+        var collection = Create(1, 9);
+
+        Assert.False(collection.RemoveAll((1u << 9) | (1u << 20) | (1u << 31)));
+
+        Assert.Equal([1, 9], collection.ToArray());
+    }
+
+    [Fact]
+    public void RemoveAll_Mask_EveryCandidate_LeavesEmptyCollection()
+    {
+        var collection = Create(2, 4, 6);
+
+        Assert.True(collection.RemoveAll(0x1FFu));
+
+        Assert.Equal(0, collection.Count);
+    }
+
+    [Fact]
+    public void RemoveAll_Enumerable_RemovesOnlyPresentCandidatesAndReturnsTrue()
+    {
+        var collection = Create(1, 3, 5, 9);
+
+        Assert.True(collection.RemoveAll([9, 2, 1, 1]));
+
+        Assert.Equal([3, 5], collection.ToArray());
+    }
+
+    [Fact]
+    public void RemoveAll_Enumerable_WhenNothingPresent_ReturnsFalse()
+    {
+        var collection = Create(1, 3);
+
+        Assert.False(collection.RemoveAll([2, 4, 0, 10, -1]));
+        Assert.False(collection.RemoveAll(Array.Empty<int>()));
+
+        Assert.Equal([1, 3], collection.ToArray());
+    }
+
+    [Fact]
     public void Clear_RemovesAllCandidates()
     {
         var collection = Create(1, 2, 3);

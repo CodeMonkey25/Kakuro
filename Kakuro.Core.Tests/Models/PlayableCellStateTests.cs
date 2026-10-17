@@ -153,19 +153,6 @@ public class PlayableCellStateTests
     }
 
     [Fact]
-    public void GetState_AfterEveryCandidateWasEliminated_StillDescribesTheLastCandidate()
-    {
-        // eliminating the final candidate reports an error but never leaves a cell without candidates,
-        // so a contradicted cell's state is always a valid (solved) one
-        PlayableCell contradicted = new(0, 0);
-        (string? error, _) = contradicted.RemoveCandidates([1, 2, 3, 4, 5, 6, 7, 8, 9]);
-
-        Assert.NotNull(error);
-        Assert.Equal([9], contradicted.CandidatesArray());
-        Assert.True(new PlayableCell(1, 1).IsValidState(contradicted.GetState()));
-    }
-
-    [Fact]
     public void SetState_WithEmptyCellState_ThrowsAndLeavesCellUnchanged()
     {
         PlayableCell cell = new(0, 0);
