@@ -28,13 +28,13 @@ public sealed class Board
         
         // instantiate playable cells from puzzle runs
         // instantiate Board Runs
-        // bind cells together
+        // bind run cells together
         _runs = new Run[_puzzle.Runs.Length];
-        int i = 0;
+        int runsIndex = 0;
         foreach (Puzzle.Run puzzleRun in _puzzle.Runs)
         {
             PlayableCell[] runCells = new PlayableCell[puzzleRun.Length];
-            int j = 0;
+            int runCellsIndex = 0;
             foreach ((int row, int column) in puzzleRun.GetCellCoordinates())
             {
                 int index = row * _puzzle.Columns + column;
@@ -43,9 +43,9 @@ public sealed class Board
                     playableCell = new PlayableCell(row, column);
                     _cells[index] = playableCell;
                 }
-                runCells[j++] = playableCell;
+                runCells[runCellsIndex++] = playableCell;
             }
-            _runs[i++] = new Run(puzzleRun, runCells.ToImmutableArray());
+            _runs[runsIndex++] = new Run(puzzleRun, runCells.ToImmutableArray());
             foreach (PlayableCell cell in runCells)
             {
                 cell.Bind(runCells);
