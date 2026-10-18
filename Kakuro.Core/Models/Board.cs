@@ -277,7 +277,7 @@ public sealed class Board
     {
         private readonly RunCellCandidates[] _cellCandidatesBuffer = Enumerable.Range(0, 9).Select(_ => new RunCellCandidates()).ToArray();
         private readonly int[] _numbers = new int[9];
-        private readonly bool[] _usedNumbers = new bool[9];
+        private uint _usedNumbersMask;
         private Run _run;
 
         public int Length => _run.Length;
@@ -288,7 +288,7 @@ public sealed class Board
         {
             _run = run;
 
-            Array.Clear(_usedNumbers);
+            _usedNumbersMask = 0;
             Array.Clear(_numbers);
             for (int i = 0; i < Length; i++)
             {
@@ -309,17 +309,17 @@ public sealed class Board
 
         public void UseNumber(int depth, int current)
         {
-            _usedNumbers[current - 1] = true;
+            _usedNumbersMask |= 1u << current;
             _numbers[depth] = current;
         }
 
         public void ClearNumber(int depth)
         {
-            _usedNumbers[_numbers[depth] - 1] = false;
+            _usedNumbersMask &= ~(1u << _numbers[depth]);
             _numbers[depth] = 0;
         }
 
-        public bool IsNumberUsed(int number) => _usedNumbers[number - 1];
+        public bool IsNumberUsed(int number) => (_usedNumbersMask & (1u << number)) != 0;
 
         public (string? error, bool changed) WriteExclusionsToRun()
         {
