@@ -98,6 +98,102 @@ public class BoardSolveTests
 
     #endregion
 
+    #region Constraint propagation (dirty-run tracking)
+
+    [Theory]
+    [InlineData(TestPuzzles.ForcedCorner)]
+    [InlineData(TestPuzzles.ForcedBlock)]
+    [InlineData(TestPuzzles.UniqueBlock)]
+    [InlineData(TestPuzzles.TwoSingleCells)]
+    public void Solve_WhenPropagationSuffices_NeverGuesses(string puzzleText)
+    {
+        // a run must be revisited after a neighbouring run narrows one of its cells; if it isn't, the solver falls back to guessing
+        Board board = new(Puzzle.Parse(puzzleText));
+        List<string> log = [];
+
+        Assert.True(board.Solve(log.Add));
+
+        Assert.True(board.IsSolutionValid());
+        Assert.DoesNotContain(log, message => message.Contains("guess"));
+    }
+
+    [Fact]
+    public void Solve_FromAPartiallySolvedState_PropagatesWithoutGuessing()
+    {
+        // a freshly built board has no run marked as changed, so Solve must seed every run itself
+        Board board = new(Puzzle.Parse(TestPuzzles.GuessingBlock));
+        board.SetState(TestPuzzles.WithPlayableValues(board, 3, 0, 0, 0));
+        List<string> log = [];
+
+        Assert.True(board.Solve(log.Add));
+
+        Assert.Equal(TestPuzzles.Grid("XXX", "X37", "X73"), board.ToString());
+        Assert.DoesNotContain(log, message => message.Contains("guess"));
+    }
+
+    [Fact]
+    public void Solve_AfterAnEarlierSolve_ReseedsEveryRunFromTheNewState()
+    {
+        // the first solve leaves every run clean; a later solve from a different state must not trust that
+        Board board = new(Puzzle.Parse(TestPuzzles.GuessingBlock));
+        Board.State initial = board.GetState();
+        Assert.True(board.Solve());
+
+        board.SetState(initial);
+        board.SetState(TestPuzzles.WithPlayableValues(board, 3, 0, 0, 0));
+        List<string> log = [];
+
+        Assert.True(board.Solve(log.Add));
+
+        Assert.Equal(TestPuzzles.Grid("XXX", "X37", "X73"), board.ToString());
+        Assert.DoesNotContain(log, message => message.Contains("guess"));
+    }
+
+    [Fact]
+    public void Solve_AfterAFailedSolve_SolvesFromAnotherStateOfTheSameBoard()
+    {
+        Board board = new(Puzzle.Parse(TestPuzzles.ForcedBlock));
+        Board.State initial = board.GetState();
+        board.SetState(TestPuzzles.WithPlayableValues(board, 9, 0, 0, 0));
+        Assert.False(board.Solve());
+
+        board.SetState(initial);
+
+        Assert.True(board.Solve());
+        Assert.Equal(TestPuzzles.Grid("XXX", "X12", "X89"), board.ToString());
+    }
+
+    [Fact]
+    public void Solve_WhenOnlyOneGuessIsNeeded_PropagationFinishesTheBoard()
+    {
+        // a guess marks the runs it touches as changed, so propagation completes the board without a second guess
+        Board board = new(Puzzle.Parse(TestPuzzles.GuessingBlock));
+        List<string> log = [];
+
+        Assert.True(board.Solve(log.Add));
+
+        Assert.True(board.IsSolutionValid());
+        Assert.Single(log, message => message.Contains(": guessing "));
+    }
+
+    [Fact]
+    public void Solve_ResultDoesNotDependOnHowOftenItIsRepeated()
+    {
+        Board board = new(Puzzle.Parse(TestPuzzles.Official41));
+        Board.State initial = board.GetState();
+        Assert.True(board.Solve());
+        Board.State first = board.GetState();
+
+        for (int i = 0; i < 3; i++)
+        {
+            board.SetState(initial);
+            Assert.True(board.Solve());
+            Assert.Equal(first, board.GetState());
+        }
+    }
+
+    #endregion
+
     #region Run total boundaries
 
     [Theory]

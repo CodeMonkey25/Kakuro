@@ -14,6 +14,8 @@ public sealed class PlayableCell(int row, int column) : ICell
     
     private readonly List<PlayableCell> _linkedCells = [];
     public IReadOnlyList<PlayableCell> LinkedCells => _linkedCells;
+    
+    private readonly List<Board.Run> _linkedRuns = [];
 
     public (string? error, bool removed) RemoveCandidates(uint candidatesMask)
     {
@@ -52,6 +54,11 @@ public sealed class PlayableCell(int row, int column) : ICell
     {
         if (!removed) return (null, false);
 
+        foreach (Board.Run run in _linkedRuns)
+        {
+            run.MarkDirty();
+        }
+
         string? error = _candidates.Count switch
         {
             0 => NoCandidatesError(),
@@ -86,6 +93,11 @@ public sealed class PlayableCell(int row, int column) : ICell
             if (error != null) return error;
         }
         
+        foreach (Board.Run run in _linkedRuns)
+        {
+            run.MarkDirty();
+        }
+        
         return null;
     }
     
@@ -97,6 +109,11 @@ public sealed class PlayableCell(int row, int column) : ICell
             if (_linkedCells.Contains(linkedCell)) continue;
             _linkedCells.Add(linkedCell);
         }
+    }
+
+    internal void BindRun(Board.Run run)
+    {
+        _linkedRuns.Add(run);
     }
     
     public override string ToString() => Value == Constants.UnsolvedCell ? " " : Value.ToString();

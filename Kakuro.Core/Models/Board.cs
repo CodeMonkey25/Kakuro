@@ -42,10 +42,12 @@ public sealed class Board
                 }
                 runCells[runCellsIndex++] = playableCell;
             }
-            _runs[runsIndex++] = new Run(puzzleRun, runCells.ToImmutableArray());
+            Run run = new(puzzleRun, runCells.ToImmutableArray());
+            _runs[runsIndex++] = run;
             foreach (PlayableCell cell in runCells)
             {
                 cell.Bind(runCells);
+                cell.BindRun(run);
             }
         }
         _playableCells = _cells.OfType<PlayableCell>().ToArray();
@@ -130,6 +132,11 @@ public sealed class Board
     {
         State initialState = GetState();
 
+        foreach (Run run in _runs)
+        {
+            run.MarkDirty();
+        }
+
         log?.Invoke("propagating initial constraints...");
         string? error = PropagateConstraints(log);
         if (error == null)
@@ -166,11 +173,13 @@ public sealed class Board
 
         foreach (Run run in _runs)
         {
+            if (!run.IsDirty) continue;
             _runSolveState.Load(run);
             GetExcludedCandidates(0, 0, _runSolveState);
             (string? error, bool runWasUpdated) = _runSolveState.WriteExclusionsToRun();
             if (error != null) return (error, false);
             if (runWasUpdated) boardWasUpdated = true;
+            run.ClearDirty();
         }
 
         return (null, boardWasUpdated);
@@ -250,11 +259,29 @@ public sealed class Board
         return result;
     }
 
-    private readonly struct Run(Puzzle.Run puzzleRun, ImmutableArray<PlayableCell> cells)
+    internal sealed class Run
     {
-        public ImmutableArray<PlayableCell> Cells { get; } = cells;
-        public int Length => puzzleRun.Length;
-        public int Total => puzzleRun.Total;
+        private Puzzle.Run PuzzleRun { get; }
+        public ImmutableArray<PlayableCell> Cells { get; }
+        public int Length => PuzzleRun.Length;
+        public int Total => PuzzleRun.Total;
+        public bool IsDirty { get; private set; }
+
+        public Run(Puzzle.Run puzzleRun, ImmutableArray<PlayableCell> cells)
+        {
+            PuzzleRun = puzzleRun;
+            Cells = cells;
+        }
+
+        public void MarkDirty()
+        {
+            IsDirty = true;
+        }
+        
+        public void ClearDirty()
+        {
+            IsDirty = false;
+        }
     }
     
     public sealed record State(ImmutableArray<ICell.IState> CellStates)
@@ -278,7 +305,7 @@ public sealed class Board
         private readonly RunCellCandidates[] _cellCandidatesBuffer = Enumerable.Range(0, 9).Select(_ => new RunCellCandidates()).ToArray();
         private readonly int[] _numbers = new int[9];
         private uint _usedNumbersMask;
-        private Run _run;
+        private Run _run = null!;
 
         public int Length => _run.Length;
         public int Total => _run.Total;
