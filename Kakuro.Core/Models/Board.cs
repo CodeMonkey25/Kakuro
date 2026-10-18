@@ -132,6 +132,7 @@ public sealed class Board
     {
         State initialState = GetState();
 
+        // mark all runs as dirty
         foreach (Run run in _runs)
         {
             run.MarkDirty();
@@ -314,7 +315,6 @@ public sealed class Board
         public void Load(Run run)
         {
             _run = run;
-
             _usedNumbersMask = 0;
             Array.Clear(_numbers);
             for (int i = 0; i < Length; i++)
