@@ -362,6 +362,19 @@ public abstract class CandidateCollectionContractTests
     }
 
     [Fact]
+    public void Constructor_CopiesTheSourceSequence()
+    {
+        int[] source = [1, 2];
+        var collection = Create(source);
+
+        source[1] = 3;
+        collection.Remove(1);
+
+        Assert.Equal([2], collection.ToArray());
+        Assert.Equal([1, 3], source);
+    }
+
+    [Fact]
     public void Candidates_AreAscending()
     {
         Assert.Equal([2, 5, 8], Create(8, 2, 5).ToArray());
