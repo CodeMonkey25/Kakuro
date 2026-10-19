@@ -107,7 +107,7 @@ public class BoardSolveTests
     [InlineData(TestPuzzles.TwoSingleCells)]
     public void Solve_WhenPropagationSuffices_NeverGuesses(string puzzleText)
     {
-        // a run must be revisited after a neighbouring run narrows one of its cells; if it isn't, the solver falls back to guessing
+        // a run must be revisited after a neighboring run narrows one of its cells; if it isn't, the solver falls back to guessing
         Board board = new(Puzzle.Parse(puzzleText));
         List<string> log = [];
 

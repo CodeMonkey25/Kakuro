@@ -20,7 +20,9 @@ public sealed class CandidateCollectionList : CandidateCollection
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(candidate, Constants.MinCandidate);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(candidate, Constants.MaxCandidate);
+        if (Contains(candidate)) return;
         _candidates.Add(candidate);
+        _candidates.Sort();
     }
 
     public override bool Remove(int candidate) => _candidates.Remove(candidate);

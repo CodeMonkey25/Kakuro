@@ -26,28 +26,40 @@ public class CandidateCollectionListTests : CandidateCollectionContractTests
     }
 
     [Fact]
-    public void Candidates_PreserveInsertionOrder()
+    public void Constructor_SortsCandidates()
     {
-        Assert.Equal([5, 2, 8], Create(5, 2, 8).ToArray());
+        Assert.Equal([2, 5, 8], Create(5, 2, 8).ToArray());
     }
 
     [Fact]
-    public void Add_AppendsAfterExistingCandidates()
+    public void Constructor_DeduplicatesCandidates()
+    {
+        var collection = Create(3, 3, 4);
+
+        Assert.Equal(2, collection.Count);
+        Assert.Equal([3, 4], collection.ToArray());
+    }
+
+    [Fact]
+    public void Add_KeepsAscendingOrder()
     {
         var collection = Create(5, 2);
 
         collection.Add(1);
+        collection.Add(9);
+        collection.Add(3);
 
-        Assert.Equal([5, 2, 1], collection.ToArray());
+        Assert.Equal([1, 2, 3, 5, 9], collection.ToArray());
     }
 
     [Fact]
-    public void Remove_WithDuplicates_RemovesOnlyFirstOccurrence()
+    public void Add_Duplicate_DoesNotIncreaseCount()
     {
-        var collection = Create(3, 3, 4);
+        var collection = Create(3, 4);
 
-        Assert.True(collection.Remove(3));
+        collection.Add(3);
 
+        Assert.Equal(2, collection.Count);
         Assert.Equal([3, 4], collection.ToArray());
     }
 
