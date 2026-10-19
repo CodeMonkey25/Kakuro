@@ -13,10 +13,7 @@ public sealed class CandidateCollectionMask : CandidateCollection
 
     public CandidateCollectionMask(IEnumerable<int> candidates)
     {
-        foreach (int candidate in candidates)
-        {
-            _candidateMask |= BitFor(candidate);
-        }
+        AddAll(candidates);
     }
 
     private static uint BitFor(int candidate)
@@ -31,6 +28,14 @@ public sealed class CandidateCollectionMask : CandidateCollection
     public override void Add(int candidate)
     {
         _candidateMask |= BitFor(candidate);
+    }
+
+    public override void AddAll(IEnumerable<int> candidates)
+    {
+        foreach (int candidate in candidates)
+        {
+            _candidateMask |= BitFor(candidate);
+        }
     }
 
     public override bool Remove(int candidate)

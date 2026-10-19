@@ -8,10 +8,7 @@ public sealed class CandidateCollectionList : CandidateCollection
 
     public CandidateCollectionList(IEnumerable<int> candidates)
     {
-        foreach (int candidate in candidates)
-        {
-            Add(candidate);
-        }
+        AddAll(candidates);
     }
 
     public override int Count => _candidates.Count;
@@ -25,8 +22,26 @@ public sealed class CandidateCollectionList : CandidateCollection
         _candidates.Sort();
     }
 
+    public override void AddAll(IEnumerable<int> candidates)
+    {
+        try
+        {
+            foreach (int candidate in candidates)
+            {
+                if (Contains(candidate)) continue;
+                ArgumentOutOfRangeException.ThrowIfLessThan(candidate, Constants.MinCandidate);
+                ArgumentOutOfRangeException.ThrowIfGreaterThan(candidate, Constants.MaxCandidate);
+                _candidates.Add(candidate);
+            }
+        }
+        finally
+        {
+            _candidates.Sort();
+        }
+    }
+
     public override bool Remove(int candidate) => _candidates.Remove(candidate);
-    
+
     public override int Get(int index) => _candidates[index];
 
     public override bool Contains(int candidate) => _candidates.Contains(candidate);

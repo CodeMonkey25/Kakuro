@@ -19,10 +19,7 @@ public sealed class CandidateCollectionArray : CandidateCollection
 
     public CandidateCollectionArray(IEnumerable<int> candidates)
     {
-        foreach (int candidate in candidates)
-        {
-            Add(candidate);
-        }
+        AddAll(candidates);
     }
 
     public override void Add(int candidate)

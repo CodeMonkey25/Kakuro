@@ -426,6 +426,70 @@ public abstract class CandidateCollectionContractTests
         Assert.Equal([1], collection.ToArray());
     }
 
+    [Fact]
+    public void AddAll_AddsEveryCandidate_InAscendingOrder()
+    {
+        var collection = Create(5);
+
+        collection.AddAll([9, 1, 7]);
+
+        Assert.Equal([1, 5, 7, 9], collection.ToArray());
+    }
+
+    [Fact]
+    public void AddAll_IgnoresDuplicates()
+    {
+        var collection = Create(2, 4);
+
+        collection.AddAll([4, 6, 6, 2]);
+
+        Assert.Equal([2, 4, 6], collection.ToArray());
+        Assert.Equal(3, collection.Count);
+    }
+
+    [Fact]
+    public void AddAll_WithEmptySequence_LeavesCollectionUnchanged()
+    {
+        var collection = Create(3, 8);
+
+        collection.AddAll([]);
+
+        Assert.Equal([3, 8], collection.ToArray());
+    }
+
+    [Fact]
+    public void AddAll_AcceptsBoundaryCandidates()
+    {
+        var collection = Create();
+
+        collection.AddAll([9, 1]);
+
+        Assert.Equal([1, 9], collection.ToArray());
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(10)]
+    [InlineData(-1)]
+    [InlineData(33)]
+    public void AddAll_WithOutOfRangeCandidate_Throws(int candidate)
+    {
+        var collection = Create(1);
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => collection.AddAll([2, candidate]));
+    }
+
+    [Fact]
+    public void AddAll_WithOutOfRangeCandidate_KeepsAscendingOrder()
+    {
+        var collection = Create(1);
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => collection.AddAll([9, 5, 0]));
+
+        int[] result = collection.ToArray();
+        Assert.Equal(result.Order().ToArray(), result);
+    }
+
     [Theory]
     [InlineData(0)]
     [InlineData(10)]

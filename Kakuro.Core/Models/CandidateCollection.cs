@@ -18,6 +18,14 @@ public abstract class CandidateCollection
     public abstract void SetState(CandidateCollectionState state);
     public abstract void CopyTo(Span<int> destination);
 
+    public virtual void AddAll(IEnumerable<int> candidates)
+    {
+        foreach (int candidate in candidates)
+        {
+            Add(candidate);
+        }
+    }
+
     public virtual bool RemoveAll(uint candidatesMask)
     {
         bool removed = false;
