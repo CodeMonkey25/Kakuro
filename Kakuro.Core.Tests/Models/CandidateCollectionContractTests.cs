@@ -350,7 +350,174 @@ public abstract class CandidateCollectionContractTests
 
     #endregion
 
+    #region Ordering / validation
+
+    [Fact]
+    public void Constructor_DeduplicatesCandidates()
+    {
+        var collection = Create(3, 3, 5);
+
+        Assert.Equal(2, collection.Count);
+        Assert.Equal([3, 5], collection.ToArray());
+    }
+
+    [Fact]
+    public void Candidates_AreAscending()
+    {
+        Assert.Equal([2, 5, 8], Create(8, 2, 5).ToArray());
+    }
+
+    [Fact]
+    public void Add_Duplicate_DoesNotIncreaseCount()
+    {
+        var collection = Create(4);
+
+        collection.Add(4);
+
+        Assert.Equal(1, collection.Count);
+    }
+
+    [Fact]
+    public void Add_KeepsAscendingOrder()
+    {
+        var collection = Create(5);
+
+        collection.Add(9);
+        collection.Add(1);
+
+        Assert.Equal([1, 5, 9], collection.ToArray());
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(9)]
+    public void Add_AcceptsBoundaryCandidates(int candidate)
+    {
+        var collection = Create();
+
+        collection.Add(candidate);
+
+        Assert.Equal([candidate], collection.ToArray());
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(10)]
+    [InlineData(-1)]
+    [InlineData(33)]
+    public void Add_WithOutOfRangeCandidate_Throws(int candidate)
+    {
+        var collection = Create(1);
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => collection.Add(candidate));
+        Assert.Equal([1], collection.ToArray());
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(10)]
+    [InlineData(-1)]
+    public void Constructor_WithOutOfRangeCandidate_Throws(int candidate)
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => Create(1, candidate));
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(10)]
+    [InlineData(-1)]
+    [InlineData(33)]
+    public void Remove_WithOutOfRangeCandidate_ReturnsFalse(int candidate)
+    {
+        var collection = Create(1, 9);
+
+        Assert.False(collection.Remove(candidate));
+        Assert.Equal([1, 9], collection.ToArray());
+    }
+
+    [Fact]
+    public void AllCandidates_RoundTripThroughCopy()
+    {
+        var collection = Create(1, 2, 3, 4, 5, 6, 7, 8, 9);
+
+        Assert.Equal(9, collection.Count);
+        Assert.Equal(Enumerable.Range(1, 9), collection.ToArray());
+    }
+
+    [Fact]
+    public void EverySubsetOfOneToNine_BehavesConsistently()
+    {
+        for (int bits = 0; bits < 1 << 9; bits++)
+        {
+            int[] expected = Enumerable.Range(1, 9).Where(v => (bits & 1 << (v - 1)) != 0).ToArray();
+            var collection = Create(expected);
+
+            Assert.Equal(expected, collection.ToArray());
+            Assert.Equal(expected.Length, collection.Count);
+
+            for (int i = 0; i < expected.Length; i++)
+            {
+                Assert.Equal(expected[i], collection.Get(i));
+            }
+
+            int[] copied = new int[expected.Length];
+            collection.CopyTo(copied);
+            Assert.Equal(expected, copied);
+
+            var state = collection.GetState();
+            Assert.Equal(expected.Length > 0, state.IsStateValid(0));
+            if (expected.Length == 1)
+            {
+                Assert.True(state.IsStateValid(expected[0]));
+            }
+
+            foreach (int candidate in expected)
+            {
+                Assert.True(collection.Remove(candidate));
+            }
+            Assert.Equal(0, collection.Count);
+        }
+    }
+
+    #endregion
+
     #region State
+
+    [Fact]
+    public void SetState_WithStateFromAnotherImplementation_Throws()
+    {
+        var collection = Create(1);
+        var ownType = collection.GetState().GetType();
+        CandidateCollection[] others =
+        [
+            new CandidateCollectionArray([1]),
+            new CandidateCollectionList([1]),
+            new CandidateCollectionMask([1]),
+        ];
+
+        foreach (var other in others.Where(o => o.GetState().GetType() != ownType))
+        {
+            Assert.Throws<ArgumentException>(() => collection.SetState(other.GetState()));
+        }
+        Assert.Equal([1], collection.ToArray());
+    }
+
+    [Fact]
+    public void SetState_DoesNotAliasTheCapturedState()
+    {
+        var original = Create(2, 4);
+        var state = original.GetState();
+        var other = Create();
+        other.SetState(state);
+
+        other.Add(7);
+
+        Assert.Equal([2, 4, 7], other.ToArray());
+        Assert.Equal([2, 4], original.ToArray());
+        var restored = Create();
+        restored.SetState(state);
+        Assert.Equal([2, 4], restored.ToArray());
+    }
 
     [Fact]
     public void SetState_RestoresStateCapturedByGetState()
