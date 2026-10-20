@@ -95,6 +95,17 @@ public sealed class CandidateCollectionMask : CandidateCollection
         return true;
     }
 
+    public override bool RemoveAll(IEnumerable<int> candidates)
+    {
+        uint mask = 0;
+        foreach (int c in candidates)
+        {
+            if (c is >= Constants.MinCandidate and <= Constants.MaxCandidate)
+                mask |= 1u << (c - 1);
+        }
+        return RemoveAll(mask);
+    }
+
     private sealed record CandidateCollectionMaskState(uint CandidateMask) : CandidateCollectionState
     {
         public override bool IsStateValid(int value)
