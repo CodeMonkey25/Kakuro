@@ -32,6 +32,7 @@ public sealed record Puzzle
     public static Puzzle Parse(string puzzle)
     {
         string[] parts = puzzle.Split('|');
+        if (parts.Length < 3) throw new FormatException("Invalid puzzle format");
         string source = parts[0];
         string number = parts[1];
         string difficulty = parts[2];
