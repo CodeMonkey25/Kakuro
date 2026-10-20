@@ -62,7 +62,7 @@ public class EngineTests
         List<string> log = [];
 
         new Engine(log.Add).Solve(Puzzle.Parse(TestPuzzles.Contradictory));
-        Assert.Contains(log, message => message.Contains("constraints conflict detected"));
+        Assert.Contains(log, message => message.Contains("Constraints conflict detected"));
 
         log.Clear();
         new Engine(log.Add).Solve(Puzzle.Parse(TestPuzzles.GuessingBlock));
