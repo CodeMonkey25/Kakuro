@@ -767,4 +767,61 @@ public abstract class CandidateCollectionContractTests
     }
 
     #endregion
+
+    #region GetMask
+
+    [Fact]
+    public void GetMask_WhenEmpty_ReturnsZero()
+    {
+        Assert.Equal(0u, Create().GetMask());
+    }
+
+    [Fact]
+    public void GetMask_ReturnsCorrectBitPerCandidate()
+    {
+        var collection = Create(1, 3, 9);
+        uint expectedMask = (1u << 0) | (1u << 2) | (1u << 8);
+        Assert.Equal(expectedMask, collection.GetMask());
+    }
+
+    [Fact]
+    public void GetMask_AllCandidates_ReturnsFullValidMask()
+    {
+        var collection = Create(1, 2, 3, 4, 5, 6, 7, 8, 9);
+        Assert.Equal(0x1FFu, collection.GetMask());
+    }
+
+    [Fact]
+    public void GetMask_AfterAddAndRemove_ReflectsCurrentCandidates()
+    {
+        var collection = Create(1, 2, 3);
+        collection.Remove(2);
+        collection.Add(5);
+
+        uint expectedMask = (1u << 0) | (1u << 2) | (1u << 4);
+        Assert.Equal(expectedMask, collection.GetMask());
+    }
+
+    [Fact]
+    public void GetMask_AfterClear_ReturnsZero()
+    {
+        var collection = Create(1, 2, 3, 4);
+        collection.Clear();
+
+        Assert.Equal(0u, collection.GetMask());
+    }
+
+    [Fact]
+    public void GetMask_MatchesRemoveAllMask()
+    {
+        var collection = Create(2, 5, 8);
+        uint mask = collection.GetMask();
+
+        var target = Create(1, 2, 3, 4, 5, 6, 7, 8, 9);
+        target.RemoveAll(mask);
+
+        Assert.Equal([1, 3, 4, 6, 7, 9], target.ToArray());
+    }
+
+    #endregion
 }

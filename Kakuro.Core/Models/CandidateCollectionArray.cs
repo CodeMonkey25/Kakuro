@@ -50,6 +50,19 @@ public sealed class CandidateCollectionArray : CandidateCollection
         throw new ArgumentOutOfRangeException(nameof(index));
     }
 
+    public override uint GetMask()
+    {
+        uint mask = 0;
+        for (int i = 0; i < _candidates.Length; i++)
+        {
+            if (_candidates[i])
+            {
+                mask |= 1u << i;
+            }
+        }
+        return mask;
+    }
+
     public override bool Contains(int candidate) => candidate is >= Constants.MinCandidate and <= Constants.MaxCandidate && _candidates[candidate - 1];
 
     public override void Clear()

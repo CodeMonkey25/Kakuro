@@ -12,6 +12,7 @@ public abstract class CandidateCollection
     public abstract void Add(int candidate);
     public abstract bool Remove(int candidate);
     public abstract int Get(int index);
+    public abstract uint GetMask();
     public abstract bool Contains(int candidate);
     public abstract void Clear();
     public abstract CandidateCollectionState GetState();

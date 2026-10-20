@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Numerics;
 
 namespace Kakuro.Core.Models;
 
@@ -43,6 +44,16 @@ public sealed class CandidateCollectionList : CandidateCollection
     public override bool Remove(int candidate) => _candidates.Remove(candidate);
 
     public override int Get(int index) => _candidates[index];
+    
+    public override uint GetMask()
+    {
+        uint mask = 0;
+        foreach (int candidate in _candidates)
+        {
+            mask |= 1u << (candidate - 1);
+        }
+        return mask;
+    }
 
     public override bool Contains(int candidate) => _candidates.Contains(candidate);
     
