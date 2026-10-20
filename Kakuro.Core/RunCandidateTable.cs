@@ -1,10 +1,11 @@
+using System.Collections.Frozen;
 using System.Collections.Immutable;
 
 namespace Kakuro.Core;
 
 public static class RunCandidateTable
 {
-    internal static ImmutableDictionary<(int length, int total), ImmutableArray<int>> Entries { get; } =
+    internal static FrozenDictionary<(int length, int total), ImmutableArray<int>> InclusionEntries { get; } =
         new Dictionary<(int length, int total), ImmutableArray<int>>()
         {
             { (1, 1), [1] },
@@ -58,23 +59,19 @@ public static class RunCandidateTable
             { (8, 44), [2, 3, 4, 5, 6, 7, 8, 9] },
 
             { (9, 45), Constants.AllCandidates },
-        }.ToImmutableDictionary();
+        }.ToFrozenDictionary();
     
-    // [length, total] -> mask of candidates excluded from the run; 0 = no precomputed constraint
-    private static readonly uint[,] ExclusionMasks = Build();
-
-    private static uint[,] Build()
+    internal static FrozenDictionary<(int length, int total), uint> ExclusionEntries { get; } =
+        InclusionEntries
+            .Select(e => KeyValuePair.Create(e.Key, GetRunExclusionMask(e.Value)))
+            .ToFrozenDictionary();
+    
+    private static uint GetRunExclusionMask(ImmutableArray<int> candidates)
     {
-        uint[,] masks = new uint[10, 46];
-        foreach (((int length, int total), ImmutableArray<int> candidates) in Entries)
-        {
-            uint keep = 0;
-            foreach (int c in candidates) keep |= 1u << (c - 1);
-            masks[length, total] = ~keep & 0x1FF;
-        }
-        return masks;
+        uint keep = 0;
+        foreach (int c in candidates) keep |= 1u << (c - 1);
+        return ~keep & 0x1FF;
     }
 
-    public static uint GetRunExclusionMask(int length, int total) =>
-        length is >= 1 and <= 9 && total is >= 0 and <= 45 ? ExclusionMasks[length, total] : 0;
+    public static uint GetRunExclusionMask(int length, int total) => ExclusionEntries.GetValueOrDefault((length, total));
 }

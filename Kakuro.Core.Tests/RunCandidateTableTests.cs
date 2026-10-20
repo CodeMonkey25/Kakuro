@@ -21,9 +21,9 @@ public class RunCandidateTableTests
     }
 
     [Fact]
-    public void Entries_EachHasLengthDigitsThatSumToTheTotal()
+    public void InclusionEntries_EachHasLengthDigitsThatSumToTheTotal()
     {
-        foreach (((int length, int total), ImmutableArray<int> digits) in RunCandidateTable.Entries)
+        foreach (((int length, int total), ImmutableArray<int> digits) in RunCandidateTable.InclusionEntries)
         {
             Assert.Equal(length, digits.Length);
             Assert.Equal(total, digits.Sum());
@@ -33,14 +33,14 @@ public class RunCandidateTableTests
     }
 
     [Fact]
-    public void Entries_CoverExactlyTheRunsWithOneDigitSet()
+    public void InclusionEntries_CoverExactlyTheRunsWithOneDigitSet()
     {
         for (int length = 1; length <= 9; length++)
         {
             for (int total = 0; total <= 45; total++)
             {
                 List<int[]> sets = DigitSets(length, total);
-                bool inTable = RunCandidateTable.Entries.TryGetValue((length, total), out ImmutableArray<int> digits);
+                bool inTable = RunCandidateTable.InclusionEntries.TryGetValue((length, total), out ImmutableArray<int> digits);
 
                 Assert.Equal(sets.Count == 1, inTable);
                 if (inTable) Assert.Equal(sets[0], digits.OrderBy(d => d));
@@ -49,9 +49,26 @@ public class RunCandidateTableTests
     }
 
     [Fact]
+    public void ExclusionEntries_HaveTheSameKeysAsInclusionEntries()
+    {
+        Assert.Equal(
+            RunCandidateTable.InclusionEntries.Keys.OrderBy(k => k),
+            RunCandidateTable.ExclusionEntries.Keys.OrderBy(k => k));
+    }
+
+    [Fact]
+    public void ExclusionEntries_EachIsTheComplementOfTheInclusionEntryDigits()
+    {
+        foreach (((int length, int total), ImmutableArray<int> digits) in RunCandidateTable.InclusionEntries)
+        {
+            Assert.Equal(~MaskOf(digits) & AllMask, RunCandidateTable.ExclusionEntries[(length, total)]);
+        }
+    }
+
+    [Fact]
     public void GetRunExclusionMask_ForListedRun_IsTheComplementOfItsDigits()
     {
-        foreach (((int length, int total), ImmutableArray<int> digits) in RunCandidateTable.Entries)
+        foreach (((int length, int total), ImmutableArray<int> digits) in RunCandidateTable.InclusionEntries)
         {
             Assert.Equal(~MaskOf(digits) & AllMask, RunCandidateTable.GetRunExclusionMask(length, total));
         }
