@@ -139,27 +139,27 @@ public sealed class Board
             run.MarkDirty();
         }
         
-        log?.Invoke("propagating precomputed constraints...");
+        log?.Invoke("Propagating precomputed constraints...");
         string? error = PropagatePrecomputedConstraints(log);
         if (error != null)
         {
-            log?.Invoke($"constraints conflict detected: {error}");
+            log?.Invoke($"Constraints conflict detected: {error}");
             SetState(initialState);
             return false;
         }
         
-        log?.Invoke("propagating initial constraints...");
+        log?.Invoke("Propagating initial constraints...");
         error = PropagateConstraints(log);
         if (error != null)
         {
-            log?.Invoke($"constraints conflict detected: {error}");
+            log?.Invoke($"Constraints conflict detected: {error}");
             SetState(initialState);
             return false;
         }
 
         if (IsSolved()) return true;
         
-        log?.Invoke("solving by guessing...");
+        log?.Invoke("Solving by guessing...");
         bool solved = SolveByGuessing(log);
         if (!solved)
         {
@@ -176,7 +176,7 @@ public sealed class Board
         {
             uint exclusions = RunCandidateTable.GetRunExclusionMask(run.Length, run.Total);
             if (exclusions == 0) continue;
-            log?.Invoke($"\t found run ({run.Length}, {run.Total})...");
+            log?.Invoke($"\tRun ({run.Length}, {run.Total}): constraints preloaded...");
             foreach (PlayableCell cell in run.Cells)
             {
                 (string? error, _) = cell.RemoveCandidates(exclusions);
@@ -193,7 +193,7 @@ public sealed class Board
         bool changed;
         do
         {
-            log?.Invoke($"\tpass {++pass}...");
+            log?.Invoke($"\tPass {++pass}...");
             (string? error, changed) = UpdateCellConstraints();
             if (error != null) return error;
         } while (changed);

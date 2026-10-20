@@ -351,7 +351,7 @@ public class BoardSolveTests
 
         Assert.False(board.Solve(log.Add));
 
-        Assert.Single(log, message => message.Contains("constraints conflict detected"));
+        Assert.Single(log, message => message.Contains("Constraints conflict detected"));
         Assert.DoesNotContain(log, message => message.Contains("guessing"));
     }
 
@@ -363,8 +363,8 @@ public class BoardSolveTests
 
         Assert.True(board.Solve(log.Add));
 
-        int precomputed = log.FindIndex(message => message.Contains("propagating precomputed constraints"));
-        int initial = log.FindIndex(message => message.Contains("propagating initial constraints"));
+        int precomputed = log.FindIndex(message => message.Contains("Propagating precomputed constraints"));
+        int initial = log.FindIndex(message => message.Contains("Propagating initial constraints"));
         Assert.True(precomputed >= 0);
         Assert.True(initial > precomputed);
     }
@@ -378,9 +378,9 @@ public class BoardSolveTests
 
         Assert.True(board.Solve(log.Add));
 
-        Assert.Single(log, message => message.Contains("found run (2, 3)"));
-        Assert.Single(log, message => message.Contains("found run (2, 17)"));
-        Assert.DoesNotContain(log, message => message.Contains("found run (2, 9)") || message.Contains("found run (2, 11)"));
+        Assert.Single(log, message => message.Contains("Run (2, 3): constraints preloaded"));
+        Assert.Single(log, message => message.Contains("Run (2, 17): constraints preloaded"));
+        Assert.DoesNotContain(log, message => message.Contains("Run (2, 9): constraints preloaded") || message.Contains("Run (2, 11): constraints preloaded"));
     }
 
     [Fact]
@@ -395,8 +395,8 @@ public class BoardSolveTests
         Assert.False(board.Solve(log.Add));
 
         Assert.Equal(start, board.GetState());
-        Assert.Single(log, message => message.Contains("constraints conflict detected"));
-        Assert.DoesNotContain(log, message => message.Contains("propagating initial constraints"));
+        Assert.Single(log, message => message.Contains("Constraints conflict detected"));
+        Assert.DoesNotContain(log, message => message.Contains("Propagating initial constraints"));
         Assert.DoesNotContain(log, message => message.Contains("guess"));
     }
 
@@ -409,7 +409,7 @@ public class BoardSolveTests
 
         Assert.True(board.Solve(log.Add));
 
-        Assert.DoesNotContain(log, message => message.Contains("found run"));
+        Assert.DoesNotContain(log, message => message.Contains("constraints preloaded"));
     }
 
     [Fact]
