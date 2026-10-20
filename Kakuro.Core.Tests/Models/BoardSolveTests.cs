@@ -356,6 +356,77 @@ public class BoardSolveTests
     }
 
     [Fact]
+    public void Solve_LogsPrecomputedConstraintsBeforeInitialConstraints()
+    {
+        Board board = new(Puzzle.Parse(TestPuzzles.ForcedBlock));
+        List<string> log = [];
+
+        Assert.True(board.Solve(log.Add));
+
+        int precomputed = log.FindIndex(message => message.Contains("propagating precomputed constraints"));
+        int initial = log.FindIndex(message => message.Contains("propagating initial constraints"));
+        Assert.True(precomputed >= 0);
+        Assert.True(initial > precomputed);
+    }
+
+    [Fact]
+    public void Solve_LogsEachRunFoundInTheTable()
+    {
+        // ForcedBlock rows have totals 3 and 17 over two cells (unique digit sets); columns 9 and 11 are not in the table
+        Board board = new(Puzzle.Parse(TestPuzzles.ForcedBlock));
+        List<string> log = [];
+
+        Assert.True(board.Solve(log.Add));
+
+        Assert.Single(log, message => message.Contains("found run (2, 3)"));
+        Assert.Single(log, message => message.Contains("found run (2, 17)"));
+        Assert.DoesNotContain(log, message => message.Contains("found run (2, 9)") || message.Contains("found run (2, 11)"));
+    }
+
+    [Fact]
+    public void Solve_WhenPrecomputedConstraintsConflict_LogsConflictRestoresStateAndSkipsLaterPhases()
+    {
+        // (1,1) = 9 is excluded by the run with total 3, which the precomputed table catches
+        Board board = new(Puzzle.Parse(TestPuzzles.ForcedBlock));
+        board.SetState(TestPuzzles.WithPlayableValues(board, 9, 0, 0, 0));
+        Board.State start = board.GetState();
+        List<string> log = [];
+
+        Assert.False(board.Solve(log.Add));
+
+        Assert.Equal(start, board.GetState());
+        Assert.Single(log, message => message.Contains("constraints conflict detected"));
+        Assert.DoesNotContain(log, message => message.Contains("propagating initial constraints"));
+        Assert.DoesNotContain(log, message => message.Contains("guess"));
+    }
+
+    [Fact]
+    public void Solve_WhenNoRunIsInTheTable_LogsNoFoundRuns()
+    {
+        // total 9 over two cells has four digit sets, so nothing is precomputed
+        Board board = new(Puzzle.Parse(TestPuzzles.SingleRun(9, 2)));
+        List<string> log = [];
+
+        Assert.True(board.Solve(log.Add));
+
+        Assert.DoesNotContain(log, message => message.Contains("found run"));
+    }
+
+    [Fact]
+    public void Solve_WhenGuessingFailsAfterPropagation_RestoresInitialStateNotPropagatedState()
+    {
+        // propagation narrows candidates before guessing starts; a failed search must still undo that
+        Board board = new(Puzzle.Parse(TestPuzzles.UnsolvableAfterGuessing));
+        Board.State initial = board.GetState();
+        List<string> log = [];
+
+        Assert.False(board.Solve(log.Add));
+
+        Assert.Contains(log, message => message.Contains(": guessing "));
+        Assert.Equal(initial, board.GetState());
+    }
+
+    [Fact]
     public void Solve_WhenPropagationSuffices_LogsOnlyPropagationProgress()
     {
         Board board = new(Puzzle.Parse(TestPuzzles.ForcedBlock));

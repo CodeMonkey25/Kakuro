@@ -138,21 +138,49 @@ public sealed class Board
         {
             run.MarkDirty();
         }
-
-        log?.Invoke("propagating initial constraints...");
-        string? error = PropagateConstraints(log);
-        if (error == null)
-        {
-            if (SolveByGuessing(log)) return true;
-        }
-        else
+        
+        log?.Invoke("propagating precomputed constraints...");
+        string? error = PropagatePrecomputedConstraints(log);
+        if (error != null)
         {
             log?.Invoke($"constraints conflict detected: {error}");
+            SetState(initialState);
+            return false;
         }
+        
+        log?.Invoke("propagating initial constraints...");
+        error = PropagateConstraints(log);
+        if (error != null)
+        {
+            log?.Invoke($"constraints conflict detected: {error}");
+            SetState(initialState);
+            return false;
+        }
+        
+        bool solved = SolveByGuessing(log);
+        if (!solved)
+        {
+            SetState(initialState);
+            return false;
+        }
+        
+        return true;
+    }
 
-        // a failed search can leave the board half-propagated (possibly with empty candidate lists)
-        SetState(initialState);
-        return false;
+    private string? PropagatePrecomputedConstraints(Action<string>? log)
+    {
+        foreach (Run run in _runs)
+        {
+            uint exclusions = RunCandidateTable.GetRunExclusionMask(run.Length, run.Total);
+            if (exclusions == 0) continue;
+            log?.Invoke($"\t found run ({run.Length}, {run.Total})...");
+            foreach (PlayableCell cell in run.Cells)
+            {
+                (string? error, _) = cell.RemoveCandidates(exclusions);
+                if (error != null) return error;
+            }
+        }
+        return null;
     }
 
     // repeats UpdateCellConstraints() until nothing changes; returns null on success or the first error
