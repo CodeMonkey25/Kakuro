@@ -4,8 +4,8 @@ namespace Kakuro.Core;
 
 public static class RunCandidateTable
 {
-    internal static ImmutableDictionary<(int length, int total), int[]> Entries { get; } =
-        new Dictionary<(int length, int total), int[]>()
+    internal static ImmutableDictionary<(int length, int total), ImmutableArray<int>> Entries { get; } =
+        new Dictionary<(int length, int total), ImmutableArray<int>>()
         {
             { (1, 1), [1] },
             { (1, 2), [2] },
@@ -57,7 +57,7 @@ public static class RunCandidateTable
             { (8, 43), [1, 3, 4, 5, 6, 7, 8, 9] },
             { (8, 44), [2, 3, 4, 5, 6, 7, 8, 9] },
 
-            { (9, 45), [1, 2, 3, 4, 5, 6, 7, 8, 9] },
+            { (9, 45), Constants.AllCandidates },
         }.ToImmutableDictionary();
     
     // [length, total] -> mask of candidates excluded from the run; 0 = no precomputed constraint
@@ -66,7 +66,7 @@ public static class RunCandidateTable
     private static uint[,] Build()
     {
         uint[,] masks = new uint[10, 46];
-        foreach (((int length, int total), int[] candidates) in Entries)
+        foreach (((int length, int total), ImmutableArray<int> candidates) in Entries)
         {
             uint keep = 0;
             foreach (int c in candidates) keep |= 1u << (c - 1);

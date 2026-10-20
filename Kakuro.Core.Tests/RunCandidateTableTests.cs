@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace Kakuro.Core.Tests;
 
 public class RunCandidateTableTests
@@ -21,7 +23,7 @@ public class RunCandidateTableTests
     [Fact]
     public void Entries_EachHasLengthDigitsThatSumToTheTotal()
     {
-        foreach (((int length, int total), int[] digits) in RunCandidateTable.Entries)
+        foreach (((int length, int total), ImmutableArray<int> digits) in RunCandidateTable.Entries)
         {
             Assert.Equal(length, digits.Length);
             Assert.Equal(total, digits.Sum());
@@ -38,10 +40,10 @@ public class RunCandidateTableTests
             for (int total = 0; total <= 45; total++)
             {
                 List<int[]> sets = DigitSets(length, total);
-                bool inTable = RunCandidateTable.Entries.TryGetValue((length, total), out int[]? digits);
+                bool inTable = RunCandidateTable.Entries.TryGetValue((length, total), out ImmutableArray<int> digits);
 
                 Assert.Equal(sets.Count == 1, inTable);
-                if (inTable) Assert.Equal(sets[0], digits!.OrderBy(d => d));
+                if (inTable) Assert.Equal(sets[0], digits.OrderBy(d => d));
             }
         }
     }
@@ -49,7 +51,7 @@ public class RunCandidateTableTests
     [Fact]
     public void GetRunExclusionMask_ForListedRun_IsTheComplementOfItsDigits()
     {
-        foreach (((int length, int total), int[] digits) in RunCandidateTable.Entries)
+        foreach (((int length, int total), ImmutableArray<int> digits) in RunCandidateTable.Entries)
         {
             Assert.Equal(~MaskOf(digits) & AllMask, RunCandidateTable.GetRunExclusionMask(length, total));
         }
