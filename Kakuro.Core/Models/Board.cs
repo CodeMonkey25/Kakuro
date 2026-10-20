@@ -386,16 +386,10 @@ public sealed class Board
 
         public uint GetCandidatesMask() => _candidates;
 
-        public struct CandidateEnumerator
+        public struct CandidateEnumerator(uint mask)
         {
-            private uint _mask;
-            public int Current { get; private set; }
-
-            public CandidateEnumerator(uint mask)
-            {
-                _mask = mask;
-                Current = 0;
-            }
+            private uint _mask = mask;
+            public int Current { get; private set; } = 0;
 
             public readonly CandidateEnumerator GetEnumerator() => this;
 
