@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using Kakuro.Core.Interfaces;
@@ -365,23 +366,14 @@ public sealed class Board
 
     private sealed class RunCellCandidates
     {
-        private int _candidateCount;
-        private readonly int[] _candidates = new int[9];
+        private uint _candidates;
         private uint _excluded;
         
-        public Span<int> Candidates => _candidates.AsSpan(0, _candidateCount);
+        public CandidateEnumerator Candidates => new(_candidates);
 
         public void Load(PlayableCell cell)
         {
-            _candidateCount = cell.CandidateCount;
-
-            cell.CopyCandidatesTo(_candidates);
-
-            ClearExclusions();
-            for (int i = 0; i < _candidateCount; i++)
-            {
-                AddExclusion(_candidates[i]);
-            }
+            _excluded = _candidates = cell.GetCandidatesMask();
         }
         
         public void ClearExclusions() => _excluded = 0;
@@ -391,5 +383,30 @@ public sealed class Board
         public void RemoveExclusion(int number) => _excluded &= ~(1u << (number - 1));
         
         public uint GetExclusionsMask() => _excluded;
+
+        public uint GetCandidatesMask() => _candidates;
+
+        public struct CandidateEnumerator
+        {
+            private uint _mask;
+            public int Current { get; private set; }
+
+            public CandidateEnumerator(uint mask)
+            {
+                _mask = mask;
+                Current = 0;
+            }
+
+            public readonly CandidateEnumerator GetEnumerator() => this;
+
+            public bool MoveNext()
+            {
+                if (_mask == 0) return false;
+                int bit = BitOperations.TrailingZeroCount(_mask);
+                Current = bit + 1;
+                _mask &= _mask - 1;
+                return true;
+            }
+        }
     }
 }

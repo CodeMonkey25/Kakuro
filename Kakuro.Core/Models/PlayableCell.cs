@@ -136,6 +136,8 @@ public sealed class PlayableCell(int row, int column) : ICell
         return candidates.IsStateValid(value);
     }
 
+    public uint GetCandidatesMask() => _candidates.GetMask();
+
     public void CopyCandidatesTo(Span<int> candidates) => _candidates.CopyTo(candidates);
 
     private sealed record PlayableCellState(int Value, CandidateCollection.CandidateCollectionState Candidates) : ICell.IState
