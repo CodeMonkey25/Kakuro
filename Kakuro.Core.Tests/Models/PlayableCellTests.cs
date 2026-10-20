@@ -68,16 +68,16 @@ public class PlayableCellTests
 
     #endregion
 
-    #region Bind
+    #region BindCells
 
     [Fact]
-    public void Bind_AddsPeerCellsExcludingSelfAndAvoidsDuplicates()
+    public void BindCells_AddsPeerCellsExcludingSelfAndAvoidsDuplicates()
     {
         PlayableCell cell1 = new(1, 1);
         PlayableCell cell2 = new(1, 2);
         PlayableCell cell3 = new(1, 3);
 
-        cell1.Bind([cell1, cell2, cell3]);
+        cell1.BindCells([cell1, cell2, cell3]);
 
         Assert.Equal(2, cell1.LinkedCells.Count);
         Assert.Contains(cell2, cell1.LinkedCells);
@@ -85,42 +85,42 @@ public class PlayableCellTests
         Assert.DoesNotContain(cell1, cell1.LinkedCells);
 
         // Binding again should not duplicate
-        cell1.Bind([cell2, cell3]);
+        cell1.BindCells([cell2, cell3]);
         Assert.Equal(2, cell1.LinkedCells.Count);
     }
 
     [Fact]
-    public void Bind_MultiplePeerGroups_MergesWithoutDuplicates()
+    public void BindCells_MultiplePeerGroups_MergesWithoutDuplicates()
     {
         PlayableCell mainCell = new(1, 1);
         PlayableCell horizontalPeer = new(1, 2);
         PlayableCell verticalPeer = new(2, 1);
 
         // Simulate binding horizontal run then vertical run
-        mainCell.Bind([mainCell, horizontalPeer]);
-        mainCell.Bind([mainCell, verticalPeer, horizontalPeer]);
+        mainCell.BindCells([mainCell, horizontalPeer]);
+        mainCell.BindCells([mainCell, verticalPeer, horizontalPeer]);
 
         Assert.Equal([horizontalPeer, verticalPeer], mainCell.LinkedCells);
     }
 
     [Fact]
-    public void Bind_WithNothingOrOnlySelf_LinksNothing()
+    public void BindCells_WithNothingOrOnlySelf_LinksNothing()
     {
         PlayableCell cell = new(0, 0);
 
-        cell.Bind([]);
-        cell.Bind([cell]);
+        cell.BindCells([]);
+        cell.BindCells([cell]);
 
         Assert.Empty(cell.LinkedCells);
     }
 
     [Fact]
-    public void Bind_IsOneDirectional()
+    public void BindCells_IsOneDirectional()
     {
         PlayableCell a = new(0, 0);
         PlayableCell b = new(0, 1);
 
-        a.Bind([b]);
+        a.BindCells([b]);
 
         Assert.Contains(b, a.LinkedCells);
         Assert.Empty(b.LinkedCells);
@@ -352,7 +352,7 @@ public class PlayableCellTests
         PlayableCell cell = new(0, 0);
         PlayableCell peer = new(0, 1);
         Board.Run peerRun = CreateRun("10,2,5,5,1");
-        cell.Bind([peer]);
+        cell.BindCells([peer]);
         peer.BindRun(peerRun);
 
         cell.Solve(4); // removes 4 from the peer, which dirties the peer's run
@@ -366,7 +366,7 @@ public class PlayableCellTests
         PlayableCell cell = new(0, 0);
         PlayableCell peer = new(0, 1);
         Board.Run peerRun = CreateRun("10,2,5,5,1");
-        cell.Bind([peer]);
+        cell.BindCells([peer]);
         peer.RemoveCandidate(4);
         peer.BindRun(peerRun);
 
@@ -596,7 +596,7 @@ public class PlayableCellTests
         PlayableCell cell = new(0, 0);
         PlayableCell peer = new(0, 1);
         peer.Solve(9);
-        cell.Bind([peer]);
+        cell.BindCells([peer]);
         cell.RemoveCandidates([1, 2, 3, 4, 5, 6, 7]); // {8, 9}
 
         // leaves {9}: the cell solves itself to 9, which the already-solved peer cannot give up
@@ -874,8 +874,8 @@ public class PlayableCellTests
     {
         PlayableCell cell = new(0, 0);
         PlayableCell peer = new(0, 1);
-        cell.Bind([cell, peer]);
-        peer.Bind([cell, peer]);
+        cell.BindCells([cell, peer]);
+        peer.BindCells([cell, peer]);
 
         string? error = cell.Solve(4);
 
@@ -912,7 +912,7 @@ public class PlayableCellTests
     {
         PlayableCell cell = new(0, 0);
         PlayableCell peer = new(0, 1);
-        cell.Bind([peer]);
+        cell.BindCells([peer]);
         cell.Solve(4);
         ICell.IState before = cell.GetState();
 
@@ -926,8 +926,8 @@ public class PlayableCellTests
     {
         PlayableCell cellA = new(0, 0);
         PlayableCell cellB = new(0, 1);
-        cellA.Bind([cellA, cellB]);
-        cellB.Bind([cellA, cellB]);
+        cellA.BindCells([cellA, cellB]);
+        cellB.BindCells([cellA, cellB]);
         cellB.RemoveCandidates([1, 2, 3, 4, 5, 6, 7]); // {8, 9}
 
         // Solve cellA to 9 by eliminating 1..8
@@ -949,7 +949,7 @@ public class PlayableCellTests
         PlayableCell cellB = new(0, 1);
         cellB.RemoveCandidates([1, 2, 3, 4, 5, 6, 7, 8]);
         Assert.Equal(9, cellB.Value);
-        cellA.Bind([cellB]);
+        cellA.BindCells([cellB]);
 
         (string? error, _) = cellA.RemoveCandidates([1, 2, 3, 4, 5, 6, 7, 8]);
 
@@ -962,7 +962,7 @@ public class PlayableCellTests
         PlayableCell cell = new(0, 0);
         PlayableCell peer = new(0, 1);
         peer.Solve(4);
-        cell.Bind([peer]);
+        cell.BindCells([peer]);
 
         Assert.Equal("Cell at row 0, column 1 has no candidates.", cell.Solve(4));
     }
@@ -973,9 +973,9 @@ public class PlayableCellTests
         PlayableCell cellA = new(0, 0);
         PlayableCell cellB = new(0, 1);
         PlayableCell cellC = new(0, 2);
-        cellA.Bind([cellB]);
-        cellB.Bind([cellA, cellC]);
-        cellC.Bind([cellB]);
+        cellA.BindCells([cellB]);
+        cellB.BindCells([cellA, cellC]);
+        cellC.BindCells([cellB]);
 
         // Restrict cellA to {8, 9}, cellB to {7, 8}, cellC to {6, 7}
         cellA.RemoveCandidates([1, 2, 3, 4, 5, 6, 7]);
@@ -1011,7 +1011,7 @@ public class PlayableCellTests
     {
         PlayableCell cell = new(0, 0);
         PlayableCell peer = new(0, 1);
-        cell.Bind([peer]);
+        cell.BindCells([peer]);
         cell.RemoveCandidate(5);
 
         cell.Solve(5);

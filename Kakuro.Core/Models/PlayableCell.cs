@@ -101,7 +101,7 @@ public sealed class PlayableCell(int row, int column) : ICell
         return null;
     }
     
-    public void Bind(IEnumerable<PlayableCell> linkedCells)
+    public void BindCells(IEnumerable<PlayableCell> linkedCells)
     {
         foreach (PlayableCell linkedCell in linkedCells)
         {

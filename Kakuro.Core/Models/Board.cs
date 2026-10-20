@@ -47,7 +47,7 @@ public sealed class Board
             _runs[runsIndex++] = run;
             foreach (PlayableCell cell in runCells)
             {
-                cell.Bind(runCells);
+                cell.BindCells(runCells);
                 cell.BindRun(run);
             }
         }

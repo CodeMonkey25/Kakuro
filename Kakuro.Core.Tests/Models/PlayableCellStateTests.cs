@@ -114,7 +114,7 @@ public class PlayableCellStateTests
     {
         PlayableCell cell = new(0, 0);
         PlayableCell peer = new(0, 1);
-        cell.Bind([peer]);
+        cell.BindCells([peer]);
         ICell.IState original = cell.GetState();
 
         cell.RemoveCandidate(1);
@@ -130,7 +130,7 @@ public class PlayableCellStateTests
         solvedSource.Solve(4);
         PlayableCell cell = new(0, 1);
         PlayableCell peer = new(0, 2);
-        cell.Bind([peer]);
+        cell.BindCells([peer]);
 
         cell.SetState(solvedSource.GetState());
 
