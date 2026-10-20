@@ -140,7 +140,7 @@ public sealed class PlayableCell(int row, int column) : ICell
 
     public void CopyCandidatesTo(Span<int> candidates) => _candidates.CopyTo(candidates);
 
-    private sealed record PlayableCellState(int Value, CandidateCollection.CandidateCollectionState Candidates) : ICell.IState
+    private sealed record PlayableCellState(int Value, CandidateCollection.ICandidateCollectionState Candidates) : ICell.IState
     {
         public bool Equals(PlayableCellState? other) =>
             other is not null && Value == other.Value && Candidates.Equals(other.Candidates);

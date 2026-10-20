@@ -59,9 +59,9 @@ public sealed class CandidateCollectionList : CandidateCollection
     
     public override void Clear() => _candidates.Clear();
     
-    public override CandidateCollectionState GetState() => new CandidateCollectionListState(_candidates.ToImmutableArray());
+    public override ICandidateCollectionState GetState() => new CandidateCollectionListState(_candidates.ToImmutableArray());
     
-    public override void SetState(CandidateCollectionState state)
+    public override void SetState(ICandidateCollectionState state)
     {
         if (state is not CandidateCollectionListState listState)
             throw new ArgumentException("Invalid state type", nameof(state));
@@ -74,9 +74,9 @@ public sealed class CandidateCollectionList : CandidateCollection
     
     public override void CopyTo(Span<int> destination) => _candidates.CopyTo(destination);
 
-    private sealed record CandidateCollectionListState(ImmutableArray<int> Candidates) : CandidateCollectionState
+    private sealed record CandidateCollectionListState(ImmutableArray<int> Candidates) : ICandidateCollectionState
     {
-        public override bool IsStateValid(int value)
+        public bool IsStateValid(int value)
         {
             if (Candidates.IsDefault) return false;
             if (value != Constants.UnsolvedCell) return Candidates.Length == 1 && Candidates[0] == value;

@@ -83,9 +83,9 @@ public sealed class CandidateCollectionArray : CandidateCollection
         }
     }
 
-    public override CandidateCollectionState GetState() => new CandidateCollectionArrayState(_candidates.ToArray(), _count);
+    public override ICandidateCollectionState GetState() => new CandidateCollectionArrayState(_candidates.ToArray(), _count);
 
-    public override void SetState(CandidateCollectionState state)
+    public override void SetState(ICandidateCollectionState state)
     {
         if (state is not CandidateCollectionArrayState arrayState)
             throw new ArgumentException("Invalid state type", nameof(state));
@@ -93,9 +93,9 @@ public sealed class CandidateCollectionArray : CandidateCollection
         _count = arrayState.Count;
     }
     
-    private sealed record CandidateCollectionArrayState(bool[] Candidates, int Count) : CandidateCollectionState
+    private sealed record CandidateCollectionArrayState(bool[] Candidates, int Count) : ICandidateCollectionState
     {
-        public override bool IsStateValid(int value)
+        public bool IsStateValid(int value)
         {
             if (Candidates.Length != Constants.MaxCandidate) return false;
             if (value != Constants.UnsolvedCell && value is < Constants.MinCandidate or > Constants.MaxCandidate) return false;

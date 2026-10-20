@@ -71,9 +71,9 @@ public sealed class CandidateCollectionMask : CandidateCollection
         _candidateMask = 0;
     }
 
-    public override CandidateCollectionState GetState() => new CandidateCollectionMaskState(_candidateMask);
+    public override ICandidateCollectionState GetState() => new CandidateCollectionMaskState(_candidateMask);
 
-    public override void SetState(CandidateCollectionState state)
+    public override void SetState(ICandidateCollectionState state)
     {
         if (state is not CandidateCollectionMaskState maskState)
             throw new ArgumentException("Invalid state type", nameof(state));
@@ -108,9 +108,9 @@ public sealed class CandidateCollectionMask : CandidateCollection
         return RemoveAll(mask);
     }
 
-    private sealed record CandidateCollectionMaskState(uint CandidateMask) : CandidateCollectionState
+    private sealed record CandidateCollectionMaskState(uint CandidateMask) : ICandidateCollectionState
     {
-        public override bool IsStateValid(int value)
+        public bool IsStateValid(int value)
         {
             if (value != Constants.UnsolvedCell)
             {

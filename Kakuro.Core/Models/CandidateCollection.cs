@@ -15,8 +15,8 @@ public abstract class CandidateCollection
     public abstract uint GetMask();
     public abstract bool Contains(int candidate);
     public abstract void Clear();
-    public abstract CandidateCollectionState GetState();
-    public abstract void SetState(CandidateCollectionState state);
+    public abstract ICandidateCollectionState GetState();
+    public abstract void SetState(ICandidateCollectionState state);
     public abstract void CopyTo(Span<int> destination);
 
     public virtual void AddAll(IEnumerable<int> candidates)
@@ -48,8 +48,8 @@ public abstract class CandidateCollection
         return removed;
     }
 
-    public abstract record CandidateCollectionState
+    public interface ICandidateCollectionState
     {
-        public abstract bool IsStateValid(int value);
+        public bool IsStateValid(int value);
     }
 }

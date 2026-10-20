@@ -11,9 +11,9 @@ public class CandidateCollectionBenchmarks
     private CandidateCollection _list = null!;
     private CandidateCollection _mask = null!;
     private CandidateCollection _array = null!;
-    private CandidateCollection.CandidateCollectionState _listState = null!;
-    private CandidateCollection.CandidateCollectionState _maskState = null!;
-    private CandidateCollection.CandidateCollectionState _arrayState = null!;
+    private CandidateCollection.ICandidateCollectionState _listState = null!;
+    private CandidateCollection.ICandidateCollectionState _maskState = null!;
+    private CandidateCollection.ICandidateCollectionState _arrayState = null!;
     private readonly int[] _buffer = new int[9];
 
     [GlobalSetup]
@@ -143,13 +143,13 @@ public class CandidateCollectionBenchmarks
     public void CopyTo_Array() => _array.CopyTo(_buffer);
 
     [Benchmark]
-    public CandidateCollection.CandidateCollectionState GetState_List() => _list.GetState();
+    public CandidateCollection.ICandidateCollectionState GetState_List() => _list.GetState();
 
     [Benchmark]
-    public CandidateCollection.CandidateCollectionState GetState_Mask() => _mask.GetState();
+    public CandidateCollection.ICandidateCollectionState GetState_Mask() => _mask.GetState();
 
     [Benchmark]
-    public CandidateCollection.CandidateCollectionState GetState_Array() => _array.GetState();
+    public CandidateCollection.ICandidateCollectionState GetState_Array() => _array.GetState();
 
     [Benchmark]
     public void SetState_List() => _list.SetState(_listState);
