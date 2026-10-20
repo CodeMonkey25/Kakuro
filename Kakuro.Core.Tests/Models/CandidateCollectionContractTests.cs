@@ -66,8 +66,8 @@ public abstract class CandidateCollectionContractTests
 
     [Theory]
     [InlineData(-1)]
-    [InlineData(0)]
-    [InlineData(10)]
+    [InlineData(Constants.MinCandidate - 1)]
+    [InlineData(Constants.MaxCandidate + 1)]
     [InlineData(33)]
     public void Contains_WithOutOfRangeCandidate_ReturnsFalse(int candidate)
     {
@@ -281,7 +281,7 @@ public abstract class CandidateCollectionContractTests
     {
         var collection = Create(1, 9);
 
-        Assert.False(collection.RemoveAll((1u << 9) | (1u << 20) | (1u << 31)));
+        Assert.False(collection.RemoveAll((1u << Constants.MaxCandidate) | (1u << 20) | (1u << 31)));
 
         Assert.Equal([1, 9], collection.ToArray());
     }
@@ -414,8 +414,8 @@ public abstract class CandidateCollectionContractTests
     }
 
     [Theory]
-    [InlineData(0)]
-    [InlineData(10)]
+    [InlineData(Constants.MinCandidate - 1)]
+    [InlineData(Constants.MaxCandidate + 1)]
     [InlineData(-1)]
     [InlineData(33)]
     public void Add_WithOutOfRangeCandidate_Throws(int candidate)
@@ -468,8 +468,8 @@ public abstract class CandidateCollectionContractTests
     }
 
     [Theory]
-    [InlineData(0)]
-    [InlineData(10)]
+    [InlineData(Constants.MinCandidate - 1)]
+    [InlineData(Constants.MaxCandidate + 1)]
     [InlineData(-1)]
     [InlineData(33)]
     public void AddAll_WithOutOfRangeCandidate_Throws(int candidate)
@@ -491,8 +491,8 @@ public abstract class CandidateCollectionContractTests
     }
 
     [Theory]
-    [InlineData(0)]
-    [InlineData(10)]
+    [InlineData(Constants.MinCandidate - 1)]
+    [InlineData(Constants.MaxCandidate + 1)]
     [InlineData(-1)]
     public void Constructor_WithOutOfRangeCandidate_Throws(int candidate)
     {
@@ -500,8 +500,8 @@ public abstract class CandidateCollectionContractTests
     }
 
     [Theory]
-    [InlineData(0)]
-    [InlineData(10)]
+    [InlineData(Constants.MinCandidate - 1)]
+    [InlineData(Constants.MaxCandidate + 1)]
     [InlineData(-1)]
     [InlineData(33)]
     public void Remove_WithOutOfRangeCandidate_ReturnsFalse(int candidate)
@@ -517,8 +517,8 @@ public abstract class CandidateCollectionContractTests
     {
         var collection = Create(1, 2, 3, 4, 5, 6, 7, 8, 9);
 
-        Assert.Equal(9, collection.Count);
-        Assert.Equal(Enumerable.Range(1, 9), collection.ToArray());
+        Assert.Equal(Constants.AllCandidates.Length, collection.Count);
+        Assert.Equal(Constants.AllCandidates, collection.ToArray());
     }
 
     [Fact]
@@ -526,7 +526,7 @@ public abstract class CandidateCollectionContractTests
     {
         for (int bits = 0; bits < 1 << 9; bits++)
         {
-            int[] expected = Enumerable.Range(1, 9).Where(v => (bits & 1 << (v - 1)) != 0).ToArray();
+            int[] expected = Constants.AllCandidates.Where(v => (bits & 1 << (v - 1)) != 0).ToArray();
             var collection = Create(expected);
 
             Assert.Equal(expected, collection.ToArray());
@@ -542,7 +542,7 @@ public abstract class CandidateCollectionContractTests
             Assert.Equal(expected, copied);
 
             var state = collection.GetState();
-            Assert.Equal(expected.Length > 0, state.IsStateValid(0));
+            Assert.Equal(expected.Length > 0, state.IsStateValid(Constants.UnsolvedCell));
             if (expected.Length == 1)
             {
                 Assert.True(state.IsStateValid(expected[0]));
@@ -717,7 +717,7 @@ public abstract class CandidateCollectionContractTests
 
         Assert.True(state.IsStateValid(4));
         Assert.False(state.IsStateValid(5));
-        Assert.True(state.IsStateValid(0));
+        Assert.True(state.IsStateValid(Constants.UnsolvedCell));
     }
 
     [Fact]
@@ -727,7 +727,7 @@ public abstract class CandidateCollectionContractTests
 
         Assert.False(state.IsStateValid(3));
         Assert.False(state.IsStateValid(4));
-        Assert.True(state.IsStateValid(0));
+        Assert.True(state.IsStateValid(Constants.UnsolvedCell));
     }
 
     [Fact]
@@ -735,7 +735,7 @@ public abstract class CandidateCollectionContractTests
     {
         var state = Create().GetState();
 
-        Assert.False(state.IsStateValid(0));
+        Assert.False(state.IsStateValid(Constants.UnsolvedCell));
         Assert.False(state.IsStateValid(1));
     }
 
@@ -745,7 +745,7 @@ public abstract class CandidateCollectionContractTests
         var state = Create(1, 2).GetState();
 
         Assert.False(state.IsStateValid(-1));
-        Assert.False(state.IsStateValid(10));
+        Assert.False(state.IsStateValid(Constants.MaxCandidate + 1));
         Assert.False(state.IsStateValid(33));
     }
 
@@ -754,7 +754,7 @@ public abstract class CandidateCollectionContractTests
     {
         var state = Create(1, 2, 3, 4, 5, 6, 7, 8, 9).GetState();
 
-        Assert.True(state.IsStateValid(0));
+        Assert.True(state.IsStateValid(Constants.UnsolvedCell));
         for (int value = 1; value <= 9; value++)
         {
             Assert.False(state.IsStateValid(value));

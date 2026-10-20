@@ -56,7 +56,7 @@ public class PlayableCellStateTests
         cell.SetState(original);
 
         Assert.Equal(original, cell.GetState());
-        Assert.Equal(9, cell.CandidateCount);
+        Assert.Equal(Constants.AllCandidates.Length, cell.CandidateCount);
         Assert.False(cell.IsSolved);
     }
 
@@ -73,8 +73,8 @@ public class PlayableCellStateTests
         cell.SetState(original);
 
         Assert.False(cell.IsSolved);
-        Assert.Equal(0, cell.Value);
-        Assert.Equal(9, cell.CandidateCount);
+        Assert.Equal(Constants.UnsolvedCell, cell.Value);
+        Assert.Equal(Constants.AllCandidates.Length, cell.CandidateCount);
     }
 
     [Fact]

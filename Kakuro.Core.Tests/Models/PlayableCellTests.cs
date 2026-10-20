@@ -9,6 +9,8 @@ public class PlayableCellTests
 
     private static uint MaskOf(params int[] values) => values.Aggregate(0u, (m, v) => m | 1u << (v - 1));
 
+    private static readonly uint AllMask = MaskOf([.. Constants.AllCandidates]);
+
     #region Construction
 
     [Fact]
@@ -18,9 +20,9 @@ public class PlayableCellTests
 
         Assert.Equal(3, cell.Row);
         Assert.Equal(5, cell.Column);
-        Assert.Equal(0, cell.Value);
+        Assert.Equal(Constants.UnsolvedCell, cell.Value);
         Assert.False(cell.IsSolved);
-        Assert.Equal([1, 2, 3, 4, 5, 6, 7, 8, 9], cell.CandidatesArray());
+        Assert.Equal(Constants.AllCandidates, cell.CandidatesArray());
         Assert.Empty(cell.LinkedCells);
         Assert.Equal(" ", cell.ToString());
     }
@@ -126,6 +128,351 @@ public class PlayableCellTests
 
     #endregion
 
+    #region BindRun
+
+    private static Board.Run CreateRun(string rawRun = "16,2,0,1,0")
+    {
+        Puzzle.Run puzzleRun = Puzzle.Run.Parse(rawRun);
+        return new Board.Run(puzzleRun, [.. puzzleRun.GetCellCoordinates().Select(c => new PlayableCell(c.row, c.column))]);
+    }
+
+    [Fact]
+    public void BindRun_DoesNotMarkTheRunDirty()
+    {
+        PlayableCell cell = new(0, 0);
+        Board.Run run = CreateRun();
+
+        cell.BindRun(run);
+
+        Assert.False(run.IsDirty);
+    }
+
+    [Fact]
+    public void BindRun_RemoveCandidate_MarksRunDirty()
+    {
+        PlayableCell cell = new(0, 0);
+        Board.Run run = CreateRun();
+        cell.BindRun(run);
+
+        cell.RemoveCandidate(3);
+
+        Assert.True(run.IsDirty);
+    }
+
+    [Fact]
+    public void BindRun_RemoveCandidatesEnumerable_MarksRunDirty()
+    {
+        PlayableCell cell = new(0, 0);
+        Board.Run run = CreateRun();
+        cell.BindRun(run);
+
+        cell.RemoveCandidates([3, 4]);
+
+        Assert.True(run.IsDirty);
+    }
+
+    [Fact]
+    public void BindRun_RemoveCandidatesMask_MarksRunDirty()
+    {
+        PlayableCell cell = new(0, 0);
+        Board.Run run = CreateRun();
+        cell.BindRun(run);
+
+        cell.RemoveCandidates(MaskOf(3, 4));
+
+        Assert.True(run.IsDirty);
+    }
+
+    [Fact]
+    public void BindRun_WhenNothingIsRemoved_DoesNotMarkRunDirty()
+    {
+        PlayableCell cell = new(0, 0);
+        Board.Run run = CreateRun();
+        cell.BindRun(run);
+        cell.RemoveCandidate(3);
+        run.ClearDirty();
+
+        cell.RemoveCandidate(3);
+        cell.RemoveCandidate(Constants.MaxCandidate + 1);
+        cell.RemoveCandidates([3]);
+        cell.RemoveCandidates(MaskOf(3));
+        cell.RemoveCandidates(0u);
+
+        Assert.False(run.IsDirty);
+    }
+
+    [Fact]
+    public void BindRun_WhenCellIsAlreadySolved_RemovalAttemptsDoNotMarkRunDirty()
+    {
+        PlayableCell cell = new(0, 0);
+        cell.Solve(4);
+        Board.Run run = CreateRun();
+        cell.BindRun(run);
+
+        cell.RemoveCandidate(4);
+        cell.RemoveCandidate(5);
+        cell.RemoveCandidates([4, 5]);
+        cell.RemoveCandidates(MaskOf(4, 5));
+
+        Assert.False(run.IsDirty);
+    }
+
+    [Fact]
+    public void BindRun_WhenRemovalSolvesTheCell_MarksRunDirty()
+    {
+        PlayableCell cell = new(0, 0);
+        cell.RemoveCandidates([2, 3, 4, 5, 6, 7, 8, 9]);
+        Board.Run run = CreateRun();
+        cell.BindRun(run);
+        Assert.True(cell.IsSolved);
+        Assert.False(run.IsDirty);
+
+        PlayableCell other = new(0, 1);
+        other.RemoveCandidates([1, 2, 3, 4, 5, 6, 7]);
+        other.BindRun(run);
+        other.RemoveCandidate(8);
+
+        Assert.True(other.IsSolved);
+        Assert.True(run.IsDirty);
+    }
+
+    [Fact]
+    public void BindRun_RemovalLeavingNoCandidates_StillMarksRunDirty()
+    {
+        PlayableCell cell = new(0, 0);
+        Board.Run run = CreateRun();
+        cell.BindRun(run);
+
+        (string? error, bool removed) = cell.RemoveCandidates(AllMask);
+
+        Assert.NotNull(error);
+        Assert.True(removed);
+        Assert.True(run.IsDirty);
+    }
+
+    [Fact]
+    public void BindRun_Solve_MarksRunDirty()
+    {
+        PlayableCell cell = new(0, 0);
+        Board.Run run = CreateRun();
+        cell.BindRun(run);
+
+        string? error = cell.Solve(4);
+
+        Assert.Null(error);
+        Assert.True(run.IsDirty);
+    }
+
+    [Fact]
+    public void BindRun_FailedSolve_DoesNotMarkRunDirty()
+    {
+        PlayableCell cell = new(0, 0);
+        cell.RemoveCandidate(5);
+        Board.Run run = CreateRun();
+        cell.BindRun(run);
+
+        Assert.NotNull(cell.Solve(5));
+        Assert.False(run.IsDirty);
+    }
+
+    [Fact]
+    public void BindRun_SolveOnAlreadySolvedCell_DoesNotMarkRunDirty()
+    {
+        PlayableCell cell = new(0, 0);
+        cell.Solve(4);
+        Board.Run run = CreateRun();
+        cell.BindRun(run);
+
+        cell.Solve(4);
+        cell.Solve(5);
+
+        Assert.False(run.IsDirty);
+    }
+
+    [Fact]
+    public void BindRun_MultipleRuns_AllAreMarkedDirty()
+    {
+        PlayableCell cell = new(1, 1);
+        Board.Run horizontal = CreateRun("16,2,0,1,0");
+        Board.Run vertical = CreateRun("10,2,0,1,1");
+        cell.BindRun(horizontal);
+        cell.BindRun(vertical);
+
+        cell.RemoveCandidate(2);
+
+        Assert.True(horizontal.IsDirty);
+        Assert.True(vertical.IsDirty);
+    }
+
+    [Fact]
+    public void BindRun_MultipleRuns_AllAreMarkedDirtyOnSolve()
+    {
+        PlayableCell cell = new(1, 1);
+        Board.Run horizontal = CreateRun("16,2,0,1,0");
+        Board.Run vertical = CreateRun("10,2,0,1,1");
+        cell.BindRun(horizontal);
+        cell.BindRun(vertical);
+
+        cell.Solve(7);
+
+        Assert.True(horizontal.IsDirty);
+        Assert.True(vertical.IsDirty);
+    }
+
+    [Fact]
+    public void BindRun_OnlyMarksRunsThisCellIsBoundTo()
+    {
+        PlayableCell cell = new(0, 0);
+        Board.Run bound = CreateRun();
+        Board.Run unbound = CreateRun("10,2,0,1,1");
+        cell.BindRun(bound);
+
+        cell.RemoveCandidate(2);
+        cell.Solve(4);
+
+        Assert.True(bound.IsDirty);
+        Assert.False(unbound.IsDirty);
+    }
+
+    [Fact]
+    public void BindRun_CellWithNoRuns_RemovalAndSolveStillWork()
+    {
+        PlayableCell cell = new(0, 0);
+
+        cell.RemoveCandidate(2);
+        string? error = cell.Solve(4);
+
+        Assert.Null(error);
+        Assert.Equal(4, cell.Value);
+    }
+
+    [Fact]
+    public void BindRun_SolvingAPeer_MarksRunsOfLinkedCellsDirty()
+    {
+        PlayableCell cell = new(0, 0);
+        PlayableCell peer = new(0, 1);
+        Board.Run peerRun = CreateRun("10,2,5,5,1");
+        cell.Bind([peer]);
+        peer.BindRun(peerRun);
+
+        cell.Solve(4); // removes 4 from the peer, which dirties the peer's run
+
+        Assert.True(peerRun.IsDirty);
+    }
+
+    [Fact]
+    public void BindRun_SolvingAPeerThatDoesNotHoldTheValue_DoesNotMarkPeerRunDirty()
+    {
+        PlayableCell cell = new(0, 0);
+        PlayableCell peer = new(0, 1);
+        Board.Run peerRun = CreateRun("10,2,5,5,1");
+        cell.Bind([peer]);
+        peer.RemoveCandidate(4);
+        peer.BindRun(peerRun);
+
+        cell.Solve(4);
+
+        Assert.False(peerRun.IsDirty);
+    }
+
+    [Fact]
+    public void BindRun_SameRunBoundTwice_StillMarksDirty()
+    {
+        PlayableCell cell = new(0, 0);
+        Board.Run run = CreateRun();
+        cell.BindRun(run);
+        cell.BindRun(run);
+
+        cell.RemoveCandidate(3);
+
+        Assert.True(run.IsDirty);
+    }
+
+    [Fact]
+    public void BindRun_SetState_DoesNotMarkRunDirty()
+    {
+        PlayableCell cell = new(0, 0);
+        ICell.IState original = cell.GetState();
+        cell.RemoveCandidate(3);
+        Board.Run run = CreateRun();
+        cell.BindRun(run);
+
+        cell.SetState(original);
+
+        Assert.False(run.IsDirty);
+    }
+
+    #endregion
+
+    #region Candidate access
+
+    [Fact]
+    public void GetCandidatesMask_Initially_HasAllNineBitsSet()
+    {
+        PlayableCell cell = new(0, 0);
+
+        Assert.Equal(AllMask, cell.GetCandidatesMask());
+    }
+
+    [Fact]
+    public void GetCandidatesMask_ReflectsRemovals()
+    {
+        PlayableCell cell = new(0, 0);
+
+        cell.RemoveCandidates([1, 5, 9]);
+
+        Assert.Equal(MaskOf(2, 3, 4, 6, 7, 8), cell.GetCandidatesMask());
+    }
+
+    [Fact]
+    public void GetCandidatesMask_WhenSolved_HasOnlyTheValueBit()
+    {
+        PlayableCell cell = new(0, 0);
+
+        cell.Solve(6);
+
+        Assert.Equal(MaskOf(6), cell.GetCandidatesMask());
+    }
+
+    [Fact]
+    public void GetCandidatesMask_AfterSetState_MatchesRestoredCandidates()
+    {
+        PlayableCell cell = new(0, 0);
+        cell.RemoveCandidates([2, 4]);
+        ICell.IState state = cell.GetState();
+        cell.RemoveCandidates([1, 3, 5]);
+
+        cell.SetState(state);
+
+        Assert.Equal(MaskOf(1, 3, 5, 6, 7, 8, 9), cell.GetCandidatesMask());
+    }
+
+    [Fact]
+    public void CopyCandidatesTo_WritesCandidatesInAscendingOrder()
+    {
+        PlayableCell cell = new(0, 0);
+        cell.RemoveCandidates([2, 4, 6, 8]);
+        Span<int> destination = stackalloc int[cell.CandidateCount];
+
+        cell.CopyCandidatesTo(destination);
+
+        Assert.Equal([1, 3, 5, 7, 9], destination.ToArray());
+    }
+
+    [Fact]
+    public void CopyCandidatesTo_WhenSolved_WritesTheSingleValue()
+    {
+        PlayableCell cell = new(0, 0);
+        cell.Solve(7);
+        Span<int> destination = stackalloc int[1];
+
+        cell.CopyCandidatesTo(destination);
+
+        Assert.Equal(7, destination[0]);
+    }
+
+    #endregion
+
     #region RemoveCandidate
 
     [Fact]
@@ -138,7 +485,7 @@ public class PlayableCellTests
         Assert.Null(error);
         Assert.True(removed);
         Assert.False(cell.IsSolved);
-        Assert.Equal(0, cell.Value);
+        Assert.Equal(Constants.UnsolvedCell, cell.Value);
         Assert.Equal([1, 2, 4, 5, 6, 7, 8, 9], cell.CandidatesArray());
         Assert.Equal(" ", cell.ToString());
     }
@@ -158,9 +505,9 @@ public class PlayableCellTests
     }
 
     [Theory]
-    [InlineData(0)]
+    [InlineData(Constants.MinCandidate - 1)]
     [InlineData(-1)]
-    [InlineData(10)]
+    [InlineData(Constants.MaxCandidate + 1)]
     [InlineData(32)]
     public void RemoveCandidate_OutOfRangeValue_IsANoOp(int candidate)
     {
@@ -170,7 +517,7 @@ public class PlayableCellTests
 
         Assert.Null(error);
         Assert.False(removed);
-        Assert.Equal([1, 2, 3, 4, 5, 6, 7, 8, 9], cell.CandidatesArray());
+        Assert.Equal(Constants.AllCandidates, cell.CandidatesArray());
     }
 
     [Fact]
@@ -299,7 +646,7 @@ public class PlayableCellTests
 
         Assert.Null(error);
         Assert.False(removed);
-        Assert.Equal([1, 2, 3, 4, 5, 6, 7, 8, 9], cell.CandidatesArray());
+        Assert.Equal(Constants.AllCandidates, cell.CandidatesArray());
     }
 
     [Fact]
@@ -333,7 +680,7 @@ public class PlayableCellTests
     {
         PlayableCell cell = new(3, 3);
 
-        (string? error, bool removed) = cell.RemoveCandidates([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+        (string? error, bool removed) = cell.RemoveCandidates(Constants.AllCandidates);
 
         Assert.Equal("Cell at row 3, column 3 has no candidates.", error);
         Assert.True(removed);
@@ -403,7 +750,7 @@ public class PlayableCellTests
 
         Assert.Null(error);
         Assert.False(removed);
-        Assert.Equal([1, 2, 3, 4, 5, 6, 7, 8, 9], cell.CandidatesArray());
+        Assert.Equal(Constants.AllCandidates, cell.CandidatesArray());
     }
 
     [Fact]
@@ -424,11 +771,11 @@ public class PlayableCellTests
     {
         PlayableCell cell = new(1, 1);
 
-        (string? error, bool removed) = cell.RemoveCandidates((1u << 9) | (1u << 20) | (1u << 31));
+        (string? error, bool removed) = cell.RemoveCandidates((1u << Constants.MaxCandidate) | (1u << 20) | (1u << 31));
 
         Assert.Null(error);
         Assert.False(removed);
-        Assert.Equal([1, 2, 3, 4, 5, 6, 7, 8, 9], cell.CandidatesArray());
+        Assert.Equal(Constants.AllCandidates, cell.CandidatesArray());
     }
 
     [Fact]
@@ -449,7 +796,7 @@ public class PlayableCellTests
     {
         PlayableCell cell = new(3, 3);
 
-        (string? error, bool removed) = cell.RemoveCandidates(MaskOf(1, 2, 3, 4, 5, 6, 7, 8, 9));
+        (string? error, bool removed) = cell.RemoveCandidates(AllMask);
 
         Assert.Equal("Cell at row 3, column 3 has no candidates.", error);
         Assert.True(removed);
@@ -545,7 +892,7 @@ public class PlayableCellTests
 
         cell.Solve(4);
 
-        Assert.Equal(9, stranger.CandidateCount);
+        Assert.Equal(Constants.AllCandidates.Length, stranger.CandidateCount);
     }
 
     [Fact]
@@ -669,12 +1016,12 @@ public class PlayableCellTests
 
         cell.Solve(5);
 
-        Assert.Equal(9, peer.CandidateCount);
+        Assert.Equal(Constants.AllCandidates.Length, peer.CandidateCount);
     }
 
     [Theory]
-    [InlineData(0)]
-    [InlineData(10)]
+    [InlineData(Constants.MinCandidate - 1)]
+    [InlineData(Constants.MaxCandidate + 1)]
     [InlineData(-1)]
     public void Solve_WithOutOfRangeValue_ThrowsAndLeavesCellUnchanged(int value)
     {

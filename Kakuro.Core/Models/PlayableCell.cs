@@ -111,7 +111,7 @@ public sealed class PlayableCell(int row, int column) : ICell
         }
     }
 
-    internal void BindRun(Board.Run run)
+    public void BindRun(Board.Run run)
     {
         _linkedRuns.Add(run);
     }

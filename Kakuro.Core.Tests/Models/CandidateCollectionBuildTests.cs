@@ -29,7 +29,7 @@ public class CandidateCollectionBuildTests
     [Fact]
     public void Build_WithOutOfRangeCandidate_Throws()
     {
-        Assert.Throws<ArgumentOutOfRangeException>(() => CandidateCollection.Build([1, 10]));
+        Assert.Throws<ArgumentOutOfRangeException>(() => CandidateCollection.Build([Constants.MinCandidate, Constants.MaxCandidate + 1]));
     }
 
     [Fact]
