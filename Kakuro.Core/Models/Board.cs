@@ -156,7 +156,10 @@ public sealed class Board
             SetState(initialState);
             return false;
         }
+
+        if (IsSolved()) return true;
         
+        log?.Invoke("solving by guessing...");
         bool solved = SolveByGuessing(log);
         if (!solved)
         {
@@ -262,10 +265,10 @@ public sealed class Board
         State state = GetState();
         foreach (int candidate in candidates)
         {
-            log?.Invoke($"Cell ({cell.Row}, {cell.Column}): guessing {candidate}");
+            log?.Invoke($"\tCell ({cell.Row}, {cell.Column}): guessing {candidate}...");
             string? guessError = cell.Solve(candidate);
             if (guessError == null && PropagateConstraints() == null && SolveByGuessing(log)) return true;
-            log?.Invoke($"Cell ({cell.Row}, {cell.Column}): guess {candidate} was bad, reverting");
+            log?.Invoke($"\tCell ({cell.Row}, {cell.Column}): guess {candidate} was bad, reverting...");
             SetState(state);
         }
         
