@@ -261,7 +261,7 @@ public sealed class Board
         return result;
     }
 
-    internal sealed class Run
+    public sealed class Run
     {
         private Puzzle.Run PuzzleRun { get; }
         public ImmutableArray<PlayableCell> Cells { get; }
