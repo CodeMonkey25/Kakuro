@@ -113,6 +113,7 @@ public sealed class PlayableCell(int row, int column) : ICell
 
     public void BindRun(Board.Run run)
     {
+        if (_linkedRuns.Contains(run)) return;
         _linkedRuns.Add(run);
     }
     
