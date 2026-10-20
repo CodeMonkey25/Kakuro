@@ -3,19 +3,9 @@ namespace Kakuro.Core.Models;
 public sealed class CandidateCollectionArray : CandidateCollection
 {
     private readonly bool[] _candidates = new bool[Constants.MaxCandidate];
+    private int _count;
 
-    public override int Count
-    {
-        get
-        {
-            int count = 0;
-            foreach (bool b in _candidates)
-            {
-                if (b) count++;
-            }
-            return count;
-        }
-    }
+    public override int Count => _count;
 
     public CandidateCollectionArray(IEnumerable<int> candidates)
     {
@@ -26,7 +16,9 @@ public sealed class CandidateCollectionArray : CandidateCollection
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(candidate, Constants.MinCandidate);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(candidate, Constants.MaxCandidate);
+        if (Contains(candidate)) return;
         _candidates[candidate - 1] = true;
+        _count++;
     }
 
     public override bool Remove(int candidate)
@@ -34,6 +26,7 @@ public sealed class CandidateCollectionArray : CandidateCollection
         if (candidate is < Constants.MinCandidate or > Constants.MaxCandidate) return false;
         if (!Contains(candidate)) return false;
         _candidates[candidate - 1] = false;
+        _count--;
         return true;
     }
 
@@ -59,7 +52,11 @@ public sealed class CandidateCollectionArray : CandidateCollection
 
     public override bool Contains(int candidate) => candidate is >= Constants.MinCandidate and <= Constants.MaxCandidate && _candidates[candidate - 1];
 
-    public override void Clear() => Array.Clear(_candidates);
+    public override void Clear()
+    {
+        Array.Clear(_candidates);
+        _count = 0;
+    }
 
     public override void CopyTo(Span<int> destination)
     {
@@ -73,16 +70,17 @@ public sealed class CandidateCollectionArray : CandidateCollection
         }
     }
 
-    public override CandidateCollectionState GetState() => new CandidateCollectionArrayState(_candidates.ToArray());
+    public override CandidateCollectionState GetState() => new CandidateCollectionArrayState(_candidates.ToArray(), _count);
 
     public override void SetState(CandidateCollectionState state)
     {
         if (state is not CandidateCollectionArrayState arrayState)
             throw new ArgumentException("Invalid state type", nameof(state));
         Array.Copy(arrayState.Candidates, _candidates, _candidates.Length);
+        _count = arrayState.Count;
     }
     
-    private sealed record CandidateCollectionArrayState(bool[] Candidates) : CandidateCollectionState
+    private sealed record CandidateCollectionArrayState(bool[] Candidates, int Count) : CandidateCollectionState
     {
         public override bool IsStateValid(int value)
         {
