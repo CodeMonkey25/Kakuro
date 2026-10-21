@@ -66,6 +66,16 @@ public static class RunCandidateTable
             .Select(e => KeyValuePair.Create(e.Key, GetRunExclusionMask(e.Value)))
             .ToFrozenDictionary();
     
+    // [length, total] -> exclusion mask; array indexing keeps the solver's hot-path lookup cheap
+    private static readonly uint[,] ExclusionMasks = BuildExclusionMasks();
+
+    private static uint[,] BuildExclusionMasks()
+    {
+        uint[,] masks = new uint[10, 46];
+        foreach (((int length, int total), uint mask) in ExclusionEntries) masks[length, total] = mask;
+        return masks;
+    }
+
     private static uint GetRunExclusionMask(ImmutableArray<int> candidates)
     {
         uint keep = 0;
@@ -73,5 +83,6 @@ public static class RunCandidateTable
         return ~keep & 0x1FF;
     }
 
-    public static uint GetRunExclusionMask(int length, int total) => ExclusionEntries.GetValueOrDefault((length, total));
+    public static uint GetRunExclusionMask(int length, int total) => 
+        length is >= 1 and <= 9 && total is >= 0 and <= 45 ? ExclusionMasks[length, total] : 0;
 }
