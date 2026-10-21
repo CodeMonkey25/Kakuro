@@ -113,4 +113,51 @@ public class RunCandidateTableTests
     {
         Assert.Equal(0u, RunCandidateTable.GetRunExclusionMask(length, total));
     }
+
+    [Fact]
+    public void GetRunInclusions_ForListedRun_ReturnsItsDigits()
+    {
+        foreach (((int length, int total), ImmutableArray<int> digits) in RunCandidateTable.InclusionEntries)
+        {
+            Assert.Equal(digits, RunCandidateTable.GetRunInclusions(length, total));
+        }
+    }
+
+    [Theory]
+    [InlineData(2, 3, new[] { 1, 2 })]
+    [InlineData(2, 17, new[] { 8, 9 })]
+    [InlineData(1, 5, new[] { 5 })]
+    [InlineData(3, 24, new[] { 7, 8, 9 })]
+    [InlineData(8, 36, new[] { 1, 2, 3, 4, 5, 6, 7, 8 })]
+    [InlineData(9, 45, new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 })]
+    public void GetRunInclusions_KnownRuns_ReturnsTheDigits(int length, int total, int[] expected)
+    {
+        Assert.Equal(expected, RunCandidateTable.GetRunInclusions(length, total));
+    }
+
+    [Fact]
+    public void GetRunInclusions_IsTheComplementOfGetRunExclusionMask_ForListedRuns()
+    {
+        foreach ((int length, int total) in RunCandidateTable.InclusionEntries.Keys)
+        {
+            Assert.Equal(~RunCandidateTable.GetRunExclusionMask(length, total) & AllMask, MaskOf(RunCandidateTable.GetRunInclusions(length, total)));
+        }
+    }
+
+    [Theory]
+    [InlineData(2, 9)]
+    [InlineData(3, 15)]
+    [InlineData(2, 2)]
+    [InlineData(2, 18)]
+    [InlineData(4, 0)]
+    [InlineData(0, 3)]
+    [InlineData(10, 45)]
+    [InlineData(-1, 3)]
+    [InlineData(2, -1)]
+    [InlineData(2, 46)]
+    [InlineData(2, int.MaxValue)]
+    public void GetRunInclusions_WhenRunIsNotListed_ReturnsEmptyWithoutThrowing(int length, int total)
+    {
+        Assert.Empty(RunCandidateTable.GetRunInclusions(length, total));
+    }
 }

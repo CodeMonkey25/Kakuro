@@ -86,4 +86,7 @@ public static class RunCandidateTable
 
     public static uint GetRunExclusionMask(int length, int total) => 
         length is >= 1 and <= 9 && total is >= 0 and <= 45 ? ExclusionMasks[length, total] : 0;
+    
+    public static ImmutableArray<int> GetRunInclusions(int length, int total) => 
+        InclusionEntries.GetValueOrDefault((length, total), ImmutableArray<int>.Empty);
 }

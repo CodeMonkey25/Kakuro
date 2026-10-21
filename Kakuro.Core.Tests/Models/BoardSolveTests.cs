@@ -378,9 +378,9 @@ public class BoardSolveTests
 
         Assert.True(board.Solve(log.Add));
 
-        Assert.Single(log, message => message.Contains("Run (2, 3): constraints preloaded"));
-        Assert.Single(log, message => message.Contains("Run (2, 17): constraints preloaded"));
-        Assert.DoesNotContain(log, message => message.Contains("Run (2, 9): constraints preloaded") || message.Contains("Run (2, 11): constraints preloaded"));
+        Assert.Single(log, message => message.Contains("Run (2, 3): candidates reduced to"));
+        Assert.Single(log, message => message.Contains("Run (2, 17): candidates reduced to"));
+        Assert.DoesNotContain(log, message => message.Contains("Run (2, 9): candidates reduced to") || message.Contains("Run (2, 11): candidates reduced to"));
     }
 
     [Fact]
@@ -409,7 +409,7 @@ public class BoardSolveTests
 
         Assert.True(board.Solve(log.Add));
 
-        Assert.DoesNotContain(log, message => message.Contains("constraints preloaded"));
+        Assert.DoesNotContain(log, message => message.Contains("candidates reduced to"));
     }
 
     [Fact]

@@ -178,7 +178,10 @@ public sealed class Board
         {
             uint exclusions = RunCandidateTable.GetRunExclusionMask(run.Length, run.Total);
             if (exclusions == 0) continue;
-            log?.Invoke($"\tRun ({run.Length}, {run.Total}): constraints preloaded...");
+            
+            ImmutableArray<int> inclusions = RunCandidateTable.GetRunInclusions(run.Length, run.Total);
+            log?.Invoke($"   Run ({run.Length}, {run.Total}): candidates reduced to [{string.Join(", ", inclusions)}]...");
+            
             foreach (PlayableCell cell in run.Cells)
             {
                 (string? error, _) = cell.RemoveCandidates(exclusions);
@@ -195,7 +198,7 @@ public sealed class Board
         bool changed;
         do
         {
-            log?.Invoke($"\tPass {++pass}...");
+            log?.Invoke($"   Pass {++pass}...");
             (string? error, changed) = UpdateCellConstraints();
             if (error != null) return error;
         } while (changed);
