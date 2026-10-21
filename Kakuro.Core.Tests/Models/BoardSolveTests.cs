@@ -363,8 +363,8 @@ public class BoardSolveTests
 
         Assert.True(board.Solve(log.Add));
 
-        int precomputed = log.FindIndex(message => message.Contains("Propagating precomputed constraints"));
-        int initial = log.FindIndex(message => message.Contains("Propagating initial constraints"));
+        int precomputed = log.FindIndex(message => message.Contains("Loading precomputed constraints"));
+        int initial = log.FindIndex(message => message.Contains("Calculating initial constraints"));
         Assert.True(precomputed >= 0);
         Assert.True(initial > precomputed);
     }
@@ -396,7 +396,7 @@ public class BoardSolveTests
 
         Assert.Equal(start, board.GetState());
         Assert.Single(log, message => message.Contains("Constraints conflict detected"));
-        Assert.DoesNotContain(log, message => message.Contains("Propagating initial constraints"));
+        Assert.DoesNotContain(log, message => message.Contains("Calculating initial constraints"));
         Assert.DoesNotContain(log, message => message.Contains("guess"));
     }
 

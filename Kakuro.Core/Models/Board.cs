@@ -139,7 +139,7 @@ public sealed class Board
             run.MarkDirty();
         }
         
-        log?.Invoke("Propagating precomputed constraints...");
+        log?.Invoke("Loading precomputed constraints...");
         string? error = PropagatePrecomputedConstraints(log);
         if (error != null)
         {
@@ -148,7 +148,7 @@ public sealed class Board
             return false;
         }
         
-        log?.Invoke("Propagating initial constraints...");
+        log?.Invoke("Calculating initial constraints...");
         error = PropagateConstraints(log);
         if (error != null)
         {
