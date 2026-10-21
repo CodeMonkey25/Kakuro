@@ -70,7 +70,7 @@ public static class RunCandidateTable
     private static readonly uint[,] ExclusionMasks = 
         ExclusionEntries
             .Aggregate(
-                new uint[10, 46],
+                new uint[Constants.MaxRunLength + 1, Constants.MaxRunTotal + 1],
                 (masks, entry) =>
                 {
                     masks[entry.Key.length, entry.Key.total] = entry.Value; 
@@ -85,7 +85,7 @@ public static class RunCandidateTable
     }
 
     public static uint GetRunExclusionMask(int length, int total) => 
-        length is >= 1 and <= 9 && total is >= 0 and <= 45 ? ExclusionMasks[length, total] : 0;
+        length is >= 1 and <= Constants.MaxRunLength && total is >= 0 and <= Constants.MaxRunTotal ? ExclusionMasks[length, total] : 0;
     
     public static ImmutableArray<int> GetRunInclusions(int length, int total) => 
         InclusionEntries.GetValueOrDefault((length, total), ImmutableArray<int>.Empty);

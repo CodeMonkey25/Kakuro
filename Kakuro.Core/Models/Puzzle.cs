@@ -99,9 +99,9 @@ public sealed record Puzzle
             }
 
             int total = int.Parse(parts[0]);
-            if (total <= 0 || total > 45)
+            if (total <= 0 || total > Constants.MaxRunTotal)
             {
-                throw new FormatException($"Invalid run total '{total}'. Total must be greater than 0 and less than or equal to 45.");
+                throw new FormatException($"Invalid run total '{total}'. Total must be greater than 0 and less than or equal to {Constants.MaxRunTotal}.");
             }
 
             int length = int.Parse(parts[1]);
@@ -110,9 +110,9 @@ public sealed record Puzzle
                 throw new FormatException($"Invalid run length '{length}'. Length must be greater than 0.");
             }
 
-            if (length > 9)
+            if (length > Constants.MaxRunLength)
             {
-                throw new FormatException($"Invalid run length '{length}'. Length must be less than or equal to 9.");
+                throw new FormatException($"Invalid run length '{length}'. Length must be less than or equal to {Constants.MaxRunLength}.");
             }
 
             int row = int.Parse(parts[2]);
