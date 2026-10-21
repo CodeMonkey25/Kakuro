@@ -99,16 +99,12 @@ public sealed record Puzzle
             }
 
             int total = int.Parse(parts[0]);
-            int length = int.Parse(parts[1]);
-            int row = int.Parse(parts[2]);
-            int column = int.Parse(parts[3]);
-            int orientationValue = int.Parse(parts[4]);
-
             if (total <= 0 || total > 45)
             {
                 throw new FormatException($"Invalid run total '{total}'. Total must be greater than 0 and less than or equal to 45.");
             }
 
+            int length = int.Parse(parts[1]);
             if (length <= 0)
             {
                 throw new FormatException($"Invalid run length '{length}'. Length must be greater than 0.");
@@ -119,11 +115,14 @@ public sealed record Puzzle
                 throw new FormatException($"Invalid run length '{length}'. Length must be less than or equal to 9.");
             }
 
+            int row = int.Parse(parts[2]);
+            int column = int.Parse(parts[3]);
             if (row < 0 || column < 0)
             {
                 throw new FormatException($"Invalid run coordinates '{row},{column}'. Row and column must be greater than or equal to 0.");
             }
 
+            int orientationValue = int.Parse(parts[4]);
             if (!Enum.IsDefined(typeof(RunOrientation), orientationValue))
             {
                 throw new FormatException($"Invalid RunOrientation value '{orientationValue}'.");
