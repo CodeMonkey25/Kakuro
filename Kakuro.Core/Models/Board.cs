@@ -48,7 +48,7 @@ public sealed class Board
             foreach (PlayableCell cell in runCells)
             {
                 cell.BindCells(runCells);
-                cell.BindRun(run);
+                cell.CandidatesChanged += run.MarkDirty;
             }
         }
         _playableCells = _cells.OfType<PlayableCell>().ToArray();

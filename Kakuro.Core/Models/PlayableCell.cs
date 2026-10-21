@@ -15,7 +15,8 @@ public sealed class PlayableCell(int row, int column) : ICell
     private readonly List<PlayableCell> _linkedCells = [];
     public IReadOnlyList<PlayableCell> LinkedCells => _linkedCells;
     
-    private readonly List<Board.Run> _linkedRuns = [];
+    // raised when candidates are removed or the cell is solved; not raised by SetState()
+    public event Action? CandidatesChanged;
 
     public (string? error, bool removed) RemoveCandidates(uint candidatesMask)
     {
@@ -54,10 +55,7 @@ public sealed class PlayableCell(int row, int column) : ICell
     {
         if (!removed) return (null, false);
 
-        foreach (Board.Run run in _linkedRuns)
-        {
-            run.MarkDirty();
-        }
+        CandidatesChanged?.Invoke();
 
         string? error = _candidates.Count switch
         {
@@ -93,11 +91,8 @@ public sealed class PlayableCell(int row, int column) : ICell
             if (error != null) return error;
         }
         
-        foreach (Board.Run run in _linkedRuns)
-        {
-            run.MarkDirty();
-        }
-        
+        CandidatesChanged?.Invoke();
+
         return null;
     }
     
@@ -111,12 +106,6 @@ public sealed class PlayableCell(int row, int column) : ICell
         }
     }
 
-    public void BindRun(Board.Run run)
-    {
-        if (_linkedRuns.Contains(run)) return;
-        _linkedRuns.Add(run);
-    }
-    
     public override string ToString() => Value == Constants.UnsolvedCell ? " " : Value.ToString();
     
     public ICell.IState GetState() => new PlayableCellState(Value, _candidates.GetState());
