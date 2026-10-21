@@ -378,6 +378,8 @@ public class BoardSolveTests
 
         Assert.True(board.Solve(log.Add));
 
+        Assert.Contains("   Run (2, 3): candidates reduced to [1, 2]...", log);
+        Assert.Contains("   Run (2, 17): candidates reduced to [8, 9]...", log);
         Assert.Single(log, message => message.Contains("Run (2, 3): candidates reduced to"));
         Assert.Single(log, message => message.Contains("Run (2, 17): candidates reduced to"));
         Assert.DoesNotContain(log, message => message.Contains("Run (2, 9): candidates reduced to") || message.Contains("Run (2, 11): candidates reduced to"));
@@ -448,6 +450,69 @@ public class BoardSolveTests
         Assert.True(board.Solve(log.Add));
 
         Assert.Contains(log, message => message.Contains("Cell (1, 1): guessing "));
+    }
+
+    [Fact]
+    public void Solve_WhenGuessing_LogsGuessCountOnSuccess()
+    {
+        Board board = new(Puzzle.Parse(TestPuzzles.GuessingBlock));
+        List<string> log = [];
+
+        Assert.True(board.Solve(log.Add));
+
+        Assert.Equal("Solved in 1 guesses, not including bad guesses.", log[^1]);
+    }
+
+    [Fact]
+    public void Solve_WhenPropagationSuffices_DoesNotLogGuessCount()
+    {
+        Board board = new(Puzzle.Parse(TestPuzzles.ForcedBlock));
+        List<string> log = [];
+
+        Assert.True(board.Solve(log.Add));
+
+        Assert.DoesNotContain(log, message => message.StartsWith("Solved in"));
+    }
+
+    [Fact]
+    public void Solve_WhenGuessingFails_DoesNotLogGuessCount()
+    {
+        Board board = new(Puzzle.Parse(TestPuzzles.UnsolvableAfterGuessing));
+        List<string> log = [];
+
+        Assert.False(board.Solve(log.Add));
+
+        Assert.DoesNotContain(log, message => message.StartsWith("Solved in"));
+    }
+
+    [Fact]
+    public void Solve_IndentsRunPassAndFirstLevelGuessMessagesByThreeSpaces()
+    {
+        Board board = new(Puzzle.Parse(TestPuzzles.GuessingBlock));
+        List<string> log = [];
+
+        Assert.True(board.Solve(log.Add));
+
+        Assert.Contains(log, message => message.StartsWith("   Pass 1..."));
+        Assert.Contains(log, message => message.StartsWith("   Cell (1, 1): guessing "));
+        Assert.DoesNotContain(log, message => message.Contains('\t'));
+    }
+
+    [Fact]
+    public void Solve_WhenGuessesAreNested_IndentsEachLevelByThreeMoreSpaces()
+    {
+        // the puzzle Kakuro.Console solves (20th line of puzzles.txt) needs nested guessing
+        string puzzleText = File.ReadLines(Path.Combine(AppContext.BaseDirectory, "TestData", "puzzles.txt"))
+            .Select(line => line.Trim())
+            .Where(line => line.Length > 0)
+            .ElementAt(19);
+        Board board = new(Puzzle.Parse(puzzleText));
+        List<string> log = [];
+
+        Assert.True(board.Solve(log.Add));
+
+        Assert.Contains(log, message => message.StartsWith("   Cell ") && message.Contains(": guessing "));
+        Assert.Contains(log, message => message.StartsWith("      Cell ") && !message.StartsWith("       ") && message.Contains(": guessing "));
     }
 
     [Fact]
