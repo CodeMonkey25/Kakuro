@@ -160,13 +160,15 @@ public sealed class Board
         if (IsSolved()) return true;
         
         log?.Invoke("Solving by guessing...");
-        bool solved = SolveByGuessing(log, 1);
+        int guesses = 0;
+        bool solved = SolveByGuessing(log, ref guesses);
         if (!solved)
         {
             SetState(initialState);
             return false;
         }
         
+        log?.Invoke($"Solved in {guesses} guesses, not including bad guesses.");
         return true;
     }
 
@@ -251,9 +253,9 @@ public sealed class Board
         return false;
     }
 
-    private bool SolveByGuessing(Action<string>? log, int depth)
+    private bool SolveByGuessing(Action<string>? log, ref int guesses)
     {
-        string indent = string.Concat(Enumerable.Repeat("   ", depth));
+        string indent = string.Concat(Enumerable.Repeat("   ", guesses + 1));
         
         // identify unsolved cell with lowest number of candidates
         PlayableCell? cell = GetCellWithLowestCandidates();
@@ -269,9 +271,11 @@ public sealed class Board
         {
             log?.Invoke($"{indent}Cell ({cell.Row}, {cell.Column}): guessing {candidate}...");
             string? guessError = cell.Solve(candidate);
-            if (guessError == null && PropagateConstraints() == null && SolveByGuessing(log, depth + 1)) return true;
+            guesses++;
+            if (guessError == null && PropagateConstraints() == null && SolveByGuessing(log, ref guesses)) return true;
             log?.Invoke($"{indent}Cell ({cell.Row}, {cell.Column}): guess {candidate} was bad, reverting...");
             SetState(state);
+            guesses--;
         }
         
         return false;
