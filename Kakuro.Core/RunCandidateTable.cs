@@ -67,14 +67,15 @@ public static class RunCandidateTable
             .ToFrozenDictionary();
     
     // [length, total] -> exclusion mask; array indexing keeps the solver's hot-path lookup cheap
-    private static readonly uint[,] ExclusionMasks = BuildExclusionMasks();
-
-    private static uint[,] BuildExclusionMasks()
-    {
-        uint[,] masks = new uint[10, 46];
-        foreach (((int length, int total), uint mask) in ExclusionEntries) masks[length, total] = mask;
-        return masks;
-    }
+    private static readonly uint[,] ExclusionMasks = 
+        ExclusionEntries
+            .Aggregate(
+                new uint[10, 46],
+                (masks, entry) =>
+                {
+                    masks[entry.Key.length, entry.Key.total] = entry.Value; 
+                    return masks;
+                });
 
     private static uint GetRunExclusionMask(ImmutableArray<int> candidates)
     {
