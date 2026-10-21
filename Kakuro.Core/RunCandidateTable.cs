@@ -60,33 +60,29 @@ public static class RunCandidateTable
 
             { (9, 45), Constants.AllCandidates },
         }.ToFrozenDictionary();
-    
-    internal static FrozenDictionary<(int length, int total), uint> ExclusionEntries { get; } =
+
+    internal static FrozenDictionary<(int length, int total), ImmutableArray<int>> ExclusionEntries { get; } =
         InclusionEntries
-            .Select(e => KeyValuePair.Create(e.Key, GetRunExclusionMask(e.Value)))
+            .Select(e => KeyValuePair.Create(e.Key, Constants.AllCandidates.Except(e.Value).ToImmutableArray()))
             .ToFrozenDictionary();
-    
+
     // [length, total] -> exclusion mask; array indexing keeps the solver's hot-path lookup cheap
-    private static readonly uint[,] ExclusionMasks = 
+    private static readonly uint[,] ExclusionMasks =
         ExclusionEntries
             .Aggregate(
                 new uint[Constants.MaxRunLength + 1, Constants.MaxRunTotal + 1],
                 (masks, entry) =>
                 {
-                    masks[entry.Key.length, entry.Key.total] = entry.Value; 
+                    masks[entry.Key.length, entry.Key.total] = entry.Value.Aggregate(0u, (mask, c) => mask | (1u << (c - 1)));
                     return masks;
                 });
 
-    private static uint GetRunExclusionMask(ImmutableArray<int> candidates)
-    {
-        uint keep = 0;
-        foreach (int c in candidates) keep |= 1u << (c - 1);
-        return ~keep & Constants.AllCandidatesMask;
-    }
-
-    public static uint GetRunExclusionMask(int length, int total) => 
+    public static uint GetRunExclusionMask(int length, int total) =>
         length is >= 1 and <= Constants.MaxRunLength && total is >= 0 and <= Constants.MaxRunTotal ? ExclusionMasks[length, total] : 0;
-    
-    public static ImmutableArray<int> GetRunInclusions(int length, int total) => 
+
+    public static ImmutableArray<int> GetRunInclusions(int length, int total) =>
         InclusionEntries.GetValueOrDefault((length, total), ImmutableArray<int>.Empty);
+
+    public static ImmutableArray<int> GetRunExclusions(int length, int total) =>
+        ExclusionEntries.GetValueOrDefault((length, total), ImmutableArray<int>.Empty);
 }

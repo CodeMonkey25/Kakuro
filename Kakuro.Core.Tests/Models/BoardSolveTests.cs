@@ -378,11 +378,11 @@ public class BoardSolveTests
 
         Assert.True(board.Solve(log.Add));
 
-        Assert.Contains($"{Constants.LogIndent}Run (2, 3): candidates reduced to [1, 2]...", log);
-        Assert.Contains($"{Constants.LogIndent}Run (2, 17): candidates reduced to [8, 9]...", log);
-        Assert.Single(log, message => message.Contains("Run (2, 3): candidates reduced to"));
-        Assert.Single(log, message => message.Contains("Run (2, 17): candidates reduced to"));
-        Assert.DoesNotContain(log, message => message.Contains("Run (2, 9): candidates reduced to") || message.Contains("Run (2, 11): candidates reduced to"));
+        Assert.Contains($"{Constants.LogIndent}Run (2, 3): candidates removed [3, 4, 5, 6, 7, 8, 9]...", log);
+        Assert.Contains($"{Constants.LogIndent}Run (2, 17): candidates removed [1, 2, 3, 4, 5, 6, 7]...", log);
+        Assert.Single(log, message => message.Contains("Run (2, 3): candidates removed"));
+        Assert.Single(log, message => message.Contains("Run (2, 17): candidates removed"));
+        Assert.DoesNotContain(log, message => message.Contains("Run (2, 9): candidates removed") || message.Contains("Run (2, 11): candidates removed"));
     }
 
     [Fact]

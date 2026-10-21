@@ -178,15 +178,15 @@ public sealed class Board
     {
         foreach (Run run in _runs)
         {
-            uint exclusions = RunCandidateTable.GetRunExclusionMask(run.Length, run.Total);
-            if (exclusions == 0) continue;
+            uint exclusionMask = RunCandidateTable.GetRunExclusionMask(run.Length, run.Total);
+            if (exclusionMask == 0) continue;
             
-            ImmutableArray<int> inclusions = RunCandidateTable.GetRunInclusions(run.Length, run.Total);
-            log?.Invoke($"{Constants.LogIndent}Run ({run.Length}, {run.Total}): candidates reduced to [{string.Join(", ", inclusions)}]...");
+            ImmutableArray<int> excludedDigits = RunCandidateTable.GetRunExclusions(run.Length, run.Total);
+            log?.Invoke($"{Constants.LogIndent}Run ({run.Length}, {run.Total}): candidates removed [{string.Join(", ", excludedDigits)}]...");
             
             foreach (PlayableCell cell in run.Cells)
             {
-                (string? error, _) = cell.RemoveCandidates(exclusions);
+                (string? error, _) = cell.RemoveCandidates(exclusionMask);
                 if (error != null) return error;
             }
         }
