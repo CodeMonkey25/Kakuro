@@ -447,7 +447,7 @@ public class BoardSolveTests
 
         Assert.True(board.Solve(log.Add));
 
-        Assert.Contains(log, message => message.StartsWith("\tCell (1, 1): guessing "));
+        Assert.Contains(log, message => message.Contains("Cell (1, 1): guessing "));
     }
 
     [Fact]
