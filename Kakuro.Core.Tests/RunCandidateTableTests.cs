@@ -4,15 +4,13 @@ namespace Kakuro.Core.Tests;
 
 public class RunCandidateTableTests
 {
-    private const uint AllMask = 0x1FF;
-
     private static uint MaskOf(IEnumerable<int> digits) => digits.Aggregate(0u, (mask, digit) => mask | 1u << (digit - 1));
 
     // every set of `length` distinct digits 1..9 that sums to `total`
     private static List<int[]> DigitSets(int length, int total)
     {
         List<int[]> sets = [];
-        for (int bits = 1; bits <= AllMask; bits++)
+        for (int bits = 1; bits <= Constants.AllCandidatesMask; bits++)
         {
             int[] digits = Enumerable.Range(1, 9).Where(d => (bits & 1 << (d - 1)) != 0).ToArray();
             if (digits.Length == length && digits.Sum() == total) sets.Add(digits);
@@ -61,7 +59,7 @@ public class RunCandidateTableTests
     {
         foreach (((int length, int total), ImmutableArray<int> digits) in RunCandidateTable.InclusionEntries)
         {
-            Assert.Equal(~MaskOf(digits) & AllMask, RunCandidateTable.ExclusionEntries[(length, total)]);
+            Assert.Equal(~MaskOf(digits) & Constants.AllCandidatesMask, RunCandidateTable.ExclusionEntries[(length, total)]);
         }
     }
 
@@ -70,7 +68,7 @@ public class RunCandidateTableTests
     {
         foreach (((int length, int total), ImmutableArray<int> digits) in RunCandidateTable.InclusionEntries)
         {
-            Assert.Equal(~MaskOf(digits) & AllMask, RunCandidateTable.GetRunExclusionMask(length, total));
+            Assert.Equal(~MaskOf(digits) & Constants.AllCandidatesMask, RunCandidateTable.GetRunExclusionMask(length, total));
         }
     }
 
@@ -140,7 +138,7 @@ public class RunCandidateTableTests
     {
         foreach ((int length, int total) in RunCandidateTable.InclusionEntries.Keys)
         {
-            Assert.Equal(~RunCandidateTable.GetRunExclusionMask(length, total) & AllMask, MaskOf(RunCandidateTable.GetRunInclusions(length, total)));
+            Assert.Equal(~RunCandidateTable.GetRunExclusionMask(length, total) & Constants.AllCandidatesMask, MaskOf(RunCandidateTable.GetRunInclusions(length, total)));
         }
     }
 

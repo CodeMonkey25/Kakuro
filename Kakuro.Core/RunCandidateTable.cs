@@ -81,7 +81,7 @@ public static class RunCandidateTable
     {
         uint keep = 0;
         foreach (int c in candidates) keep |= 1u << (c - 1);
-        return ~keep & 0x1FF;
+        return ~keep & Constants.AllCandidatesMask;
     }
 
     public static uint GetRunExclusionMask(int length, int total) => 

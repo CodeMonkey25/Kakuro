@@ -291,7 +291,7 @@ public abstract class CandidateCollectionContractTests
     {
         var collection = Create(2, 4, 6);
 
-        Assert.True(collection.RemoveAll(0x1FFu));
+        Assert.True(collection.RemoveAll(Constants.AllCandidatesMask));
 
         Assert.Equal(0, collection.Count);
     }
@@ -788,7 +788,7 @@ public abstract class CandidateCollectionContractTests
     public void GetMask_AllCandidates_ReturnsFullValidMask()
     {
         var collection = Create(1, 2, 3, 4, 5, 6, 7, 8, 9);
-        Assert.Equal(0x1FFu, collection.GetMask());
+        Assert.Equal(Constants.AllCandidatesMask, collection.GetMask());
     }
 
     [Fact]
