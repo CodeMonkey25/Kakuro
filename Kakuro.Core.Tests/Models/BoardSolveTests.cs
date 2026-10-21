@@ -486,7 +486,7 @@ public class BoardSolveTests
     }
 
     [Fact]
-    public void Solve_IndentsRunPassAndFirstLevelGuessMessagesByThreeSpaces()
+    public void Solve_IndentsRunPassAndFirstLevelGuessMessagesByLogIdent()
     {
         Board board = new(Puzzle.Parse(TestPuzzles.GuessingBlock));
         List<string> log = [];
