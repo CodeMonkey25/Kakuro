@@ -134,6 +134,15 @@ public sealed class Board
     public bool Solve(Action<string>? log = null)
     {
         State initialState = GetState();
+        
+        log?.Invoke("Loading precomputed constraints...");
+        string? error = LoadPrecomputedRunConstraints(log);
+        if (error != null)
+        {
+            log?.Invoke($"Constraints conflict detected: {error}");
+            SetState(initialState);
+            return false;
+        }
 
         // mark all runs as dirty
         foreach (Run run in _runs)
@@ -141,17 +150,8 @@ public sealed class Board
             run.MarkDirty();
         }
         
-        log?.Invoke("Loading precomputed constraints...");
-        string? error = PropagatePrecomputedConstraints(log);
-        if (error != null)
-        {
-            log?.Invoke($"Constraints conflict detected: {error}");
-            SetState(initialState);
-            return false;
-        }
-        
         log?.Invoke("Calculating initial constraints...");
-        error = PropagateConstraints(log);
+        error = CalculateRunConstraints(log);
         if (error != null)
         {
             log?.Invoke($"Constraints conflict detected: {error}");
@@ -174,7 +174,7 @@ public sealed class Board
         return true;
     }
 
-    private string? PropagatePrecomputedConstraints(Action<string>? log)
+    private string? LoadPrecomputedRunConstraints(Action<string>? log)
     {
         foreach (Run run in _runs)
         {
@@ -194,7 +194,7 @@ public sealed class Board
     }
 
     // repeats UpdateCellConstraints() until nothing changes; returns null on success or the first error
-    private string? PropagateConstraints(Action<string>? log = null)
+    private string? CalculateRunConstraints(Action<string>? log = null)
     {
         int pass = 0;
         bool changed;
@@ -214,11 +214,13 @@ public sealed class Board
         foreach (Run run in _runs)
         {
             if (!run.IsDirty) continue;
+            
             _runSolveState.Load(run);
             GetExcludedCandidates(0, 0, _runSolveState);
             (string? error, bool runWasUpdated) = _runSolveState.WriteExclusionsToRun();
             if (error != null) return (error, false);
             if (runWasUpdated) boardWasUpdated = true;
+            
             run.ClearDirty();
         }
 
@@ -277,7 +279,7 @@ public sealed class Board
             log?.Invoke($"{indent}Cell ({cell.Row}, {cell.Column}): guessing {candidate}...");
             string? guessError = cell.Solve(candidate);
             guesses++;
-            if (guessError == null && PropagateConstraints() == null && SolveByGuessing(log, ref guesses)) return true;
+            if (guessError == null && CalculateRunConstraints() == null && SolveByGuessing(log, ref guesses)) return true;
             log?.Invoke($"{indent}Cell ({cell.Row}, {cell.Column}): guess {candidate} was bad, reverting...");
             SetState(state);
             guesses--;
