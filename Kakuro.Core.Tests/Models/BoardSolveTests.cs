@@ -378,8 +378,8 @@ public class BoardSolveTests
 
         Assert.True(board.Solve(log.Add));
 
-        Assert.Contains("   Run (2, 3): candidates reduced to [1, 2]...", log);
-        Assert.Contains("   Run (2, 17): candidates reduced to [8, 9]...", log);
+        Assert.Contains($"{Constants.LogIndent}Run (2, 3): candidates reduced to [1, 2]...", log);
+        Assert.Contains($"{Constants.LogIndent}Run (2, 17): candidates reduced to [8, 9]...", log);
         Assert.Single(log, message => message.Contains("Run (2, 3): candidates reduced to"));
         Assert.Single(log, message => message.Contains("Run (2, 17): candidates reduced to"));
         Assert.DoesNotContain(log, message => message.Contains("Run (2, 9): candidates reduced to") || message.Contains("Run (2, 11): candidates reduced to"));
@@ -493,13 +493,12 @@ public class BoardSolveTests
 
         Assert.True(board.Solve(log.Add));
 
-        Assert.Contains(log, message => message.StartsWith("   Pass 1..."));
-        Assert.Contains(log, message => message.StartsWith("   Cell (1, 1): guessing "));
-        Assert.DoesNotContain(log, message => message.Contains('\t'));
+        Assert.Contains(log, message => message.StartsWith($"{Constants.LogIndent}Pass 1..."));
+        Assert.Contains(log, message => message.StartsWith($"{Constants.LogIndent}Cell (1, 1): guessing "));
     }
 
     [Fact]
-    public void Solve_WhenGuessesAreNested_IndentsEachLevelByThreeMoreSpaces()
+    public void Solve_WhenGuessesAreNested_IndentsEachLevelByOneMoreLogIndent()
     {
         // the puzzle Kakuro.Console solves (20th line of puzzles.txt) needs nested guessing
         string puzzleText = File.ReadLines(Path.Combine(AppContext.BaseDirectory, "TestData", "puzzles.txt"))
@@ -511,8 +510,12 @@ public class BoardSolveTests
 
         Assert.True(board.Solve(log.Add));
 
-        Assert.Contains(log, message => message.StartsWith("   Cell ") && message.Contains(": guessing "));
-        Assert.Contains(log, message => message.StartsWith("      Cell ") && !message.StartsWith("       ") && message.Contains(": guessing "));
+        string level1 = Constants.LogIndent;
+        string level2 = level1 + Constants.LogIndent;
+        string level3 = level2 + Constants.LogIndent;
+
+        Assert.Contains(log, message => message.StartsWith($"{level1}Cell ") && message.Contains(": guessing "));
+        Assert.Contains(log, message => message.StartsWith($"{level2}Cell ") && !message.StartsWith(level3) && message.Contains(": guessing "));
     }
 
     [Fact]

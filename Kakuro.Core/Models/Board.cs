@@ -182,7 +182,7 @@ public sealed class Board
             if (exclusions == 0) continue;
             
             ImmutableArray<int> inclusions = RunCandidateTable.GetRunInclusions(run.Length, run.Total);
-            log?.Invoke($"   Run ({run.Length}, {run.Total}): candidates reduced to [{string.Join(", ", inclusions)}]...");
+            log?.Invoke($"{Constants.LogIndent}Run ({run.Length}, {run.Total}): candidates reduced to [{string.Join(", ", inclusions)}]...");
             
             foreach (PlayableCell cell in run.Cells)
             {
@@ -200,7 +200,7 @@ public sealed class Board
         bool changed;
         do
         {
-            log?.Invoke($"   Pass {++pass}...");
+            log?.Invoke($"{Constants.LogIndent}Pass {++pass}...");
             (string? error, changed) = UpdateCellConstraints();
             if (error != null) return error;
         } while (changed);
@@ -260,7 +260,7 @@ public sealed class Board
 
     private bool SolveByGuessing(Action<string>? log, ref int guesses)
     {
-        string indent = string.Concat(Enumerable.Repeat("   ", guesses + 1));
+        string indent = string.Concat(Enumerable.Repeat(Constants.LogIndent, guesses + 1));
         
         // identify unsolved cell with lowest number of candidates
         PlayableCell? cell = GetCellWithLowestCandidates();
