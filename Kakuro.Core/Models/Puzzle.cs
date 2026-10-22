@@ -33,10 +33,12 @@ public sealed record Puzzle
     {
         string[] parts = puzzle.Split('|');
         if (parts.Length < 3) throw new FormatException("Invalid puzzle format");
+
         string source = parts[0];
         string number = parts[1];
         string difficulty = parts[2];
         ImmutableArray<Run> runs = parts[3..].Select(Run.Parse).ToImmutableArray();
+
         return new Puzzle(source, number, difficulty, runs);
     }
     
@@ -60,7 +62,6 @@ public sealed record Puzzle
         {
             hash.Add(run);
         }
-
         return hash.ToHashCode();
     }
 
