@@ -64,11 +64,8 @@ public sealed class CandidateCollectionList : CandidateCollection
     {
         if (state is not CandidateCollectionListState listState)
             throw new ArgumentException("Invalid state type", nameof(state));
-        _candidates.Clear();
-        foreach (int candidate in listState.Candidates)
-        {
-            _candidates.Add(candidate);
-        }
+        Clear();
+        AddAll(listState.Candidates);
     }
     
     public override void CopyTo(Span<int> destination) => _candidates.CopyTo(destination);
