@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Numerics;
 
 namespace Kakuro.Core.Models;
 
