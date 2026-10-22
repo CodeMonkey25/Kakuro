@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Kakuro.Core.Interfaces;
 
 namespace Kakuro.Core.Models;
@@ -12,7 +13,7 @@ public sealed class PlayableCell(int row, int column) : ICell
     private readonly CandidateCollection _candidates = CandidateCollection.Build(Constants.AllCandidates);
     public int CandidateCount => _candidates.Count;
     
-    private readonly List<PlayableCell> _linkedCells = [];
+    private ImmutableArray<PlayableCell> _linkedCells = [];
     public IReadOnlyList<PlayableCell> LinkedCells => _linkedCells;
     
     // raised when candidates are removed or the cell is solved; not raised by SetState()
@@ -98,12 +99,14 @@ public sealed class PlayableCell(int row, int column) : ICell
     
     public void BindCells(IEnumerable<PlayableCell> linkedCells)
     {
+        List<PlayableCell> list = new(_linkedCells);
         foreach (PlayableCell linkedCell in linkedCells)
         {
             if (linkedCell == this) continue;
-            if (_linkedCells.Contains(linkedCell)) continue;
-            _linkedCells.Add(linkedCell);
+            if (list.Contains(linkedCell)) continue;
+            list.Add(linkedCell);
         }
+        _linkedCells = list.ToImmutableArray();
     }
 
     public override string ToString() => Value == Constants.UnsolvedCell ? " " : Value.ToString();
