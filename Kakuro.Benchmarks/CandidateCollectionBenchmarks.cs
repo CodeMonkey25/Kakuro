@@ -1,4 +1,5 @@
 using BenchmarkDotNet.Attributes;
+using Kakuro.Core;
 using Kakuro.Core.Models;
 
 namespace Kakuro.Benchmarks;
@@ -6,7 +7,7 @@ namespace Kakuro.Benchmarks;
 [MemoryDiagnoser]
 public class CandidateCollectionBenchmarks
 {
-    private static readonly int[] Source = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    private static readonly int[] Source = Constants.AllCandidates.ToArray();
 
     private CandidateCollection _list = null!;
     private CandidateCollection _mask = null!;
@@ -14,7 +15,7 @@ public class CandidateCollectionBenchmarks
     private CandidateCollection.ICandidateCollectionState _listState = null!;
     private CandidateCollection.ICandidateCollectionState _maskState = null!;
     private CandidateCollection.ICandidateCollectionState _arrayState = null!;
-    private readonly int[] _buffer = new int[9];
+    private readonly int[] _buffer = new int[Constants.MaxRunLength];
 
     [GlobalSetup]
     public void Setup()
@@ -59,7 +60,7 @@ public class CandidateCollectionBenchmarks
     public int Contains_List()
     {
         int hits = 0;
-        for (int i = 1; i <= 9; i++) if (_list.Contains(i)) hits++;
+        for (int i = Constants.MinCandidate; i <= Constants.MaxCandidate; i++) if (_list.Contains(i)) hits++;
         return hits;
     }
 
@@ -67,7 +68,7 @@ public class CandidateCollectionBenchmarks
     public int Contains_Mask()
     {
         int hits = 0;
-        for (int i = 1; i <= 9; i++) if (_mask.Contains(i)) hits++;
+        for (int i = Constants.MinCandidate; i <= Constants.MaxCandidate; i++) if (_mask.Contains(i)) hits++;
         return hits;
     }
 
@@ -75,7 +76,7 @@ public class CandidateCollectionBenchmarks
     public int Contains_Array()
     {
         int hits = 0;
-        for (int i = 1; i <= 9; i++) if (_array.Contains(i)) hits++;
+        for (int i = Constants.MinCandidate; i <= Constants.MaxCandidate; i++) if (_array.Contains(i)) hits++;
         return hits;
     }
 
@@ -92,7 +93,7 @@ public class CandidateCollectionBenchmarks
     public int Get_List()
     {
         int sum = 0;
-        for (int i = 0; i < 9; i++) sum += _list.Get(i);
+        for (int i = 0; i < Constants.MaxRunLength; i++) sum += _list.Get(i);
         return sum;
     }
 
@@ -100,7 +101,7 @@ public class CandidateCollectionBenchmarks
     public int Get_Mask()
     {
         int sum = 0;
-        for (int i = 0; i < 9; i++) sum += _mask.Get(i);
+        for (int i = 0; i < Constants.MaxRunLength; i++) sum += _mask.Get(i);
         return sum;
     }
 
@@ -108,29 +109,29 @@ public class CandidateCollectionBenchmarks
     public int Get_Array()
     {
         int sum = 0;
-        for (int i = 0; i < 9; i++) sum += _array.Get(i);
+        for (int i = 0; i < Constants.MaxRunLength; i++) sum += _array.Get(i);
         return sum;
     }
 
     [Benchmark]
     public void RemoveAdd_List()
     {
-        for (int i = 1; i <= 9; i++) _list.Remove(i);
-        for (int i = 1; i <= 9; i++) _list.Add(i);
+        for (int i = Constants.MinCandidate; i <= Constants.MaxCandidate; i++) _list.Remove(i);
+        for (int i = Constants.MinCandidate; i <= Constants.MaxCandidate; i++) _list.Add(i);
     }
 
     [Benchmark]
     public void RemoveAdd_Mask()
     {
-        for (int i = 1; i <= 9; i++) _mask.Remove(i);
-        for (int i = 1; i <= 9; i++) _mask.Add(i);
+        for (int i = Constants.MinCandidate; i <= Constants.MaxCandidate; i++) _mask.Remove(i);
+        for (int i = Constants.MinCandidate; i <= Constants.MaxCandidate; i++) _mask.Add(i);
     }
 
     [Benchmark]
     public void RemoveAdd_Array()
     {
-        for (int i = 1; i <= 9; i++) _array.Remove(i);
-        for (int i = 1; i <= 9; i++) _array.Add(i);
+        for (int i = Constants.MinCandidate; i <= Constants.MaxCandidate; i++) _array.Remove(i);
+        for (int i = Constants.MinCandidate; i <= Constants.MaxCandidate; i++) _array.Add(i);
     }
 
     [Benchmark]

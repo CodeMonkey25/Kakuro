@@ -49,7 +49,7 @@ public sealed class CandidateCollectionList : CandidateCollection
         uint mask = 0;
         foreach (int candidate in _candidates)
         {
-            mask |= 1u << (candidate - 1);
+            mask |= 1u << (candidate - Constants.MinCandidate);
         }
         return mask;
     }

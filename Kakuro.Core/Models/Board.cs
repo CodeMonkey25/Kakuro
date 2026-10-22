@@ -444,9 +444,9 @@ public sealed class Board
         
         public void ClearExclusions() => _excluded = 0;
 
-        public void AddExclusion(int number) => _excluded |= 1u << (number - 1);
+        public void AddExclusion(int number) => _excluded |= 1u << (number - Constants.MinCandidate);
 
-        public void RemoveExclusion(int number) => _excluded &= ~(1u << (number - 1));
+        public void RemoveExclusion(int number) => _excluded &= ~(1u << (number - Constants.MinCandidate));
         
         public uint GetExclusionsMask() => _excluded;
 
@@ -463,7 +463,7 @@ public sealed class Board
             {
                 if (_mask == 0) return false;
                 int bit = BitOperations.TrailingZeroCount(_mask);
-                Current = bit + 1;
+                Current = bit + Constants.MinCandidate;
                 _mask &= _mask - 1;
                 return true;
             }

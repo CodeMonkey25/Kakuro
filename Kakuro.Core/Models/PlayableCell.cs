@@ -21,7 +21,7 @@ public sealed class PlayableCell(int row, int column) : ICell
     {
         if (IsSolved)
         {
-            bool removesValue = (candidatesMask & (1u << (Value - 1))) != 0;
+            bool removesValue = (candidatesMask & (1u << (Value - Constants.MinCandidate))) != 0;
             return (removesValue ? NoCandidatesError() : null, false);
         }
 

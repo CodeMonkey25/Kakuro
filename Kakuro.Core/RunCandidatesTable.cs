@@ -75,7 +75,7 @@ public static class RunCandidatesTable
                 {
                     int length = entry.Key.length - Constants.MinRunLength;
                     int total = entry.Key.total - Constants.MinRunTotal;
-                    masks[length, total] = entry.Value.Aggregate(0u, (mask, c) => mask | (1u << (c - 1)));
+                    masks[length, total] = entry.Value.Aggregate(0u, (mask, c) => mask | (1u << (c - Constants.MinCandidate)));
                     return masks;
                 });
 

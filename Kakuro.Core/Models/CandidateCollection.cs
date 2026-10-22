@@ -31,7 +31,7 @@ public abstract class CandidateCollection
         bool removed = false;
         for (uint mask = candidatesMask; mask != 0; mask &= mask - 1)
         {
-            int candidate = BitOperations.TrailingZeroCount(mask) + 1;
+            int candidate = BitOperations.TrailingZeroCount(mask) + Constants.MinCandidate;
             removed |= Remove(candidate);
         }
         return removed;
