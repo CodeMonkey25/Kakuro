@@ -9,6 +9,8 @@ public static class Constants
     public const int UnsolvedCell = MinCandidate - 1;
     public const int MinRunLength = 1;
     public const int MaxRunLength = MaxCandidate - MinCandidate + 1;
+    public const int MinRunTotal = MinCandidate;
+    public const int MaxRunTotal = (MinCandidate + MaxCandidate) * MaxRunLength / 2;
     public const string LogIndent = "   ";
 
     public static readonly ImmutableArray<int> AllCandidates =
@@ -26,5 +28,4 @@ public static class Constants
             .ToImmutableArray();
 
     public static readonly uint AllCandidatesMask = AllCandidates.Aggregate(0u, (acc, x) => acc | (1u << (x - MinCandidate)));
-    public static readonly int MaxRunTotal = AllCandidates.Sum();
 }

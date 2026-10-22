@@ -100,9 +100,9 @@ public sealed record Puzzle
             }
 
             int total = int.Parse(parts[0]);
-            if (total <= 0 || total > Constants.MaxRunTotal)
+            if (total < Constants.MinRunTotal || total > Constants.MaxRunTotal)
             {
-                throw new FormatException($"Invalid run total '{total}'. Total must be greater than 0 and less than or equal to {Constants.MaxRunTotal}.");
+                throw new FormatException($"Invalid run total '{total}'. Total must be greater than or equal to {Constants.MinRunTotal} and less than or equal to {Constants.MaxRunTotal}.");
             }
 
             int length = int.Parse(parts[1]);
