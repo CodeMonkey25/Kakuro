@@ -420,8 +420,9 @@ public sealed class Board
             for (int i = 0; i < Length; i++)
             {
                 PlayableCell cell = _run.Cells[i];
+                RunCellCandidates runCellCandidates = _cellCandidatesBuffer[i];
 
-                (string? error, bool cellWasUpdated) = cell.RemoveCandidates(_cellCandidatesBuffer[i].GetExclusionsMask());
+                (string? error, bool cellWasUpdated) = cell.RemoveCandidates(runCellCandidates.GetExclusionsMask());
                 if (error != null) return (error, false);
                 if (cellWasUpdated) runWasUpdated = true;
             }
