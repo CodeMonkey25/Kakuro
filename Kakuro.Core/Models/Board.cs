@@ -254,7 +254,7 @@ public sealed class Board
             if (runSolveState.IsNumberUsed(current)) continue;
 
             int newRunningTotal = runningTotal + current;
-            if (newRunningTotal > runSolveState.Total) continue;
+            if (newRunningTotal > runSolveState.Total) return false;
             
             int remainingSumNeeded = runSolveState.Total - newRunningTotal;
             if (remainingSumNeeded < Constants.MinPossibleSum[remainingCellsAfterThis]) continue;
