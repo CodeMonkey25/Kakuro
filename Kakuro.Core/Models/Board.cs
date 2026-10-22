@@ -26,33 +26,35 @@ public sealed class Board
         _cells = new ICell[_puzzle.Rows * _puzzle.Columns];
         Array.Fill(_cells, EmptyCell.Instance);
         
-        // instantiate playable cells from puzzle runs
-        // instantiate Board Runs
-        // bind run cells together
-        _runs = new Run[_puzzle.Runs.Length];
-        int runsIndex = 0;
+        List<Run> runs = new(_puzzle.Runs.Length);
         foreach (Puzzle.Run puzzleRun in _puzzle.Runs)
         {
-            PlayableCell[] runCells = new PlayableCell[puzzleRun.Length];
-            int runCellsIndex = 0;
+            // instantiate playable cells from puzzle runs
+            List<PlayableCell> runCells = new(puzzleRun.Length);
             foreach ((int row, int column) in puzzleRun.GetCellCoordinates())
             {
-                int index = row * _puzzle.Columns + column;
-                if (_cells[index] is not PlayableCell playableCell)
+                int cellsIndex = row * _puzzle.Columns + column;
+                if (_cells[cellsIndex] is not PlayableCell playableCell)
                 {
                     playableCell = new PlayableCell(row, column);
-                    _cells[index] = playableCell;
+                    _cells[cellsIndex] = playableCell;
                 }
-                runCells[runCellsIndex++] = playableCell;
+                runCells.Add(playableCell);
             }
+            
+            // instantiate Board Runs
             Run run = new(puzzleRun, runCells.ToImmutableArray());
-            _runs[runsIndex++] = run;
+            runs.Add(run);
+            
+            // bind run cells together
             foreach (PlayableCell cell in runCells)
             {
                 cell.BindCells(runCells);
                 cell.CandidatesChanged += run.MarkDirty;
             }
         }
+        
+        _runs = runs.ToArray();
         _playableCells = _cells.OfType<PlayableCell>().ToArray();
     }
     
