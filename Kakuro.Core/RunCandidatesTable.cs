@@ -77,8 +77,12 @@ public static class RunCandidatesTable
                     return masks;
                 });
 
-    public static uint GetRunExclusionMask(int length, int total) =>
-        length is >= 1 and <= Constants.MaxRunLength && total is >= 0 and <= Constants.MaxRunTotal ? ExclusionMasks[length, total] : 0;
+    public static uint GetRunExclusionMask(int length, int total)
+    {
+        if (length < Constants.MinRunLength || length > Constants.MaxRunLength) return 0;
+        if (total < 0 || total > Constants.MaxRunTotal) return 0;
+        return ExclusionMasks[length, total];
+    }
 
     public static ImmutableArray<int> GetRunInclusions(int length, int total) =>
         InclusionEntries.GetValueOrDefault((length, total), ImmutableArray<int>.Empty);

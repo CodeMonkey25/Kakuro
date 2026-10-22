@@ -6,7 +6,7 @@ public sealed class PlayableCell(int row, int column) : ICell
 {
     public int Row { get; } = row;
     public int Column { get; } = column;
-    public int Value { get; private set; }
+    public int Value { get; private set; } = Constants.UnsolvedCell;
     public bool IsSolved => Value != Constants.UnsolvedCell;
     
     private readonly CandidateCollection _candidates = CandidateCollection.Build(Constants.AllCandidates);

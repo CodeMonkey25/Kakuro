@@ -4,15 +4,27 @@ namespace Kakuro.Core;
 
 public static class Constants
 {
-    public const int UnsolvedCell = 0;
     public const int MinCandidate = 1;
     public const int MaxCandidate = 9;
-    public const uint AllCandidatesMask = (1u << MaxCandidate) - 1;
-    public const int MaxRunLength = MaxCandidate;
-    public const int MaxRunTotal = 45;
+    public const int UnsolvedCell = MinCandidate - 1;
+    public const int MinRunLength = 1;
+    public const int MaxRunLength = MaxCandidate - MinCandidate + 1;
     public const string LogIndent = "   ";
 
-    public static ImmutableArray<int> AllCandidates { get; } = Enumerable.Range(MinCandidate, MaxCandidate).ToImmutableArray();
-    public static ImmutableArray<int> MinPossibleSum { get; } = [0, 1, 3, 6, 10, 15, 21, 28, 36, 45];
-    public static ImmutableArray<int> MaxPossibleSum { get; } = [0, 9, 17, 24, 30, 35, 39, 42, 44, 45];
+    public static readonly ImmutableArray<int> AllCandidates =
+        Enumerable.Range(MinCandidate, MaxRunLength)
+            .ToImmutableArray();
+
+    public static readonly ImmutableArray<int> MinPossibleSum =
+        Enumerable.Range(0, AllCandidates.Length + 1)
+            .Select(i => AllCandidates.Take(i).Sum())
+            .ToImmutableArray();
+
+    public static readonly ImmutableArray<int> MaxPossibleSum =
+        Enumerable.Range(0, AllCandidates.Length + 1)
+            .Select(i => AllCandidates.TakeLast(i).Sum())
+            .ToImmutableArray();
+
+    public static readonly uint AllCandidatesMask = AllCandidates.Aggregate(0u, (acc, x) => acc | (1u << (x - MinCandidate)));
+    public static readonly int MaxRunTotal = AllCandidates.Sum();
 }
