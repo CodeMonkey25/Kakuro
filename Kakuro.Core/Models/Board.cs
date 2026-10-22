@@ -217,6 +217,11 @@ public sealed class Board
         foreach (Run run in _runs)
         {
             if (!run.IsDirty) continue;
+            if (run.IsSolved)
+            {
+                run.ClearDirty();
+                continue;
+            }
             
             _runSolveState.Load(run);
             GetExcludedCandidates(0, 0, _runSolveState);
@@ -315,6 +320,19 @@ public sealed class Board
         public int Length => PuzzleRun.Length;
         public int Total => PuzzleRun.Total;
         public bool IsDirty { get; private set; }
+        public bool IsSolved
+        {
+            get
+            {
+                int total = 0;
+                foreach (PlayableCell cell in Cells)
+                {
+                    if (!cell.IsSolved) return false;
+                    total += cell.Value;
+                }
+                return total == Total;
+            }
+        }
 
         public Run(Puzzle.Run puzzleRun, ImmutableArray<PlayableCell> cells)
         {

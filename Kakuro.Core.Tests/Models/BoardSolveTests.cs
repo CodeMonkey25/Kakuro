@@ -164,6 +164,20 @@ public class BoardSolveTests
     }
 
     [Fact]
+    public void Solve_WhenARunIsFullySolvedWithTheWrongSum_FailsAndRestoresState()
+    {
+        // the first row (10) holds 1 and 2; propagation fills in 9 and 8 below them, so every run ends up fully solved
+        // and the rows that don't total 10 must still be rejected rather than skipped for being solved
+        Board board = new(Puzzle.Parse(TestPuzzles.GuessingBlock));
+        Board.State invalid = TestPuzzles.WithPlayableValues(board, 1, 2, 0, 0);
+        board.SetState(invalid);
+
+        Assert.False(board.Solve());
+
+        Assert.Equal(invalid, board.GetState());
+    }
+
+    [Fact]
     public void Solve_WhenOnlyOneGuessIsNeeded_PropagationFinishesTheBoard()
     {
         // a guess marks the runs it touches as changed, so propagation completes the board without a second guess
