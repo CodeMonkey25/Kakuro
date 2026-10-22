@@ -9,13 +9,11 @@ public sealed class PlayableCell(int row, int column) : ICell
     public int Column { get; } = column;
     public int Value { get; private set; } = Constants.UnsolvedCell;
     public bool IsSolved => Value != Constants.UnsolvedCell;
-    
+    public IReadOnlyList<PlayableCell> LinkedCells { get; private set; } = ImmutableArray<PlayableCell>.Empty;
+
     private readonly CandidateCollection _candidates = CandidateCollection.Build(Constants.AllCandidates);
     public int CandidateCount => _candidates.Count;
-    
-    private ImmutableArray<PlayableCell> _linkedCells = [];
-    public IReadOnlyList<PlayableCell> LinkedCells => _linkedCells;
-    
+
     // raised when candidates are removed or the cell is solved; not raised by SetState()
     public event Action? CandidatesChanged;
 
@@ -86,7 +84,7 @@ public sealed class PlayableCell(int row, int column) : ICell
         _candidates.Clear();
         _candidates.Add(value);
         
-        foreach (PlayableCell linkedCell in _linkedCells)
+        foreach (PlayableCell linkedCell in LinkedCells)
         {
             (string? error, _) = linkedCell.RemoveCandidate(value);
             if (error != null) return error;
@@ -99,14 +97,14 @@ public sealed class PlayableCell(int row, int column) : ICell
     
     public void BindCells(IEnumerable<PlayableCell> linkedCells)
     {
-        List<PlayableCell> list = new(_linkedCells);
+        List<PlayableCell> list = new(LinkedCells);
         foreach (PlayableCell linkedCell in linkedCells)
         {
             if (linkedCell == this) continue;
             if (list.Contains(linkedCell)) continue;
             list.Add(linkedCell);
         }
-        _linkedCells = list.ToImmutableArray();
+        LinkedCells = list.ToImmutableArray();
     }
 
     public override string ToString() => Value == Constants.UnsolvedCell ? " " : Value.ToString();
