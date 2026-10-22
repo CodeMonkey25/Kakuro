@@ -8,8 +8,6 @@ namespace Kakuro.Core.Models;
 
 public sealed class Board
 {
-    private const int MinGuessCandidates = 2; // an unsolved cell always has at least two candidates
-    
     private readonly Puzzle _puzzle;
     private readonly ICell[] _cells;
     private readonly PlayableCell[] _playableCells;
@@ -303,7 +301,7 @@ public sealed class Board
         foreach (PlayableCell playableCell in _playableCells)
         {
             if (playableCell.IsSolved) continue;
-            if (playableCell.CandidateCount == MinGuessCandidates) return playableCell; // can't do better than that, bail early
+            if (playableCell.CandidateCount == 2) return playableCell; // can't do better than that, bail early
             if (result == null || playableCell.CandidateCount < result.CandidateCount)
             {
                 result = playableCell;
