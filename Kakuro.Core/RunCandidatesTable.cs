@@ -81,8 +81,8 @@ public static class RunCandidatesTable
 
     public static uint GetRunExclusionMask(int length, int total)
     {
-        if (length < Constants.MinRunLength || length > Constants.MaxRunLength) return 0;
-        if (total < Constants.MinRunTotal || total > Constants.MaxRunTotal) return 0;
+        if (length is < Constants.MinRunLength or > Constants.MaxRunLength) return 0;
+        if (total is < Constants.MinRunTotal or > Constants.MaxRunTotal) return 0;
         return ExclusionMasks[length - Constants.MinRunLength, total - Constants.MinRunTotal];
     }
 
