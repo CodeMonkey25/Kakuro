@@ -163,7 +163,8 @@ public sealed class Board
         
         log?.Invoke("Solving by guessing...");
         int guesses = 0;
-        bool solved = SolveByGuessing(log, ref guesses);
+        int badGuesses = 0;
+        bool solved = SolveByGuessing(log, ref guesses, ref badGuesses);
         if (!solved)
         {
             log?.Invoke("Unable to guess a solution");
@@ -171,7 +172,7 @@ public sealed class Board
             return false;
         }
         
-        log?.Invoke($"Solved in {guesses} guesses, not including bad guesses.");
+        log?.Invoke($"Solved in {guesses} guesses, not including {badGuesses} bad guesses.");
         return true;
     }
 
@@ -266,7 +267,7 @@ public sealed class Board
         return false;
     }
 
-    private bool SolveByGuessing(Action<string>? log, ref int guesses)
+    private bool SolveByGuessing(Action<string>? log, ref int guesses, ref int badGuesses)
     {
         string indent = string.Concat(Enumerable.Repeat(Constants.LogIndent, guesses + 1));
         
@@ -285,10 +286,11 @@ public sealed class Board
             log?.Invoke($"{indent}Cell ({cell.Row}, {cell.Column}): guessing {candidate}...");
             string? guessError = cell.Solve(candidate);
             guesses++;
-            if (guessError == null && CalculateRunConstraints() == null && SolveByGuessing(log, ref guesses)) return true;
+            if (guessError == null && CalculateRunConstraints() == null && SolveByGuessing(log, ref guesses, ref badGuesses)) return true;
             log?.Invoke($"{indent}Cell ({cell.Row}, {cell.Column}): guess {candidate} was bad, reverting...");
             SetState(state);
             guesses--;
+            badGuesses++;
         }
         
         return false;

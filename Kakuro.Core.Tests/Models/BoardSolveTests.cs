@@ -474,7 +474,7 @@ public class BoardSolveTests
 
         Assert.True(board.Solve(log.Add));
 
-        Assert.Equal("Solved in 1 guesses, not including bad guesses.", log[^1]);
+        Assert.Equal("Solved in 1 guesses, not including 0 bad guesses.", log[^1]);
     }
 
     [Fact]
