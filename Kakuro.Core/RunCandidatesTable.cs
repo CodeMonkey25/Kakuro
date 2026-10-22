@@ -3,7 +3,7 @@ using System.Collections.Immutable;
 
 namespace Kakuro.Core;
 
-public static class RunCandidateTable
+public static class RunCandidatesTable
 {
     internal static FrozenDictionary<(int length, int total), ImmutableArray<int>> InclusionEntries { get; } =
         new Dictionary<(int length, int total), ImmutableArray<int>>()
