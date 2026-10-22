@@ -3,7 +3,7 @@ using System.Numerics;
 namespace Kakuro.Core.Models;
 
 /// <summary>
-/// Bitmask-backed candidate set for values 1..9. Value <c>v</c> is stored in bit <c>v - 1</c>.
+/// Bitmask-backed candidate set for values <c>MinCandidate</c>..<c>MaxCandidate</c>. Value <c>v</c> is stored in bit <c>v - MinCandidate</c>.
 /// Candidates are unique and enumerate in ascending order.
 /// </summary>
 public sealed class CandidateCollectionMask : CandidateCollection
@@ -19,7 +19,7 @@ public sealed class CandidateCollectionMask : CandidateCollection
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(candidate, Constants.MinCandidate);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(candidate, Constants.MaxCandidate);
-        return 1u << (candidate - 1);
+        return 1u << (candidate - Constants.MinCandidate);
     }
 
     public override int Count => BitOperations.PopCount(_candidateMask);
@@ -41,7 +41,7 @@ public sealed class CandidateCollectionMask : CandidateCollection
     {
         if (candidate is < Constants.MinCandidate or > Constants.MaxCandidate) return false;
 
-        uint bit = 1u << (candidate - 1);
+        uint bit = 1u << (candidate - Constants.MinCandidate);
         bool removed = (_candidateMask & bit) != 0;
         _candidateMask &= ~bit;
         return removed;
@@ -57,13 +57,13 @@ public sealed class CandidateCollectionMask : CandidateCollection
         {
             mask &= mask - 1;
         }
-        return BitOperations.TrailingZeroCount(mask) + 1;
+        return BitOperations.TrailingZeroCount(mask) + Constants.MinCandidate;
     }
     
     public override uint GetMask() => _candidateMask;
 
     public override bool Contains(int candidate) =>
-        candidate is >= Constants.MinCandidate and <= Constants.MaxCandidate && (_candidateMask & (1u << (candidate - 1))) != 0;
+        candidate is >= Constants.MinCandidate and <= Constants.MaxCandidate && (_candidateMask & (1u << (candidate - Constants.MinCandidate))) != 0;
 
     public override void Clear()
     {
@@ -84,7 +84,7 @@ public sealed class CandidateCollectionMask : CandidateCollection
         int i = 0;
         for (uint m = _candidateMask; m != 0; m &= m - 1)
         {
-            destination[i++] = BitOperations.TrailingZeroCount(m) + 1;
+            destination[i++] = BitOperations.TrailingZeroCount(m) + Constants.MinCandidate;
         }
     }
 
@@ -102,7 +102,7 @@ public sealed class CandidateCollectionMask : CandidateCollection
         foreach (int c in candidates)
         {
             if (c is >= Constants.MinCandidate and <= Constants.MaxCandidate)
-                mask |= 1u << (c - 1);
+                mask |= 1u << (c - Constants.MinCandidate);
         }
         return RemoveAll(mask);
     }
@@ -113,7 +113,7 @@ public sealed class CandidateCollectionMask : CandidateCollection
         {
             if (value != Constants.UnsolvedCell)
             {
-                return value is >= Constants.MinCandidate and <= Constants.MaxCandidate && CandidateMask == 1u << (value - 1);
+                return value is >= Constants.MinCandidate and <= Constants.MaxCandidate && CandidateMask == 1u << (value - Constants.MinCandidate);
             }
 
             return CandidateMask != 0 && (CandidateMask & ~Constants.AllCandidatesMask) == 0;
