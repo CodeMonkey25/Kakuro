@@ -166,6 +166,7 @@ public sealed class Board
         bool solved = SolveByGuessing(log, ref guesses);
         if (!solved)
         {
+            log?.Invoke("Unable to guess a solution");
             SetState(initialState);
             return false;
         }

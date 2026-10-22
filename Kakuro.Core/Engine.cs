@@ -9,6 +9,7 @@ public sealed class Engine(Action<string>? log = null)
         Board board = new(puzzle);
         
         log?.Invoke("Solving puzzle...");
+        log?.Invoke(board.ToString());
         
         bool solved = board.Solve(log);
         if (solved)

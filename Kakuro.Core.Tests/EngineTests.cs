@@ -47,13 +47,15 @@ public class EngineTests
     }
 
     [Fact]
-    public void Solve_WhenPuzzleIsUnsolvable_DoesNotLogABoard()
+    public void Solve_WhenPuzzleIsUnsolvable_LogsOnlyTheInitialBoard()
     {
         List<string> log = [];
 
         new Engine(log.Add).Solve(Puzzle.Parse(TestPuzzles.Contradictory));
 
-        Assert.DoesNotContain(log, message => message.Contains('|') && message.Contains('-'));
+        List<string> boards = log.Where(message => message.Contains('|') && message.Contains('-')).ToList();
+        Assert.Single(boards);
+        Assert.Equal(log[1], boards[0]);
     }
 
     [Fact]

@@ -26,11 +26,6 @@ class Program
         System.Console.WriteLine(puzzle);
         
         System.Console.WriteLine();
-        System.Console.WriteLine(puzzle.Rows + ", " + puzzle.Columns);
-        Board board = new(puzzle);
-        System.Console.WriteLine(board);
-
-        System.Console.WriteLine();
         Engine engine = new(System.Console.WriteLine);
         engine.Solve(puzzle);
     }
