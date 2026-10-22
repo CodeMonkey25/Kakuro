@@ -2,7 +2,7 @@ namespace Kakuro.Core.Models;
 
 public sealed class CandidateCollectionArray : CandidateCollection
 {
-    private readonly bool[] _candidates = new bool[Constants.MaxCandidate];
+    private readonly bool[] _candidates = new bool[Constants.MaxRunLength];
     private int _count;
 
     public override int Count => _count;
@@ -17,7 +17,7 @@ public sealed class CandidateCollectionArray : CandidateCollection
         ArgumentOutOfRangeException.ThrowIfLessThan(candidate, Constants.MinCandidate);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(candidate, Constants.MaxCandidate);
         if (Contains(candidate)) return;
-        _candidates[candidate - 1] = true;
+        _candidates[candidate - Constants.MinCandidate] = true;
         _count++;
     }
 
@@ -25,7 +25,7 @@ public sealed class CandidateCollectionArray : CandidateCollection
     {
         if (candidate is < Constants.MinCandidate or > Constants.MaxCandidate) return false;
         if (!Contains(candidate)) return false;
-        _candidates[candidate - 1] = false;
+        _candidates[candidate - Constants.MinCandidate] = false;
         _count--;
         return true;
     }
@@ -42,7 +42,7 @@ public sealed class CandidateCollectionArray : CandidateCollection
             {
                 if (j == index)
                 {
-                    return i + 1;
+                    return i + Constants.MinCandidate;
                 }
                 j++;
             }
@@ -63,7 +63,7 @@ public sealed class CandidateCollectionArray : CandidateCollection
         return mask;
     }
 
-    public override bool Contains(int candidate) => candidate is >= Constants.MinCandidate and <= Constants.MaxCandidate && _candidates[candidate - 1];
+    public override bool Contains(int candidate) => candidate is >= Constants.MinCandidate and <= Constants.MaxCandidate && _candidates[candidate - Constants.MinCandidate];
 
     public override void Clear()
     {
@@ -78,7 +78,7 @@ public sealed class CandidateCollectionArray : CandidateCollection
         {
             if (_candidates[i])
             {
-                destination[j++] = i + 1;
+                destination[j++] = i + Constants.MinCandidate;
             }
         }
     }
@@ -97,7 +97,7 @@ public sealed class CandidateCollectionArray : CandidateCollection
     {
         public bool IsStateValid(int value)
         {
-            if (Candidates.Length != Constants.MaxCandidate) return false;
+            if (Candidates.Length != Constants.MaxRunLength) return false;
             if (value != Constants.UnsolvedCell && value is < Constants.MinCandidate or > Constants.MaxCandidate) return false;
             if (!Candidates.Any(b => b)) return false;
             if (value != Constants.UnsolvedCell)
@@ -107,7 +107,7 @@ public sealed class CandidateCollectionArray : CandidateCollection
                 {
                     if (b) count++;
                 }
-                return Candidates[value - 1] && count == 1;
+                return Candidates[value - Constants.MinCandidate] && count == 1;
             }
             return true;
         }
