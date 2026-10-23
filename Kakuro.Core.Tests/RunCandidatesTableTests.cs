@@ -41,7 +41,7 @@ public class RunCandidatesTableTests
                 bool inTable = RunCandidatesTable.InclusionEntries.TryGetValue((length, total), out ImmutableArray<int> digits);
 
                 Assert.Equal(sets.Count == 1, inTable);
-                if (inTable) Assert.Equal(sets[0], digits.OrderBy(d => d));
+                if (inTable) Assert.Equal(sets[0], digits.Order());
             }
         }
     }
@@ -50,8 +50,8 @@ public class RunCandidatesTableTests
     public void ExclusionEntries_HaveTheSameKeysAsInclusionEntries()
     {
         Assert.Equal(
-            RunCandidatesTable.InclusionEntries.Keys.OrderBy(k => k),
-            RunCandidatesTable.ExclusionEntries.Keys.OrderBy(k => k));
+            RunCandidatesTable.InclusionEntries.Keys.Order(),
+            RunCandidatesTable.ExclusionEntries.Keys.Order());
     }
 
     [Fact]
