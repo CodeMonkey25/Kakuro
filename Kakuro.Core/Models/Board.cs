@@ -13,10 +13,7 @@ public sealed class Board
     private readonly ICell[] _cells;
     private readonly PlayableCell[] _playableCells;
     private readonly Run[] _runs;
-    
-    // reusable scratch state for UpdateCellConstraints()
-    private readonly RunSolveState _runSolveState = new();
-    
+
     public Board(Puzzle puzzle)
     {
         _puzzle = puzzle;
@@ -204,18 +201,19 @@ public sealed class Board
     // repeats UpdateCellConstraints() until nothing changes; returns null on success or the first error
     private string? CalculateRunConstraints(Action<string>? log = null)
     {
+        RunSolveState runSolveState = new();
         int pass = 0;
         bool changed;
         do
         {
             log?.Invoke($"{Constants.LogIndent}Pass {++pass}...");
-            (string? error, changed) = UpdateCellConstraints();
+            (string? error, changed) = UpdateCellConstraints(runSolveState);
             if (error != null) return error;
         } while (changed);
         return null;
     }
 
-    private (string? error, bool changed) UpdateCellConstraints()
+    private (string? error, bool changed) UpdateCellConstraints(RunSolveState runSolveState)
     {
         bool boardWasUpdated = false;
 
@@ -228,9 +226,9 @@ public sealed class Board
                 continue;
             }
             
-            _runSolveState.Load(run);
-            GetExcludedCandidates(0, 0, _runSolveState);
-            (string? error, bool runWasUpdated) = _runSolveState.WriteExclusionsToRun();
+            runSolveState.Load(run);
+            GetExcludedCandidates(0, 0, runSolveState);
+            (string? error, bool runWasUpdated) = runSolveState.WriteExclusionsToRun();
             if (error != null) return (error, false);
             if (runWasUpdated) boardWasUpdated = true;
             
