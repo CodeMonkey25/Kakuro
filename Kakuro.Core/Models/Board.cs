@@ -155,7 +155,7 @@ public sealed class Board
         
         RunConstraintWorkspace workspace = new();
         log?.Invoke("Calculating initial constraints...");
-        error = CalculateRunConstraints(workspace, log);
+        error = CalculateRunConstraints(log, workspace);
         if (error != null)
         {
             log?.Invoke($"Constraints conflict detected: {error}");
@@ -200,7 +200,7 @@ public sealed class Board
     }
 
     // repeats UpdateCellConstraints() until nothing changes; returns null on success or the first error
-    private string? CalculateRunConstraints(RunConstraintWorkspace workspace, Action<string>? log = null)
+    private string? CalculateRunConstraints(Action<string>? log, RunConstraintWorkspace workspace)
     {
         int pass = 0;
         bool changed;
@@ -240,26 +240,26 @@ public sealed class Board
 
     private static bool GetExcludedCandidates(int depth, int runningTotal, RunConstraintWorkspace workspace)
     {
-        if (depth >= workspace.Length)
+        if (depth >= workspace.RunLength)
         {
             bool done = false;
-            if (runningTotal == workspace.Total)
+            if (runningTotal == workspace.RunTotal)
             {
                 done = workspace.KeepCurrentNumbers();
             }
             return done;
         }
 
-        int remainingCellsAfterThis = workspace.Length - depth - 1;
+        int remainingCellsAfterThis = workspace.RunLength - depth - 1;
         RunCellCandidates runCellCandidates = workspace.GetRunCellCandidates(depth);
         foreach (int current in runCellCandidates.Candidates)
         {
             if (workspace.IsNumberUsed(current)) continue;
 
             int newRunningTotal = runningTotal + current;
-            if (newRunningTotal > workspace.Total) return false;
+            if (newRunningTotal > workspace.RunTotal) return false;
             
-            int remainingSumNeeded = workspace.Total - newRunningTotal;
+            int remainingSumNeeded = workspace.RunTotal - newRunningTotal;
             if (remainingSumNeeded < Constants.MinPossibleSum[remainingCellsAfterThis]) continue;
             if (remainingSumNeeded > Constants.MaxPossibleSum[remainingCellsAfterThis]) continue;
 
@@ -290,7 +290,7 @@ public sealed class Board
             log?.Invoke($"{indent}Cell ({cell.Row}, {cell.Column}): guessing {candidate}...");
             string? guessError = cell.Solve(candidate);
             guesses++;
-            if (guessError == null && CalculateRunConstraints(workspace) == null && SolveByGuessing(log, workspace, ref guesses, ref badGuesses)) return true;
+            if (guessError == null && CalculateRunConstraints(null, workspace) == null && SolveByGuessing(log, workspace, ref guesses, ref badGuesses)) return true;
             log?.Invoke($"{indent}Cell ({cell.Row}, {cell.Column}): guess {candidate} was bad, reverting...");
             SetState(state);
             guesses--;
@@ -378,8 +378,8 @@ public sealed class Board
         private uint _usedNumbersMask;
         private Run _run = null!;
 
-        public int Length => _run.Length;
-        public int Total => _run.Total;
+        public int RunLength => _run.Length;
+        public int RunTotal => _run.Total;
         public RunCellCandidates GetRunCellCandidates(int index) => _cellCandidatesBuffer[index];
 
         public void Load(Run run)
@@ -387,7 +387,7 @@ public sealed class Board
             _run = run;
             _usedNumbersMask = 0;
             Array.Clear(_numbers);
-            for (int i = 0; i < Length; i++)
+            for (int i = 0; i < RunLength; i++)
             {
                 _cellCandidatesBuffer[i].Load(run.Cells[i]);
             }
@@ -396,7 +396,7 @@ public sealed class Board
         public bool KeepCurrentNumbers()
         {
             uint remaining = 0;
-            for (int i = 0; i < Length; i++)
+            for (int i = 0; i < RunLength; i++)
             {
                 _cellCandidatesBuffer[i].RemoveExclusion(_numbers[i]);
                 remaining |= _cellCandidatesBuffer[i].GetExclusionsMask();
@@ -421,7 +421,7 @@ public sealed class Board
         public (string? error, bool changed) WriteExclusionsToRun()
         {
             bool runWasUpdated = false;
-            for (int i = 0; i < Length; i++)
+            for (int i = 0; i < RunLength; i++)
             {
                 PlayableCell cell = _run.Cells[i];
                 RunCellCandidates runCellCandidates = _cellCandidatesBuffer[i];
