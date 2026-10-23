@@ -176,7 +176,7 @@ public abstract class CandidateCollectionContractTests
     {
         // Board relies on this: it reuses a 9-element buffer and slices it by Count.
         var collection = Create(4, 6);
-        int[] buffer = [-1, -1, -1, -1];
+        Span<int> buffer = [-1, -1, -1, -1];
 
         collection.CopyTo(buffer);
 
@@ -187,9 +187,7 @@ public abstract class CandidateCollectionContractTests
     public void CopyTo_IntoTooSmallBuffer_Throws()
     {
         var collection = Create(1, 2, 3);
-
-        // implementations differ in the exception type (IndexOutOfRange vs Argument), but both must refuse
-        Assert.ThrowsAny<Exception>(() => collection.CopyTo(new int[2]));
+        Assert.Throws<ArgumentException>(() => collection.CopyTo(new int[2]));
     }
 
     #endregion
