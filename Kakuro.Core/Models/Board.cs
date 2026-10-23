@@ -133,15 +133,20 @@ public sealed class Board
     
     public bool Solve(Action<string>? log = null)
     {
+        string? error;
         State initialState = GetState();
-        
-        log?.Invoke("Loading precomputed constraints...");
-        string? error = LoadPrecomputedRunConstraints(log);
-        if (error != null)
+
+        if (Constants.MinCandidate == 1 && Constants.MaxCandidate == 9)
         {
-            log?.Invoke($"Constraints conflict detected: {error}");
-            SetState(initialState);
-            return false;
+            // we can use the precalculated constraints
+            log?.Invoke("Loading precomputed constraints...");
+            error = LoadPrecomputedRunConstraints(log);
+            if (error != null)
+            {
+                log?.Invoke($"Constraints conflict detected: {error}");
+                SetState(initialState);
+                return false;
+            }
         }
 
         // mark all runs as dirty
