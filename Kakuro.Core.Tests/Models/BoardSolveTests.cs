@@ -254,7 +254,7 @@ public class BoardSolveTests
 
         // any ordering is acceptable; what matters is that 1..9 each appear exactly once
         string row = board.ToString().Split(Environment.NewLine)[1];
-        string digits = new(row.Where(char.IsDigit).OrderBy(c => c).ToArray());
+        string digits = new(row.Where(char.IsDigit).Order().ToArray());
         Assert.Equal("123456789", digits);
     }
 
@@ -514,11 +514,8 @@ public class BoardSolveTests
     [Fact]
     public void Solve_WhenGuessesAreNested_IndentsEachLevelByOneMoreLogIndent()
     {
-        // the puzzle Kakuro.Console solves (20th line of puzzles.txt) needs nested guessing
-        string puzzleText = File.ReadLines(Path.Combine(AppContext.BaseDirectory, "TestData", "puzzles.txt"))
-            .Select(line => line.Trim())
-            .Where(line => line.Length > 0)
-            .ElementAt(19);
+        // the 20th line of puzzles.txt needs nested guessing
+        string puzzleText = PuzzleFile().Cast<string>().ElementAt(19);
         Board board = new(Puzzle.Parse(puzzleText));
         List<string> log = [];
 
