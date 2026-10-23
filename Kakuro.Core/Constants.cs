@@ -19,12 +19,12 @@ public static class Constants
             .ToImmutableArray();
 
     public static readonly ImmutableArray<int> MinPossibleSum =
-        Enumerable.Range(0, AllCandidates.Length + 1)
+        Enumerable.Range(0, MaxRunLength + 1)
             .Select(i => AllCandidates.Take(i).Sum())
             .ToImmutableArray();
 
     public static readonly ImmutableArray<int> MaxPossibleSum =
-        Enumerable.Range(0, AllCandidates.Length + 1)
+        Enumerable.Range(0, MaxRunLength + 1)
             .Select(i => AllCandidates.TakeLast(i).Sum())
             .ToImmutableArray();
 
