@@ -153,8 +153,9 @@ public sealed class Board
             run.MarkDirty();
         }
         
+        RunConstraintWorkspace workspace = new();
         log?.Invoke("Calculating initial constraints...");
-        error = CalculateRunConstraints(log);
+        error = CalculateRunConstraints(workspace, log);
         if (error != null)
         {
             log?.Invoke($"Constraints conflict detected: {error}");
@@ -167,7 +168,7 @@ public sealed class Board
         log?.Invoke("Solving by guessing...");
         int guesses = 0;
         int badGuesses = 0;
-        bool solved = SolveByGuessing(log, ref guesses, ref badGuesses);
+        bool solved = SolveByGuessing(log, workspace, ref guesses, ref badGuesses);
         if (!solved)
         {
             log?.Invoke("Unable to guess a solution");
@@ -199,21 +200,20 @@ public sealed class Board
     }
 
     // repeats UpdateCellConstraints() until nothing changes; returns null on success or the first error
-    private string? CalculateRunConstraints(Action<string>? log = null)
+    private string? CalculateRunConstraints(RunConstraintWorkspace workspace, Action<string>? log = null)
     {
-        RunSolveState runSolveState = new();
         int pass = 0;
         bool changed;
         do
         {
             log?.Invoke($"{Constants.LogIndent}Pass {++pass}...");
-            (string? error, changed) = UpdateCellConstraints(runSolveState);
+            (string? error, changed) = UpdateCellConstraints(workspace);
             if (error != null) return error;
         } while (changed);
         return null;
     }
 
-    private (string? error, bool changed) UpdateCellConstraints(RunSolveState runSolveState)
+    private (string? error, bool changed) UpdateCellConstraints(RunConstraintWorkspace workspace)
     {
         bool boardWasUpdated = false;
 
@@ -226,9 +226,9 @@ public sealed class Board
                 continue;
             }
             
-            runSolveState.Load(run);
-            GetExcludedCandidates(0, 0, runSolveState);
-            (string? error, bool runWasUpdated) = runSolveState.WriteExclusionsToRun();
+            workspace.Load(run);
+            GetExcludedCandidates(0, 0, workspace);
+            (string? error, bool runWasUpdated) = workspace.WriteExclusionsToRun();
             if (error != null) return (error, false);
             if (runWasUpdated) boardWasUpdated = true;
             
@@ -238,40 +238,40 @@ public sealed class Board
         return (null, boardWasUpdated);
     }
 
-    private static bool GetExcludedCandidates(int depth, int runningTotal, RunSolveState runSolveState)
+    private static bool GetExcludedCandidates(int depth, int runningTotal, RunConstraintWorkspace workspace)
     {
-        if (depth >= runSolveState.Length)
+        if (depth >= workspace.Length)
         {
             bool done = false;
-            if (runningTotal == runSolveState.Total)
+            if (runningTotal == workspace.Total)
             {
-                done = runSolveState.KeepCurrentNumbers();
+                done = workspace.KeepCurrentNumbers();
             }
             return done;
         }
 
-        int remainingCellsAfterThis = runSolveState.Length - depth - 1;
-        RunCellCandidates runCellCandidates = runSolveState.GetRunCellCandidates(depth);
+        int remainingCellsAfterThis = workspace.Length - depth - 1;
+        RunCellCandidates runCellCandidates = workspace.GetRunCellCandidates(depth);
         foreach (int current in runCellCandidates.Candidates)
         {
-            if (runSolveState.IsNumberUsed(current)) continue;
+            if (workspace.IsNumberUsed(current)) continue;
 
             int newRunningTotal = runningTotal + current;
-            if (newRunningTotal > runSolveState.Total) return false;
+            if (newRunningTotal > workspace.Total) return false;
             
-            int remainingSumNeeded = runSolveState.Total - newRunningTotal;
+            int remainingSumNeeded = workspace.Total - newRunningTotal;
             if (remainingSumNeeded < Constants.MinPossibleSum[remainingCellsAfterThis]) continue;
             if (remainingSumNeeded > Constants.MaxPossibleSum[remainingCellsAfterThis]) continue;
 
-            runSolveState.UseNumber(depth, current);
-            bool done = GetExcludedCandidates(depth + 1, newRunningTotal, runSolveState);
-            runSolveState.ClearNumber(depth);
+            workspace.UseNumber(depth, current);
+            bool done = GetExcludedCandidates(depth + 1, newRunningTotal, workspace);
+            workspace.ClearNumber(depth);
             if (done) return true; // every candidate has been confirmed viable, nothing left to exclude
         }
         return false;
     }
 
-    private bool SolveByGuessing(Action<string>? log, ref int guesses, ref int badGuesses)
+    private bool SolveByGuessing(Action<string>? log, RunConstraintWorkspace workspace, ref int guesses, ref int badGuesses)
     {
         string indent = string.Concat(Enumerable.Repeat(Constants.LogIndent, guesses + 1));
         
@@ -290,7 +290,7 @@ public sealed class Board
             log?.Invoke($"{indent}Cell ({cell.Row}, {cell.Column}): guessing {candidate}...");
             string? guessError = cell.Solve(candidate);
             guesses++;
-            if (guessError == null && CalculateRunConstraints() == null && SolveByGuessing(log, ref guesses, ref badGuesses)) return true;
+            if (guessError == null && CalculateRunConstraints(workspace) == null && SolveByGuessing(log, workspace, ref guesses, ref badGuesses)) return true;
             log?.Invoke($"{indent}Cell ({cell.Row}, {cell.Column}): guess {candidate} was bad, reverting...");
             SetState(state);
             guesses--;
@@ -371,7 +371,7 @@ public sealed class Board
         }
     }
 
-    private sealed class RunSolveState
+    private sealed class RunConstraintWorkspace
     {
         private readonly RunCellCandidates[] _cellCandidatesBuffer = Enumerable.Range(0, Constants.MaxRunLength).Select(_ => new RunCellCandidates()).ToArray();
         private readonly int[] _numbers = new int[Constants.MaxRunLength];
