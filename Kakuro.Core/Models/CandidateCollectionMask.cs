@@ -1,4 +1,5 @@
 using System.Numerics;
+using Kakuro.Core.Helpers;
 
 namespace Kakuro.Core.Models;
 
@@ -15,25 +16,18 @@ public sealed class CandidateCollectionMask : CandidateCollection
         AddAll(candidates);
     }
 
-    private static uint BitFor(int candidate)
-    {
-        ArgumentOutOfRangeException.ThrowIfLessThan(candidate, Constants.MinCandidate);
-        ArgumentOutOfRangeException.ThrowIfGreaterThan(candidate, Constants.MaxCandidate);
-        return 1u << (candidate - Constants.MinCandidate);
-    }
-
     public override int Count => BitOperations.PopCount(_candidateMask);
 
     public override void Add(int candidate)
     {
-        _candidateMask |= BitFor(candidate);
+        _candidateMask |= MaskHelper.BitForCandidate(candidate);
     }
 
     public override void AddAll(IEnumerable<int> candidates)
     {
         foreach (int candidate in candidates)
         {
-            _candidateMask |= BitFor(candidate);
+            _candidateMask |= MaskHelper.BitForCandidate(candidate);
         }
     }
 
@@ -41,7 +35,7 @@ public sealed class CandidateCollectionMask : CandidateCollection
     {
         if (candidate is < Constants.MinCandidate or > Constants.MaxCandidate) return false;
 
-        uint bit = 1u << (candidate - Constants.MinCandidate);
+        uint bit = MaskHelper.BitFor(candidate - Constants.MinCandidate);
         bool removed = (_candidateMask & bit) != 0;
         _candidateMask &= ~bit;
         return removed;
@@ -63,7 +57,7 @@ public sealed class CandidateCollectionMask : CandidateCollection
     public override uint GetMask() => _candidateMask;
 
     public override bool Contains(int candidate) =>
-        candidate is >= Constants.MinCandidate and <= Constants.MaxCandidate && (_candidateMask & (1u << (candidate - Constants.MinCandidate))) != 0;
+        candidate is >= Constants.MinCandidate and <= Constants.MaxCandidate && (_candidateMask & MaskHelper.BitFor(candidate - Constants.MinCandidate)) != 0;
 
     public override void Clear()
     {
@@ -81,6 +75,7 @@ public sealed class CandidateCollectionMask : CandidateCollection
     
     public override void CopyTo(Span<int> destination)
     {
+        if (destination.Length < Count) throw new ArgumentException("Destination is too small", nameof(destination));
         int i = 0;
         for (uint m = _candidateMask; m != 0; m &= m - 1)
         {
@@ -102,7 +97,7 @@ public sealed class CandidateCollectionMask : CandidateCollection
         foreach (int c in candidates)
         {
             if (c is >= Constants.MinCandidate and <= Constants.MaxCandidate)
-                mask |= 1u << (c - Constants.MinCandidate);
+                mask |= MaskHelper.BitFor(c - Constants.MinCandidate);
         }
         return RemoveAll(mask);
     }
@@ -113,7 +108,7 @@ public sealed class CandidateCollectionMask : CandidateCollection
         {
             if (value != Constants.UnsolvedCell)
             {
-                return value is >= Constants.MinCandidate and <= Constants.MaxCandidate && CandidateMask == 1u << (value - Constants.MinCandidate);
+                return value is >= Constants.MinCandidate and <= Constants.MaxCandidate && CandidateMask == MaskHelper.BitFor(value - Constants.MinCandidate);
             }
 
             return CandidateMask != 0 && (CandidateMask & ~Constants.AllCandidatesMask) == 0;

@@ -1,3 +1,5 @@
+using Kakuro.Core.Helpers;
+
 namespace Kakuro.Core.Models;
 
 public sealed class CandidateCollectionArray : CandidateCollection
@@ -57,7 +59,7 @@ public sealed class CandidateCollectionArray : CandidateCollection
         {
             if (_candidates[i])
             {
-                mask |= 1u << i;
+                mask |= MaskHelper.BitFor(i);
             }
         }
         return mask;
@@ -73,6 +75,7 @@ public sealed class CandidateCollectionArray : CandidateCollection
 
     public override void CopyTo(Span<int> destination)
     {
+        if (destination.Length < Count) throw new ArgumentException("Destination is too small", nameof(destination));
         var j = 0;
         for (int i = 0; i < _candidates.Length; i++)
         {

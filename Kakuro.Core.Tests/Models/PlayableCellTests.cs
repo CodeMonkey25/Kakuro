@@ -1,3 +1,4 @@
+using Kakuro.Core.Helpers;
 using Kakuro.Core.Interfaces;
 using Kakuro.Core.Models;
 
@@ -7,9 +8,7 @@ public class PlayableCellTests
 {
     private const string NoCandidatesAt00 = "Cell at row 0, column 0 has no candidates.";
 
-    private static uint MaskOf(params int[] values) => values.Aggregate(0u, (m, v) => m | 1u << (v - 1));
-
-    private static readonly uint AllMask = MaskOf([.. Constants.AllCandidates]);
+    private static readonly uint AllMask = MaskHelper.MaskForCandidates(Constants.AllCandidates);
 
     #region Construction
 
@@ -187,7 +186,7 @@ public class PlayableCellTests
         PlayableCell cell = new(0, 0);
         ChangeCounter counter = new(cell);
 
-        cell.RemoveCandidates(MaskOf(3, 4));
+        cell.RemoveCandidates(MaskHelper.MaskForCandidates([3, 4]));
 
         Assert.Equal(1, counter.Count);
     }
@@ -202,7 +201,7 @@ public class PlayableCellTests
         cell.RemoveCandidate(3);
         cell.RemoveCandidate(Constants.MaxCandidate + 1);
         cell.RemoveCandidates([3]);
-        cell.RemoveCandidates(MaskOf(3));
+        cell.RemoveCandidates(MaskHelper.MaskForCandidates([3]));
         cell.RemoveCandidates(0u);
 
         Assert.Equal(0, counter.Count);
@@ -218,7 +217,7 @@ public class PlayableCellTests
         cell.RemoveCandidate(4);
         cell.RemoveCandidate(5);
         cell.RemoveCandidates([4, 5]);
-        cell.RemoveCandidates(MaskOf(4, 5));
+        cell.RemoveCandidates(MaskHelper.MaskForCandidates([4, 5]));
 
         Assert.Equal(0, counter.Count);
     }
@@ -371,7 +370,7 @@ public class PlayableCellTests
 
         cell.RemoveCandidates([1, 5, 9]);
 
-        Assert.Equal(MaskOf(2, 3, 4, 6, 7, 8), cell.GetCandidatesMask());
+        Assert.Equal(MaskHelper.MaskForCandidates([2, 3, 4, 6, 7, 8]), cell.GetCandidatesMask());
     }
 
     [Fact]
@@ -381,7 +380,7 @@ public class PlayableCellTests
 
         cell.Solve(6);
 
-        Assert.Equal(MaskOf(6), cell.GetCandidatesMask());
+        Assert.Equal(MaskHelper.MaskForCandidates([6]), cell.GetCandidatesMask());
     }
 
     [Fact]
@@ -394,7 +393,7 @@ public class PlayableCellTests
 
         cell.SetState(state);
 
-        Assert.Equal(MaskOf(1, 3, 5, 6, 7, 8, 9), cell.GetCandidatesMask());
+        Assert.Equal(MaskHelper.MaskForCandidates([1, 3, 5, 6, 7, 8, 9]), cell.GetCandidatesMask());
     }
 
     [Fact]
@@ -673,8 +672,8 @@ public class PlayableCellTests
         PlayableCell cell = new(0, 0);
         cell.Solve(4);
 
-        Assert.Equal((null, false), cell.RemoveCandidates(MaskOf(1, 2, 3, 9)));
-        Assert.Equal((NoCandidatesAt00, false), cell.RemoveCandidates(MaskOf(4)));
+        Assert.Equal((null, false), cell.RemoveCandidates(MaskHelper.MaskForCandidates([1, 2, 3, 9])));
+        Assert.Equal((NoCandidatesAt00, false), cell.RemoveCandidates(MaskHelper.MaskForCandidates([4])));
         Assert.Equal(4, cell.Value);
     }
 
@@ -683,7 +682,7 @@ public class PlayableCellTests
     {
         PlayableCell cell = new(1, 1);
 
-        (string? error, bool removed) = cell.RemoveCandidates(MaskOf(2, 3, 4, 5, 6, 7, 8, 9));
+        (string? error, bool removed) = cell.RemoveCandidates(MaskHelper.MaskForCandidates([2, 3, 4, 5, 6, 7, 8, 9]));
 
         Assert.Null(error);
         Assert.True(removed);
@@ -707,9 +706,9 @@ public class PlayableCellTests
     public void RemoveCandidates_Mask_WhenNothingToRemove_ReturnsFalseAndNoError()
     {
         PlayableCell cell = new(1, 1);
-        cell.RemoveCandidates(MaskOf(2, 3));
+        cell.RemoveCandidates(MaskHelper.MaskForCandidates([2, 3]));
 
-        (string? error, bool removed) = cell.RemoveCandidates(MaskOf(2, 3));
+        (string? error, bool removed) = cell.RemoveCandidates(MaskHelper.MaskForCandidates([2, 3]));
 
         Assert.Null(error);
         Assert.False(removed);
@@ -733,7 +732,7 @@ public class PlayableCellTests
     {
         PlayableCell cell = new(1, 1);
 
-        (string? error, bool removed) = cell.RemoveCandidates(MaskOf(1, 2, 3, 4, 5, 6, 7, 8));
+        (string? error, bool removed) = cell.RemoveCandidates(MaskHelper.MaskForCandidates([1, 2, 3, 4, 5, 6, 7, 8]));
 
         Assert.Null(error);
         Assert.True(removed);
@@ -758,8 +757,8 @@ public class PlayableCellTests
         PlayableCell cell = new(0, 0);
         cell.Solve(9);
 
-        Assert.Null(cell.RemoveCandidates(MaskOf(1, 2, 3)).error);
-        Assert.Equal(NoCandidatesAt00, cell.RemoveCandidates(MaskOf(3, 9)).error);
+        Assert.Null(cell.RemoveCandidates(MaskHelper.MaskForCandidates([1, 2, 3])).error);
+        Assert.Equal(NoCandidatesAt00, cell.RemoveCandidates(MaskHelper.MaskForCandidates([3, 9])).error);
     }
 
     [Fact]
@@ -769,7 +768,7 @@ public class PlayableCellTests
         PlayableCell viaMask = new(0, 0);
         PlayableCell viaEnumerable = new(0, 0);
 
-        viaMask.RemoveCandidates(MaskOf(values));
+        viaMask.RemoveCandidates(MaskHelper.MaskForCandidates(values));
         viaEnumerable.RemoveCandidates(values);
 
         Assert.Equal(viaEnumerable.CandidatesArray(), viaMask.CandidatesArray());
@@ -783,7 +782,7 @@ public class PlayableCellTests
             PlayableCell viaMask = new(0, 0);
             PlayableCell viaSingle = new(0, 0);
 
-            var maskResult = viaMask.RemoveCandidates(MaskOf(candidate));
+            var maskResult = viaMask.RemoveCandidates(MaskHelper.BitForCandidate(candidate));
             var singleResult = viaSingle.RemoveCandidate(candidate);
 
             Assert.Equal(singleResult, maskResult);

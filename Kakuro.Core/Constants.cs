@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Kakuro.Core.Helpers;
 
 namespace Kakuro.Core;
 
@@ -27,5 +28,5 @@ public static class Constants
             .Select(i => AllCandidates.TakeLast(i).Sum())
             .ToImmutableArray();
 
-    public static readonly uint AllCandidatesMask = AllCandidates.Aggregate(0u, (acc, x) => acc | (1u << (x - MinCandidate)));
+    public static readonly uint AllCandidatesMask = MaskHelper.MaskForCandidates(AllCandidates);
 }

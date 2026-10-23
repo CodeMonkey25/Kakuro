@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
+using Kakuro.Core.Helpers;
 using Kakuro.Core.Interfaces;
 
 namespace Kakuro.Core.Models;
@@ -407,17 +408,17 @@ public sealed class Board
 
         public void UseNumber(int depth, int current)
         {
-            _usedNumbersMask |= 1u << current;
+            _usedNumbersMask |= MaskHelper.BitFor(current);
             _numbers[depth] = current;
         }
 
         public void ClearNumber(int depth)
         {
-            _usedNumbersMask &= ~(1u << _numbers[depth]);
+            _usedNumbersMask &= ~MaskHelper.BitFor(_numbers[depth]);
             _numbers[depth] = 0;
         }
 
-        public bool IsNumberUsed(int number) => (_usedNumbersMask & (1u << number)) != 0;
+        public bool IsNumberUsed(int number) => (_usedNumbersMask & MaskHelper.BitFor(number)) != 0;
 
         public (string? error, bool changed) WriteExclusionsToRun()
         {
@@ -449,9 +450,9 @@ public sealed class Board
         
         public void ClearExclusions() => _excluded = 0;
 
-        public void AddExclusion(int number) => _excluded |= 1u << (number - Constants.MinCandidate);
+        public void AddExclusion(int number) => _excluded |= MaskHelper.BitForCandidate(number);
 
-        public void RemoveExclusion(int number) => _excluded &= ~(1u << (number - Constants.MinCandidate));
+        public void RemoveExclusion(int number) => _excluded &= ~MaskHelper.BitForCandidate(number);
         
         public uint GetExclusionsMask() => _excluded;
 

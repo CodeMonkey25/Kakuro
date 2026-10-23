@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Kakuro.Core.Helpers;
 
 namespace Kakuro.Core.Models;
 
@@ -44,15 +45,7 @@ public sealed class CandidateCollectionList : CandidateCollection
 
     public override int Get(int index) => _candidates[index];
     
-    public override uint GetMask()
-    {
-        uint mask = 0;
-        foreach (int candidate in _candidates)
-        {
-            mask |= 1u << (candidate - Constants.MinCandidate);
-        }
-        return mask;
-    }
+    public override uint GetMask() => MaskHelper.MaskForCandidates(_candidates);
 
     public override bool Contains(int candidate) => _candidates.Contains(candidate);
     

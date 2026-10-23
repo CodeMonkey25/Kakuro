@@ -1,5 +1,6 @@
 using System.Collections.Frozen;
 using System.Collections.Immutable;
+using Kakuro.Core.Helpers;
 
 namespace Kakuro.Core;
 
@@ -75,7 +76,7 @@ public static class RunCandidatesTable
                 {
                     int length = entry.Key.length - Constants.MinRunLength;
                     int total = entry.Key.total - Constants.MinRunTotal;
-                    masks[length, total] = entry.Value.Aggregate(0u, (mask, c) => mask | (1u << (c - Constants.MinCandidate)));
+                    masks[length, total] = MaskHelper.MaskForCandidates(entry.Value);
                     return masks;
                 });
 

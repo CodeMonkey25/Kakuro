@@ -1,11 +1,10 @@
 using System.Collections.Immutable;
+using Kakuro.Core.Helpers;
 
 namespace Kakuro.Core.Tests;
 
 public class RunCandidatesTableTests
 {
-    private static uint MaskOf(IEnumerable<int> digits) => digits.Aggregate(0u, (mask, digit) => mask | 1u << (digit - 1));
-
     // every set of `length` distinct digits 1..9 that sums to `total`
     private static List<int[]> DigitSets(int length, int total)
     {
@@ -68,7 +67,7 @@ public class RunCandidatesTableTests
     {
         foreach (((int length, int total), ImmutableArray<int> digits) in RunCandidatesTable.InclusionEntries)
         {
-            Assert.Equal(~MaskOf(digits) & Constants.AllCandidatesMask, RunCandidatesTable.GetRunExclusionMask(length, total));
+            Assert.Equal(~MaskHelper.MaskForCandidates(digits) & Constants.AllCandidatesMask, RunCandidatesTable.GetRunExclusionMask(length, total));
         }
     }
 
@@ -80,7 +79,7 @@ public class RunCandidatesTableTests
     [InlineData(8, 36, new[] { 9 })]
     public void GetRunExclusionMask_KnownRuns_ExcludesTheOtherDigits(int length, int total, int[] excluded)
     {
-        Assert.Equal(MaskOf(excluded), RunCandidatesTable.GetRunExclusionMask(length, total));
+        Assert.Equal(MaskHelper.MaskForCandidates(excluded), RunCandidatesTable.GetRunExclusionMask(length, total));
     }
 
     [Theory]
@@ -138,7 +137,7 @@ public class RunCandidatesTableTests
     {
         foreach ((int length, int total) in RunCandidatesTable.InclusionEntries.Keys)
         {
-            Assert.Equal(MaskOf(RunCandidatesTable.GetRunExclusions(length, total)), RunCandidatesTable.GetRunExclusionMask(length, total));
+            Assert.Equal(MaskHelper.MaskForCandidates(RunCandidatesTable.GetRunExclusions(length, total)), RunCandidatesTable.GetRunExclusionMask(length, total));
         }
     }
 
@@ -166,7 +165,7 @@ public class RunCandidatesTableTests
     {
         foreach ((int length, int total) in RunCandidatesTable.InclusionEntries.Keys)
         {
-            Assert.Equal(~RunCandidatesTable.GetRunExclusionMask(length, total) & Constants.AllCandidatesMask, MaskOf(RunCandidatesTable.GetRunInclusions(length, total)));
+            Assert.Equal(~RunCandidatesTable.GetRunExclusionMask(length, total) & Constants.AllCandidatesMask, MaskHelper.MaskForCandidates(RunCandidatesTable.GetRunInclusions(length, total)));
         }
     }
 

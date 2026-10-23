@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Kakuro.Core.Helpers;
 using Kakuro.Core.Interfaces;
 
 namespace Kakuro.Core.Models;
@@ -21,7 +22,7 @@ public sealed class PlayableCell(int row, int column) : ICell
     {
         if (IsSolved)
         {
-            bool removesValue = (candidatesMask & (1u << (Value - Constants.MinCandidate))) != 0;
+            bool removesValue = (candidatesMask & MaskHelper.BitForCandidate(Value)) != 0;
             return (removesValue ? NoCandidatesError() : null, false);
         }
 

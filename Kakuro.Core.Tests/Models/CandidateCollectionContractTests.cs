@@ -1,3 +1,4 @@
+using Kakuro.Core.Helpers;
 using Kakuro.Core.Models;
 
 namespace Kakuro.Core.Tests.Models;
@@ -258,7 +259,7 @@ public abstract class CandidateCollectionContractTests
     {
         var collection = Create(1, 3, 5, 9);
 
-        Assert.True(collection.RemoveAll((1u << 0) | (1u << 1) | (1u << 8))); // 1, 2 (absent), 9
+        Assert.True(collection.RemoveAll(MaskHelper.MaskForCandidates([1, 2, 9]))); // 1, 2 (absent), 9
 
         Assert.Equal([3, 5], collection.ToArray());
     }
@@ -268,7 +269,7 @@ public abstract class CandidateCollectionContractTests
     {
         var collection = Create(1, 3);
 
-        Assert.False(collection.RemoveAll(1u << 4));
+        Assert.False(collection.RemoveAll(MaskHelper.BitForCandidate(5)));
         Assert.False(collection.RemoveAll(0u));
 
         Assert.Equal([1, 3], collection.ToArray());
@@ -778,7 +779,7 @@ public abstract class CandidateCollectionContractTests
     public void GetMask_ReturnsCorrectBitPerCandidate()
     {
         var collection = Create(1, 3, 9);
-        uint expectedMask = (1u << 0) | (1u << 2) | (1u << 8);
+        uint expectedMask = MaskHelper.MaskForCandidates([1, 3, 9]);
         Assert.Equal(expectedMask, collection.GetMask());
     }
 
@@ -796,7 +797,7 @@ public abstract class CandidateCollectionContractTests
         collection.Remove(2);
         collection.Add(5);
 
-        uint expectedMask = (1u << 0) | (1u << 2) | (1u << 4);
+        uint expectedMask = MaskHelper.MaskForCandidates([1, 3, 5]);
         Assert.Equal(expectedMask, collection.GetMask());
     }
 
