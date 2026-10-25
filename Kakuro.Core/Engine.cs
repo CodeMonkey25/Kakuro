@@ -18,9 +18,6 @@ public sealed class Engine
     {
         Board board = new(puzzle);
         
-        _log?.Invoke("Solving puzzle...");
-        _log?.Invoke(board.ToString());
-        
         bool solved = Solve(board);
         if (solved)
         {
@@ -44,8 +41,11 @@ public sealed class Engine
 
     private bool Solve(Board board)
     {
-        string? error;
         Board.State initialState = board.GetState();
+        string? error;
+
+        _log?.Invoke("Solving puzzle...");
+        _log?.Invoke(board.ToString());
 
         if (Constants.MinCandidate == 1 && Constants.MaxCandidate == 9)
         {
