@@ -8,9 +8,9 @@ namespace Kakuro.Core.Models;
 public sealed class Board
 {
     private Puzzle Puzzle { get; }
-    private IReadOnlyList<ICell> Cells { get; }
-    public IReadOnlyList<PlayableCell> PlayableCells { get; }
-    public IReadOnlyList<Run> Runs { get; }
+    private ImmutableArray<ICell> Cells { get; }
+    public ImmutableArray<PlayableCell> PlayableCells { get; }
+    public ImmutableArray<Run> Runs { get; }
 
     public Board(Puzzle puzzle)
     {
@@ -103,7 +103,7 @@ public sealed class Board
     
     public State GetState()
     {
-        ICell.IState[] states = new ICell.IState[PlayableCells.Count];
+        ICell.IState[] states = new ICell.IState[PlayableCells.Length];
         for (int i = 0; i < states.Length; i++)
         {
             states[i] = PlayableCells[i].GetState();
@@ -113,16 +113,16 @@ public sealed class Board
 
     public void SetState(State state)
     {
-        if (state is null || state.CellStates.IsDefault || state.CellStates.Length != PlayableCells.Count)
+        if (state is null || state.CellStates.IsDefault || state.CellStates.Length != PlayableCells.Length)
             throw new ArgumentException("Invalid state");
         
-        for (int i = 0; i < PlayableCells.Count; i++)
+        for (int i = 0; i < PlayableCells.Length; i++)
         {
             if (!PlayableCells[i].IsValidState(state.CellStates[i]))
                 throw new ArgumentException("Invalid state");
         }
 
-        for (int i = 0; i < PlayableCells.Count; i++)
+        for (int i = 0; i < PlayableCells.Length; i++)
         {
             PlayableCells[i].SetState(state.CellStates[i]);
         }

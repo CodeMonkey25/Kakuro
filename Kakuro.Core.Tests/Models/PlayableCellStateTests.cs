@@ -120,7 +120,7 @@ public class PlayableCellStateTests
         cell.RemoveCandidate(1);
         cell.SetState(original);
 
-        Assert.Equal([peer], cell.LinkedCells);
+        Assert.Equal<PlayableCell>([peer], cell.LinkedCells);
     }
 
     [Fact]

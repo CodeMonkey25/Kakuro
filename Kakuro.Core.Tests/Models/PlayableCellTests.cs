@@ -78,14 +78,14 @@ public class PlayableCellTests
 
         cell1.BindCells([cell1, cell2, cell3]);
 
-        Assert.Equal(2, cell1.LinkedCells.Count);
+        Assert.Equal(2, cell1.LinkedCells.Length);
         Assert.Contains(cell2, cell1.LinkedCells);
         Assert.Contains(cell3, cell1.LinkedCells);
         Assert.DoesNotContain(cell1, cell1.LinkedCells);
 
         // Binding again should not duplicate
         cell1.BindCells([cell2, cell3]);
-        Assert.Equal(2, cell1.LinkedCells.Count);
+        Assert.Equal(2, cell1.LinkedCells.Length);
     }
 
     [Fact]
@@ -99,7 +99,7 @@ public class PlayableCellTests
         mainCell.BindCells([mainCell, horizontalPeer]);
         mainCell.BindCells([mainCell, verticalPeer, horizontalPeer]);
 
-        Assert.Equal([horizontalPeer, verticalPeer], mainCell.LinkedCells);
+        Assert.Equal<PlayableCell>([horizontalPeer, verticalPeer], mainCell.LinkedCells);
     }
 
     [Fact]

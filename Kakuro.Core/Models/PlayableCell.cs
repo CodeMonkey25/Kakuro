@@ -10,7 +10,7 @@ public sealed class PlayableCell(int row, int column) : ICell
     public int Column { get; } = column;
     public int Value { get; private set; } = Constants.UnsolvedCell;
     public bool IsSolved => Value != Constants.UnsolvedCell;
-    public IReadOnlyList<PlayableCell> LinkedCells { get; private set; } = ImmutableArray<PlayableCell>.Empty;
+    public ImmutableArray<PlayableCell> LinkedCells { get; private set; } = ImmutableArray<PlayableCell>.Empty;
 
     private readonly CandidateCollection _candidates = CandidateCollection.Build(Constants.AllCandidates);
     public int CandidateCount => _candidates.Count;
