@@ -68,7 +68,7 @@ public sealed class Engine
         
         RunConstraintWorkspace workspace = new();
         _log?.Invoke("Calculating initial constraints...");
-        error = CalculateRunConstraints(board, workspace);
+        error = CalculateRunConstraints(board, workspace, true);
         if (error != null)
         {
             _log?.Invoke($"Constraints conflict detected: {error}");
@@ -113,13 +113,14 @@ public sealed class Engine
     }
 
     // repeats UpdateCellConstraints() until nothing changes; returns null on success or the first error
-    private string? CalculateRunConstraints(Board board, RunConstraintWorkspace workspace)
+    private string? CalculateRunConstraints(Board board, RunConstraintWorkspace workspace, bool isLogging = false)
     {
         int pass = 0;
         bool changed;
         do
         {
-            _log?.Invoke($"{Constants.LogIndent}Pass {++pass}...");
+            if (isLogging)
+                _log?.Invoke($"{Constants.LogIndent}Pass {++pass}...");
             (string? error, changed) = UpdateCellConstraints(board, workspace);
             if (error != null) return error;
         } while (changed);
