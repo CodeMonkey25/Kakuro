@@ -137,26 +137,13 @@ public sealed record Puzzle
             return $"{Total},{Length},{Row},{Column},{(int)Orientation}";
         }
 
-        public IEnumerable<(int row, int column)> GetCellCoordinates()
-        {
-            switch (Orientation)
+        public IEnumerable<(int row, int column)> GetCellCoordinates() =>
+            Orientation switch
             {
-                case RunOrientation.Horizontal:
-                {
-                    for (int c = Column + 1; c <= Column + Length; c++)
-                        yield return (Row, c);
-                    break;
-                }
-                case RunOrientation.Vertical:
-                {
-                    for (int r = Row + 1; r <= Row + Length; r++)
-                        yield return (r, Column);
-                    break;
-                }
-                default:
-                    throw new InvalidOperationException("Invalid orientation");
-            }
-        }
+                RunOrientation.Horizontal => Enumerable.Range(Column + 1, Length).Select(c => (Row, c)),
+                RunOrientation.Vertical => Enumerable.Range(Row + 1, Length).Select(r => (r, Column)),
+                _ => throw new InvalidOperationException("Invalid orientation")
+            };
 
         public enum RunOrientation
         {
