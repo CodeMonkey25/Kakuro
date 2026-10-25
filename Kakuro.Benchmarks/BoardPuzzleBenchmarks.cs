@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
+using Kakuro.Core;
 using Kakuro.Core.Models;
 
 namespace Kakuro.Benchmarks;
@@ -13,6 +14,7 @@ public class BoardPuzzleBenchmarks
     public int Line { get; set; }
 
     private Puzzle _puzzle = null!;
+    private Engine _engine = null!;
 
     [GlobalSetup]
     public void Setup()
@@ -24,6 +26,7 @@ public class BoardPuzzleBenchmarks
             .Skip(Line - 1)
             .First();
         _puzzle = Puzzle.Parse(text);
+        _engine = new Engine();
     }
 
     private static string SourceDir([CallerFilePath] string sourcePath = "") => Path.GetDirectoryName(sourcePath)!;
@@ -32,7 +35,7 @@ public class BoardPuzzleBenchmarks
     public bool Solve()
     {
         Board board = new(_puzzle);
-        bool solved = board.Solve();
+        bool solved = _engine.Solve(board);
         if (!solved || !board.IsSolutionValid()) throw new InvalidOperationException($"Line {Line} not solved correctly");
         return solved;
     }

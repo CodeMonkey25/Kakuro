@@ -1,9 +1,10 @@
+using Kakuro.Core;
 using Kakuro.Core.Models;
 using Kakuro.Core.Tests.TestData;
 
 namespace Kakuro.Core.Tests.Models;
 
-/// <summary>Construction, rendering and the IsSolved / IsSolutionValid queries. Solving lives in <see cref="BoardSolveTests"/>.</summary>
+/// <summary>Construction, rendering and the IsSolved / IsSolutionValid queries. Solving lives in <see cref="EngineTests"/>.</summary>
 public class BoardTests
 {
     #region Construction / ToString
@@ -77,7 +78,7 @@ public class BoardTests
         // (1,1) belongs to both runs; solving it through one run must be visible through the other
         Board board = new(Puzzle.Parse(TestPuzzles.ForcedCorner));
 
-        Assert.True(board.Solve());
+        Assert.True(new Engine().Solve(board));
 
         Assert.Equal(TestPuzzles.Grid("XXX", "X12", "X3X"), board.ToString());
     }
@@ -97,7 +98,7 @@ public class BoardTests
     {
         Board board = new(Puzzle.Parse(TestPuzzles.TwoSingleCells));
 
-        Assert.True(board.Solve());
+        Assert.True(new Engine().Solve(board));
 
         Assert.True(board.IsSolved());
         Assert.Equal(TestPuzzles.Grid("XXX", "XX9", "X9X"), board.ToString());
@@ -191,7 +192,7 @@ public class BoardTests
     public void IsSolutionValid_WhenSolvedByTheSolver_ReturnsTrue()
     {
         Board board = new(Puzzle.Parse(TestPuzzles.UniqueBlock));
-        board.Solve();
+        new Engine().Solve(board);
 
         Assert.True(board.IsSolutionValid());
     }

@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Kakuro.Core;
 using Kakuro.Core.Interfaces;
 using Kakuro.Core.Models;
 using Kakuro.Core.Tests.TestData;
@@ -45,7 +46,7 @@ public class BoardStateTests
         Board board = CreateBoard(TestPuzzles.TwoSingleCells);
         Board.State before = board.GetState();
 
-        Assert.True(board.Solve());
+        Assert.True(new Engine().Solve(board));
 
         Assert.NotEqual(before, board.GetState());
     }
@@ -56,7 +57,7 @@ public class BoardStateTests
         Board board = CreateBoard(TestPuzzles.ForcedCorner);
         Board.State before = board.GetState();
 
-        board.Solve();
+        new Engine().Solve(board);
 
         Assert.Equal(CreateBoard(TestPuzzles.ForcedCorner).GetState(), before);
     }
@@ -88,7 +89,7 @@ public class BoardStateTests
         Board board = CreateBoard(TestPuzzles.TwoSingleCells);
         Board.State before = board.GetState();
 
-        board.Solve();
+        new Engine().Solve(board);
         Assert.True(board.IsSolved());
         Assert.NotEqual(before, board.GetState());
 
@@ -103,7 +104,7 @@ public class BoardStateTests
     {
         Board board = CreateBoard(TestPuzzles.TwoSingleCells);
         Board.State initial = board.GetState();
-        board.Solve();
+        new Engine().Solve(board);
         Board.State solved = board.GetState();
 
         board.SetState(initial);
@@ -117,7 +118,7 @@ public class BoardStateTests
     public void SetState_AcceptsStateFromAnotherBoardOfTheSamePuzzle()
     {
         Board solved = CreateBoard(TestPuzzles.ForcedCorner);
-        solved.Solve();
+        new Engine().Solve(solved);
         Board target = CreateBoard(TestPuzzles.ForcedCorner);
 
         target.SetState(solved.GetState());
@@ -170,7 +171,7 @@ public class BoardStateTests
     {
         Board board = CreateBoard();
         Board.State valid = board.GetState();
-        board.Solve();
+        new Engine().Solve(board);
         Board.State current = board.GetState();
 
         // put an EmptyCell state at the last entry, after earlier entries that would otherwise be applied

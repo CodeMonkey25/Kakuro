@@ -1,4 +1,5 @@
 using BenchmarkDotNet.Attributes;
+using Kakuro.Core;
 using Kakuro.Core.Models;
 
 namespace Kakuro.Benchmarks;
@@ -13,6 +14,7 @@ public class BoardBenchmarks
     private Puzzle _puzzle = null!;
     private Board _board = null!;
     private Board.State _state = null!;
+    private Engine _engine = null!;
 
     [GlobalSetup]
     public void Setup()
@@ -20,6 +22,7 @@ public class BoardBenchmarks
         _puzzle = Puzzle.Parse(PuzzleText);
         _board = new Board(_puzzle);
         _state = _board.GetState();
+        _engine = new Engine();
     }
 
     [Benchmark] public Board.State GetState() => _board.GetState();
@@ -27,5 +30,5 @@ public class BoardBenchmarks
     [Benchmark] public void SetState() => _board.SetState(_state);
 
     [Benchmark]
-    public bool Solve() => new Board(_puzzle).Solve();
+    public bool Solve() => _engine.Solve(new Board(_puzzle));
 }
