@@ -1,4 +1,3 @@
-using Kakuro.Core;
 using Kakuro.Core.Models;
 using Kakuro.Core.Tests.TestData;
 
@@ -78,9 +77,9 @@ public class BoardTests
         // (1,1) belongs to both runs; solving it through one run must be visible through the other
         Board board = new(Puzzle.Parse(TestPuzzles.ForcedCorner));
 
-        Assert.True(new Engine().Solve(board));
+        board.Runs[0].Cells[0].Solve(1);
 
-        Assert.Equal(TestPuzzles.Grid("XXX", "X12", "X3X"), board.ToString());
+        Assert.Equal(1, board.Runs[1].Cells[0].Value);
     }
 
     #endregion
@@ -98,7 +97,7 @@ public class BoardTests
     {
         Board board = new(Puzzle.Parse(TestPuzzles.TwoSingleCells));
 
-        Assert.True(new Engine().Solve(board));
+        board.SetState(TestPuzzles.WithPlayableValues(board, 9, 9));
 
         Assert.True(board.IsSolved());
         Assert.Equal(TestPuzzles.Grid("XXX", "XX9", "X9X"), board.ToString());
@@ -192,7 +191,7 @@ public class BoardTests
     public void IsSolutionValid_WhenSolvedByTheSolver_ReturnsTrue()
     {
         Board board = new(Puzzle.Parse(TestPuzzles.UniqueBlock));
-        new Engine().Solve(board);
+        board.SetState(TestPuzzles.WithPlayableValues(board, 9, 7, 8, 9));
 
         Assert.True(board.IsSolutionValid());
     }

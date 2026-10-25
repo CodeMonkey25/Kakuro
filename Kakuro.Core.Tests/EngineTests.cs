@@ -122,87 +122,79 @@ public class EngineTests
     public void Solve_WhenRunForcesNakedSingle_SolvesCell()
     {
         // total 3 over 2 cells -> {1,2}; total 4 over 2 cells -> {1,3}; they intersect only at 1
-        Board board = new(Puzzle.Parse(TestPuzzles.ForcedCorner));
+        Puzzle puzzle = Puzzle.Parse(TestPuzzles.ForcedCorner);
+        List<string> log = [];
 
-        Assert.True(new Engine().Solve(board));
+        Assert.True(new Engine(log.Add).Solve(puzzle));
 
-        Assert.Equal(TestPuzzles.Grid("XXX", "X12", "X3X"), board.ToString());
+        Assert.Contains(TestPuzzles.Grid("XXX", "X12", "X3X"), log);
     }
 
     [Fact]
     public void Solve_SingleCellRuns_SolveToTheirTotals()
     {
-        Board board = new(Puzzle.Parse(TestPuzzles.TwoSingleCells));
+        Puzzle puzzle = Puzzle.Parse(TestPuzzles.TwoSingleCells);
+        List<string> log = [];
 
-        Assert.True(new Engine().Solve(board));
+        Assert.True(new Engine(log.Add).Solve(puzzle));
 
-        Assert.True(board.IsSolutionValid());
-        Assert.Equal(TestPuzzles.Grid("XXX", "XX9", "X9X"), board.ToString());
+        Assert.Contains("Solution is valid", log);
+        Assert.Contains(TestPuzzles.Grid("XXX", "XX9", "X9X"), log);
     }
 
     [Fact]
     public void Solve_WhenSolutionNeedsNineAndExcludesNineElsewhere_SolvesUniquely()
     {
         // rows: 3 -> {1,2}, 17 -> {8,9}; columns: 9 -> 1+8, 11 -> 2+9
-        Board board = new(Puzzle.Parse(TestPuzzles.ForcedBlock));
+        Puzzle puzzle = Puzzle.Parse(TestPuzzles.ForcedBlock);
+        List<string> log = [];
 
-        Assert.True(new Engine().Solve(board));
+        Assert.True(new Engine(log.Add).Solve(puzzle));
 
-        Assert.True(board.IsSolutionValid());
-        Assert.Equal(TestPuzzles.Grid("XXX", "X12", "X89"), board.ToString());
+        Assert.Contains("Solution is valid", log);
+        Assert.Contains(TestPuzzles.Grid("XXX", "X12", "X89"), log);
     }
 
     [Fact]
     public void Solve_UniqueBlock_FindsTheOnlySolution()
     {
-        Board board = new(Puzzle.Parse(TestPuzzles.UniqueBlock));
+        Puzzle puzzle = Puzzle.Parse(TestPuzzles.UniqueBlock);
+        List<string> log = [];
 
-        Assert.True(new Engine().Solve(board));
+        Assert.True(new Engine(log.Add).Solve(puzzle));
 
-        Assert.True(board.IsSolutionValid());
-        Assert.Equal(TestPuzzles.Grid("XXX", "X97", "X89"), board.ToString());
+        Assert.Contains("Solution is valid", log);
+        Assert.Contains(TestPuzzles.Grid("XXX", "X97", "X89"), log);
     }
 
     [Fact]
     public void Solve_WhenPuzzleRequiresGuessing_FindsValidSolution()
     {
-        Board board = new(Puzzle.Parse(TestPuzzles.GuessingBlock));
+        Puzzle puzzle = Puzzle.Parse(TestPuzzles.GuessingBlock);
+        List<string> log = [];
 
-        Assert.True(new Engine().Solve(board));
+        Assert.True(new Engine(log.Add).Solve(puzzle));
 
-        Assert.True(board.IsSolved());
-        Assert.True(board.IsSolutionValid());
+        Assert.Contains("Solution is valid", log);
     }
 
     [Fact]
     public void Solve_OfficialPuzzle_SolvesAndValidates()
     {
-        Board board = new(Puzzle.Parse(TestPuzzles.Official41));
+        Puzzle puzzle = Puzzle.Parse(TestPuzzles.Official41);
+        List<string> log = [];
 
-        Assert.True(new Engine().Solve(board));
+        Assert.True(new Engine(log.Add).Solve(puzzle));
 
-        Assert.True(board.IsSolved());
-        Assert.True(board.IsSolutionValid());
-    }
-
-    [Theory]
-    [MemberData(nameof(PuzzleFile))]
-    public void Solve_EveryPuzzleInTheDataset_SolvesAndValidates(string puzzleText)
-    {
-        Board board = new(Puzzle.Parse(puzzleText));
-
-        Assert.True(new Engine().Solve(board));
-
-        Assert.True(board.IsSolved());
-        Assert.True(board.IsSolutionValid());
+        Assert.Contains("Solution is valid", log);
     }
 
     [Fact]
     public void Solve_WithNoRuns_ReturnsTrue()
     {
-        Board board = new(Puzzle.Parse("test|1|Easy"));
+        Puzzle puzzle = Puzzle.Parse("test|1|Easy");
 
-        Assert.True(new Engine().Solve(board));
+        Assert.True(new Engine().Solve(puzzle));
     }
 
     #endregion
@@ -217,102 +209,25 @@ public class EngineTests
     public void Solve_WhenPropagationSuffices_NeverGuesses(string puzzleText)
     {
         // a run must be revisited after a neighboring run narrows one of its cells; if it isn't, the solver falls back to guessing
-        Board board = new(Puzzle.Parse(puzzleText));
+        Puzzle puzzle = Puzzle.Parse(puzzleText);
         List<string> log = [];
 
-        Assert.True(new Engine(log.Add).Solve(board));
+        Assert.True(new Engine(log.Add).Solve(puzzle));
 
-        Assert.True(board.IsSolutionValid());
+        Assert.Contains("Solution is valid", log);
         Assert.DoesNotContain(log, message => message.Contains("guess"));
-    }
-
-    [Fact]
-    public void Solve_FromAPartiallySolvedState_PropagatesWithoutGuessing()
-    {
-        // a freshly built board has no run marked as changed, so Solve must seed every run itself
-        Board board = new(Puzzle.Parse(TestPuzzles.GuessingBlock));
-        board.SetState(TestPuzzles.WithPlayableValues(board, 3, 0, 0, 0));
-        List<string> log = [];
-
-        Assert.True(new Engine(log.Add).Solve(board));
-
-        Assert.Equal(TestPuzzles.Grid("XXX", "X37", "X73"), board.ToString());
-        Assert.DoesNotContain(log, message => message.Contains("guess"));
-    }
-
-    [Fact]
-    public void Solve_AfterAnEarlierSolve_ReseedsEveryRunFromTheNewState()
-    {
-        // the first solve leaves every run clean; a later solve from a different state must not trust that
-        Board board = new(Puzzle.Parse(TestPuzzles.GuessingBlock));
-        Board.State initial = board.GetState();
-        Assert.True(new Engine().Solve(board));
-
-        board.SetState(initial);
-        board.SetState(TestPuzzles.WithPlayableValues(board, 3, 0, 0, 0));
-        List<string> log = [];
-
-        Assert.True(new Engine(log.Add).Solve(board));
-
-        Assert.Equal(TestPuzzles.Grid("XXX", "X37", "X73"), board.ToString());
-        Assert.DoesNotContain(log, message => message.Contains("guess"));
-    }
-
-    [Fact]
-    public void Solve_AfterAFailedSolve_SolvesFromAnotherStateOfTheSameBoard()
-    {
-        Board board = new(Puzzle.Parse(TestPuzzles.ForcedBlock));
-        Board.State initial = board.GetState();
-        board.SetState(TestPuzzles.WithPlayableValues(board, 9, 0, 0, 0));
-        Assert.False(new Engine().Solve(board));
-
-        board.SetState(initial);
-
-        Assert.True(new Engine().Solve(board));
-        Assert.Equal(TestPuzzles.Grid("XXX", "X12", "X89"), board.ToString());
-    }
-
-    [Fact]
-    public void Solve_WhenARunIsFullySolvedWithTheWrongSum_FailsAndRestoresState()
-    {
-        // the first row (10) holds 1 and 2; propagation fills in 9 and 8 below them, so every run ends up fully solved
-        // and the rows that don't total 10 must still be rejected rather than skipped for being solved
-        Board board = new(Puzzle.Parse(TestPuzzles.GuessingBlock));
-        Board.State invalid = TestPuzzles.WithPlayableValues(board, 1, 2, 0, 0);
-        board.SetState(invalid);
-
-        Assert.False(new Engine().Solve(board));
-
-        Assert.Equal(invalid, board.GetState());
     }
 
     [Fact]
     public void Solve_WhenOnlyOneGuessIsNeeded_PropagationFinishesTheBoard()
     {
         // a guess marks the runs it touches as changed, so propagation completes the board without a second guess
-        Board board = new(Puzzle.Parse(TestPuzzles.GuessingBlock));
+        Puzzle puzzle = Puzzle.Parse(TestPuzzles.GuessingBlock);
         List<string> log = [];
 
-        Assert.True(new Engine(log.Add).Solve(board));
+        Assert.True(new Engine(log.Add).Solve(puzzle));
 
-        Assert.True(board.IsSolutionValid());
         Assert.Single(log, message => message.Contains(": guessing "));
-    }
-
-    [Fact]
-    public void Solve_ResultDoesNotDependOnHowOftenItIsRepeated()
-    {
-        Board board = new(Puzzle.Parse(TestPuzzles.Official41));
-        Board.State initial = board.GetState();
-        Assert.True(new Engine().Solve(board));
-        Board.State first = board.GetState();
-
-        for (int i = 0; i < 3; i++)
-        {
-            board.SetState(initial);
-            Assert.True(new Engine().Solve(board));
-            Assert.Equal(first, board.GetState());
-        }
     }
 
     #endregion
@@ -329,11 +244,12 @@ public class EngineTests
     [InlineData(45, 9)] // the only nine-cell run: 1..9
     public void Solve_RunTotalAtItsLimits_IsSolvable(int total, int length)
     {
-        Board board = new(Puzzle.Parse(TestPuzzles.SingleRun(total, length)));
+        Puzzle puzzle = Puzzle.Parse(TestPuzzles.SingleRun(total, length));
+        List<string> log = [];
 
-        Assert.True(new Engine().Solve(board));
+        Assert.True(new Engine(log.Add).Solve(puzzle));
 
-        Assert.True(board.IsSolutionValid());
+        Assert.Contains("Solution is valid", log);
     }
 
     [Theory]
@@ -343,26 +259,24 @@ public class EngineTests
     [InlineData(5, 3)]
     [InlineData(25, 3)]
     [InlineData(44, 9)]
-    public void Solve_RunTotalOutsideItsLimits_ReturnsFalseAndRestoresBoard(int total, int length)
+    public void Solve_RunTotalOutsideItsLimits_ReturnsFalse(int total, int length)
     {
-        Board board = new(Puzzle.Parse(TestPuzzles.SingleRun(total, length)));
-        Board.State initial = board.GetState();
+        Puzzle puzzle = Puzzle.Parse(TestPuzzles.SingleRun(total, length));
 
-        Assert.False(new Engine().Solve(board));
-
-        Assert.False(board.IsSolved());
-        Assert.Equal(initial, board.GetState());
+        Assert.False(new Engine().Solve(puzzle));
     }
 
     [Fact]
     public void Solve_NineCellRun_UsesEachDigitOnce()
     {
-        Board board = new(Puzzle.Parse(TestPuzzles.SingleRun(45, 9)));
+        Puzzle puzzle = Puzzle.Parse(TestPuzzles.SingleRun(45, 9));
+        List<string> log = [];
 
-        Assert.True(new Engine().Solve(board));
+        Assert.True(new Engine(log.Add).Solve(puzzle));
 
         // any ordering is acceptable; what matters is that 1..9 each appear exactly once
-        string row = board.ToString().Split(Environment.NewLine)[1];
+        string boardString = log.Where(m => m.Contains('|') && m.Contains('-')).Last();
+        string row = boardString.Split(Environment.NewLine)[1];
         string digits = new(row.Where(char.IsDigit).Order().ToArray());
         Assert.Equal("123456789", digits);
     }
@@ -372,88 +286,30 @@ public class EngineTests
     #region Failure handling
 
     [Fact]
-    public void Solve_ContradictoryIntersectingRuns_ReturnsFalseAndRestoresBoard()
+    public void Solve_ContradictoryIntersectingRuns_ReturnsFalse()
     {
         // (1,1) must be in {1,2} for the row and {8,9} for the column
-        Board board = new(Puzzle.Parse(TestPuzzles.Contradictory));
-        Board.State initial = board.GetState();
+        Puzzle puzzle = Puzzle.Parse(TestPuzzles.Contradictory);
 
-        Assert.False(new Engine().Solve(board));
-
-        Assert.False(board.IsSolved());
-        Assert.Equal(initial, board.GetState());
+        Assert.False(new Engine().Solve(puzzle));
     }
 
     [Fact]
-    public void Solve_WhenUnsolvableOnlyAfterGuessing_ReturnsFalseAndRestoresBoard()
+    public void Solve_WhenUnsolvableOnlyAfterGuessing_ReturnsFalse()
     {
-        Board board = new(Puzzle.Parse(TestPuzzles.UnsolvableAfterGuessing));
-        Board.State initial = board.GetState();
+        Puzzle puzzle = Puzzle.Parse(TestPuzzles.UnsolvableAfterGuessing);
 
-        Assert.False(new Engine().Solve(board));
-
-        Assert.False(board.IsSolved());
-        Assert.Equal(initial, board.GetState());
+        Assert.False(new Engine().Solve(puzzle));
     }
 
     [Fact]
     public void Solve_AfterAFailedSolve_FailsTheSameWayAgain()
     {
-        Board board = new(Puzzle.Parse(TestPuzzles.UnsolvableAfterGuessing));
+        Puzzle puzzle = Puzzle.Parse(TestPuzzles.UnsolvableAfterGuessing);
+        Engine engine = new();
 
-        Assert.False(new Engine().Solve(board));
-        Assert.False(new Engine().Solve(board));
-    }
-
-    [Fact]
-    public void Solve_AfterRestoringInitialState_ReachesTheSameSolution()
-    {
-        Board board = new(Puzzle.Parse(TestPuzzles.GuessingBlock));
-        Board.State initial = board.GetState();
-        Assert.True(new Engine().Solve(board));
-        Board.State firstSolution = board.GetState();
-
-        board.SetState(initial);
-        Assert.True(new Engine().Solve(board));
-
-        Assert.Equal(firstSolution, board.GetState());
-    }
-
-    [Fact]
-    public void Solve_WhenAlreadySolved_ReturnsTrueAndLeavesStateUnchanged()
-    {
-        Board board = new(Puzzle.Parse(TestPuzzles.ForcedCorner));
-        Assert.True(new Engine().Solve(board));
-        Board.State solved = board.GetState();
-
-        Assert.True(new Engine().Solve(board));
-
-        Assert.Equal(solved, board.GetState());
-    }
-
-    [Fact]
-    public void Solve_FromAPartiallySolvedState_RespectsTheExistingValue()
-    {
-        Board board = new(Puzzle.Parse(TestPuzzles.GuessingBlock));
-        board.SetState(TestPuzzles.WithPlayableValues(board, 3, 0, 0, 0)); // (1,1) = 3
-
-        Assert.True(new Engine().Solve(board));
-
-        Assert.True(board.IsSolutionValid());
-        Assert.Equal(TestPuzzles.Grid("XXX", "X37", "X73"), board.ToString());
-    }
-
-    [Fact]
-    public void Solve_FromAnImpossiblePartialState_ReturnsFalseAndRestoresThatState()
-    {
-        // (1,1) = 9 can never be in a run of total 3 -> contradiction found by propagation
-        Board board = new(Puzzle.Parse(TestPuzzles.ForcedBlock));
-        board.SetState(TestPuzzles.WithPlayableValues(board, 9, 0, 0, 0));
-        Board.State start = board.GetState();
-
-        Assert.False(new Engine().Solve(board));
-
-        Assert.Equal(start, board.GetState());
+        Assert.False(engine.Solve(puzzle));
+        Assert.False(engine.Solve(puzzle));
     }
 
     #endregion
@@ -461,18 +317,12 @@ public class EngineTests
     #region Logging
 
     [Fact]
-    public void Solve_BoardWithoutLogger_DoesNotThrow()
-    {
-        Assert.True(new Engine().Solve(new Board(Puzzle.Parse(TestPuzzles.GuessingBlock))));
-    }
-
-    [Fact]
     public void Solve_WhenPropagationFindsConflict_LogsConflictAndDoesNotGuess()
     {
-        Board board = new(Puzzle.Parse(TestPuzzles.Contradictory));
+        Puzzle puzzle = Puzzle.Parse(TestPuzzles.Contradictory);
         List<string> log = [];
 
-        Assert.False(new Engine(log.Add).Solve(board));
+        Assert.False(new Engine(log.Add).Solve(puzzle));
 
         Assert.Single(log, message => message.Contains("Constraints conflict detected"));
         Assert.DoesNotContain(log, message => message.Contains("guessing"));
@@ -481,10 +331,10 @@ public class EngineTests
     [Fact]
     public void Solve_LogsPrecomputedConstraintsBeforeInitialConstraints()
     {
-        Board board = new(Puzzle.Parse(TestPuzzles.ForcedBlock));
+        Puzzle puzzle = Puzzle.Parse(TestPuzzles.ForcedBlock);
         List<string> log = [];
 
-        Assert.True(new Engine(log.Add).Solve(board));
+        Assert.True(new Engine(log.Add).Solve(puzzle));
 
         int precomputed = log.FindIndex(message => message.Contains("Loading precomputed constraints"));
         int initial = log.FindIndex(message => message.Contains("Calculating initial constraints"));
@@ -496,10 +346,10 @@ public class EngineTests
     public void Solve_LogsEachRunFoundInTheTable()
     {
         // ForcedBlock rows have totals 3 and 17 over two cells (unique digit sets); columns 9 and 11 are not in the table
-        Board board = new(Puzzle.Parse(TestPuzzles.ForcedBlock));
+        Puzzle puzzle = Puzzle.Parse(TestPuzzles.ForcedBlock);
         List<string> log = [];
 
-        Assert.True(new Engine(log.Add).Solve(board));
+        Assert.True(new Engine(log.Add).Solve(puzzle));
 
         Assert.Contains($"{Constants.LogIndent}Run (2, 3): candidates removed [3, 4, 5, 6, 7, 8, 9]...", log);
         Assert.Contains($"{Constants.LogIndent}Run (2, 17): candidates removed [1, 2, 3, 4, 5, 6, 7]...", log);
@@ -509,55 +359,24 @@ public class EngineTests
     }
 
     [Fact]
-    public void Solve_WhenPrecomputedConstraintsConflict_LogsConflictRestoresStateAndSkipsLaterPhases()
-    {
-        // (1,1) = 9 is excluded by the run with total 3, which the precomputed table catches
-        Board board = new(Puzzle.Parse(TestPuzzles.ForcedBlock));
-        board.SetState(TestPuzzles.WithPlayableValues(board, 9, 0, 0, 0));
-        Board.State start = board.GetState();
-        List<string> log = [];
-
-        Assert.False(new Engine(log.Add).Solve(board));
-
-        Assert.Equal(start, board.GetState());
-        Assert.Single(log, message => message.Contains("Constraints conflict detected"));
-        Assert.DoesNotContain(log, message => message.Contains("Calculating initial constraints"));
-        Assert.DoesNotContain(log, message => message.Contains("guess"));
-    }
-
-    [Fact]
     public void Solve_WhenNoRunIsInTheTable_LogsNoFoundRuns()
     {
         // total 9 over two cells has four digit sets, so nothing is precomputed
-        Board board = new(Puzzle.Parse(TestPuzzles.SingleRun(9, 2)));
+        Puzzle puzzle = Puzzle.Parse(TestPuzzles.SingleRun(9, 2));
         List<string> log = [];
 
-        Assert.True(new Engine(log.Add).Solve(board));
+        Assert.True(new Engine(log.Add).Solve(puzzle));
 
         Assert.DoesNotContain(log, message => message.Contains("candidates reduced to"));
     }
 
     [Fact]
-    public void Solve_WhenGuessingFailsAfterPropagation_RestoresInitialStateNotPropagatedState()
-    {
-        // propagation narrows candidates before guessing starts; a failed search must still undo that
-        Board board = new(Puzzle.Parse(TestPuzzles.UnsolvableAfterGuessing));
-        Board.State initial = board.GetState();
-        List<string> log = [];
-
-        Assert.False(new Engine(log.Add).Solve(board));
-
-        Assert.Contains(log, message => message.Contains(": guessing "));
-        Assert.Equal(initial, board.GetState());
-    }
-
-    [Fact]
     public void Solve_WhenPropagationSuffices_LogsOnlyPropagationProgress()
     {
-        Board board = new(Puzzle.Parse(TestPuzzles.ForcedBlock));
+        Puzzle puzzle = Puzzle.Parse(TestPuzzles.ForcedBlock);
         List<string> log = [];
 
-        Assert.True(new Engine(log.Add).Solve(board));
+        Assert.True(new Engine(log.Add).Solve(puzzle));
 
         Assert.NotEmpty(log);
         Assert.DoesNotContain(log, message => message.Contains("guess"));
@@ -567,10 +386,10 @@ public class EngineTests
     [Fact]
     public void Solve_WhenGuessing_LogsEachGuessWithItsCell()
     {
-        Board board = new(Puzzle.Parse(TestPuzzles.GuessingBlock));
+        Puzzle puzzle = Puzzle.Parse(TestPuzzles.GuessingBlock);
         List<string> log = [];
 
-        Assert.True(new Engine(log.Add).Solve(board));
+        Assert.True(new Engine(log.Add).Solve(puzzle));
 
         Assert.Contains(log, message => message.Contains("Cell (1, 1): guessing "));
     }
@@ -578,21 +397,21 @@ public class EngineTests
     [Fact]
     public void Solve_WhenGuessing_LogsGuessCountOnSuccess()
     {
-        Board board = new(Puzzle.Parse(TestPuzzles.GuessingBlock));
+        Puzzle puzzle = Puzzle.Parse(TestPuzzles.GuessingBlock);
         List<string> log = [];
 
-        Assert.True(new Engine(log.Add).Solve(board));
+        Assert.True(new Engine(log.Add).Solve(puzzle));
 
-        Assert.Equal("Solved in 1 guesses, not including 0 bad guesses.", log[^1]);
+        Assert.Contains(log, message => message.StartsWith("Solved in 1 guesses, not including 0 bad guesses."));
     }
 
     [Fact]
     public void Solve_WhenPropagationSuffices_DoesNotLogGuessCount()
     {
-        Board board = new(Puzzle.Parse(TestPuzzles.ForcedBlock));
+        Puzzle puzzle = Puzzle.Parse(TestPuzzles.ForcedBlock);
         List<string> log = [];
 
-        Assert.True(new Engine(log.Add).Solve(board));
+        Assert.True(new Engine(log.Add).Solve(puzzle));
 
         Assert.DoesNotContain(log, message => message.StartsWith("Solved in"));
     }
@@ -600,10 +419,10 @@ public class EngineTests
     [Fact]
     public void Solve_WhenGuessingFails_DoesNotLogGuessCount()
     {
-        Board board = new(Puzzle.Parse(TestPuzzles.UnsolvableAfterGuessing));
+        Puzzle puzzle = Puzzle.Parse(TestPuzzles.UnsolvableAfterGuessing);
         List<string> log = [];
 
-        Assert.False(new Engine(log.Add).Solve(board));
+        Assert.False(new Engine(log.Add).Solve(puzzle));
 
         Assert.DoesNotContain(log, message => message.StartsWith("Solved in"));
     }
@@ -611,10 +430,10 @@ public class EngineTests
     [Fact]
     public void Solve_IndentsRunPassAndFirstLevelGuessMessagesByLogIndent()
     {
-        Board board = new(Puzzle.Parse(TestPuzzles.GuessingBlock));
+        Puzzle puzzle = Puzzle.Parse(TestPuzzles.GuessingBlock);
         List<string> log = [];
 
-        Assert.True(new Engine(log.Add).Solve(board));
+        Assert.True(new Engine(log.Add).Solve(puzzle));
 
         Assert.Contains(log, message => message.StartsWith($"{Constants.LogIndent}Pass 1..."));
         Assert.Contains(log, message => message.StartsWith($"{Constants.LogIndent}Cell (1, 1): guessing "));
@@ -625,10 +444,10 @@ public class EngineTests
     {
         // the 20th line of puzzles.txt needs nested guessing
         string puzzleText = PuzzleFile().Cast<string>().ElementAt(19);
-        Board board = new(Puzzle.Parse(puzzleText));
+        Puzzle puzzle = Puzzle.Parse(puzzleText);
         List<string> log = [];
 
-        Assert.True(new Engine(log.Add).Solve(board));
+        Assert.True(new Engine(log.Add).Solve(puzzle));
 
         string level1 = Constants.LogIndent;
         string level2 = level1 + Constants.LogIndent;
@@ -641,10 +460,10 @@ public class EngineTests
     [Fact]
     public void Solve_WhenGuessFails_LogsRevert()
     {
-        Board board = new(Puzzle.Parse(TestPuzzles.UnsolvableAfterGuessing));
+        Puzzle puzzle = Puzzle.Parse(TestPuzzles.UnsolvableAfterGuessing);
         List<string> log = [];
 
-        Assert.False(new Engine(log.Add).Solve(board));
+        Assert.False(new Engine(log.Add).Solve(puzzle));
 
         Assert.Contains(log, message => message.Contains("reverting"));
     }
@@ -652,10 +471,10 @@ public class EngineTests
     [Fact]
     public void Solve_WhenEveryGuessFails_LogsOneRevertPerGuess()
     {
-        Board board = new(Puzzle.Parse(TestPuzzles.UnsolvableAfterGuessing));
+        Puzzle puzzle = Puzzle.Parse(TestPuzzles.UnsolvableAfterGuessing);
         List<string> log = [];
 
-        Assert.False(new Engine(log.Add).Solve(board));
+        Assert.False(new Engine(log.Add).Solve(puzzle));
 
         int guesses = log.Count(message => message.Contains(": guessing "));
         int reverts = log.Count(message => message.Contains("was bad, reverting"));

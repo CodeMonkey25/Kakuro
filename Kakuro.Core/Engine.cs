@@ -42,7 +42,7 @@ public sealed class Engine
         return solved;
     }
 
-    public bool Solve(Board board)
+    private bool Solve(Board board)
     {
         string? error;
         Board.State initialState = board.GetState();

@@ -30,5 +30,5 @@ public class BoardBenchmarks
     [Benchmark] public void SetState() => _board.SetState(_state);
 
     [Benchmark]
-    public bool Solve() => _engine.Solve(new Board(_puzzle));
+    public bool Solve() => _engine.Solve(_puzzle);
 }

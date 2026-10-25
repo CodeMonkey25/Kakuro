@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using Kakuro.Core;
 using Kakuro.Core.Interfaces;
 using Kakuro.Core.Models;
 using Kakuro.Core.Tests.TestData;
@@ -46,7 +45,7 @@ public class BoardStateTests
         Board board = CreateBoard(TestPuzzles.TwoSingleCells);
         Board.State before = board.GetState();
 
-        Assert.True(new Engine().Solve(board));
+        board.SetState(TestPuzzles.WithPlayableValues(board, 9, 9));
 
         Assert.NotEqual(before, board.GetState());
     }
@@ -57,7 +56,7 @@ public class BoardStateTests
         Board board = CreateBoard(TestPuzzles.ForcedCorner);
         Board.State before = board.GetState();
 
-        new Engine().Solve(board);
+        board.SetState(TestPuzzles.WithPlayableValues(board, 1, 2, 3));
 
         Assert.Equal(CreateBoard(TestPuzzles.ForcedCorner).GetState(), before);
     }
@@ -89,7 +88,7 @@ public class BoardStateTests
         Board board = CreateBoard(TestPuzzles.TwoSingleCells);
         Board.State before = board.GetState();
 
-        new Engine().Solve(board);
+        board.SetState(TestPuzzles.WithPlayableValues(board, 9, 9));
         Assert.True(board.IsSolved());
         Assert.NotEqual(before, board.GetState());
 
@@ -104,7 +103,7 @@ public class BoardStateTests
     {
         Board board = CreateBoard(TestPuzzles.TwoSingleCells);
         Board.State initial = board.GetState();
-        new Engine().Solve(board);
+        board.SetState(TestPuzzles.WithPlayableValues(board, 9, 9));
         Board.State solved = board.GetState();
 
         board.SetState(initial);
@@ -118,7 +117,7 @@ public class BoardStateTests
     public void SetState_AcceptsStateFromAnotherBoardOfTheSamePuzzle()
     {
         Board solved = CreateBoard(TestPuzzles.ForcedCorner);
-        new Engine().Solve(solved);
+        solved.SetState(TestPuzzles.WithPlayableValues(solved, 1, 2, 3));
         Board target = CreateBoard(TestPuzzles.ForcedCorner);
 
         target.SetState(solved.GetState());
@@ -171,7 +170,7 @@ public class BoardStateTests
     {
         Board board = CreateBoard();
         Board.State valid = board.GetState();
-        new Engine().Solve(board);
+        board.PlayableCells[0].Solve(1);
         Board.State current = board.GetState();
 
         // put an EmptyCell state at the last entry, after earlier entries that would otherwise be applied

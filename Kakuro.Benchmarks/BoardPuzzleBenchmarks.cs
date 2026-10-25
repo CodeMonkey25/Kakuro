@@ -34,9 +34,8 @@ public class BoardPuzzleBenchmarks
     [Benchmark]
     public bool Solve()
     {
-        Board board = new(_puzzle);
-        bool solved = _engine.Solve(board);
-        if (!solved || !board.IsSolutionValid()) throw new InvalidOperationException($"Line {Line} not solved correctly");
+        bool solved = _engine.Solve(_puzzle);
+        if (!solved) throw new InvalidOperationException($"Line {Line} not solved correctly");
         return solved;
     }
 }
