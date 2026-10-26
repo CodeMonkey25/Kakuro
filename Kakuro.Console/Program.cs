@@ -18,7 +18,7 @@ class Program
         Puzzle[] puzzles = File.ReadLines("puzzles.txt")
             .Select(static p => p.Trim())
             .Where(static p => !string.IsNullOrWhiteSpace(p))
-            // .Skip(19) // 19 has a lot of passes and guesses - 46 & 57 are slow
+            // .Skip(19) // 19 has a lot of passes and guesses - 46, 48, & 57 are slow
             // .Take(1)
             .Select(Puzzle.Parse)
             .ToArray();
