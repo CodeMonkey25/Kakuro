@@ -137,6 +137,59 @@ public class PuzzleTests
 
     public static TheoryData<string> PuzzleFile() => TestPuzzles.FromFile();
 
+    #region Equality
+
+    [Fact]
+    public void Equals_PuzzlesParsedFromTheSameText_AreEqualWithMatchingHashCodes()
+    {
+        Puzzle a = Puzzle.Parse(TestPuzzles.Sample);
+        Puzzle b = Puzzle.Parse(TestPuzzles.Sample);
+
+        Assert.NotSame(a, b);
+        Assert.Equal(a, b);
+        Assert.True(a == b);
+        Assert.Equal(a.GetHashCode(), b.GetHashCode());
+    }
+
+    [Theory]
+    [InlineData("other|1|Easy|3,2,1,0,0")]
+    [InlineData("s|2|Easy|3,2,1,0,0")]
+    [InlineData("s|1|Hard|3,2,1,0,0")]
+    [InlineData("s|1|Easy|4,2,1,0,0")] // total
+    [InlineData("s|1|Easy|3,3,1,0,0")] // length
+    [InlineData("s|1|Easy|3,2,2,0,0")] // row
+    [InlineData("s|1|Easy|3,2,1,1,0")] // column
+    [InlineData("s|1|Easy|3,2,1,0,1")] // orientation
+    [InlineData("s|1|Easy|3,2,1,0,0|3,2,1,0,0")] // extra run
+    [InlineData("s|1|Easy")] // missing run
+    public void Equals_WhenAnyPartDiffers_IsFalse(string other)
+    {
+        Puzzle puzzle = Puzzle.Parse("s|1|Easy|3,2,1,0,0");
+
+        Assert.NotEqual(puzzle, Puzzle.Parse(other));
+        Assert.True(puzzle != Puzzle.Parse(other));
+    }
+
+    [Fact]
+    public void Equals_WhenRunsAreInADifferentOrder_IsFalse()
+    {
+        Assert.NotEqual(Puzzle.Parse("s|1|e|1,1,0,0,0|2,1,0,1,1"), Puzzle.Parse("s|1|e|2,1,0,1,1|1,1,0,0,0"));
+    }
+
+    [Fact]
+    public void Equals_Null_IsFalse()
+    {
+        Assert.False(Puzzle.Parse(TestPuzzles.Sample).Equals(null));
+    }
+
+    [Fact]
+    public void GetHashCode_DiffersWhenRunsDiffer()
+    {
+        Assert.NotEqual(Puzzle.Parse("s|1|e|3,2,1,0,0").GetHashCode(), Puzzle.Parse("s|1|e|4,2,1,0,0").GetHashCode());
+    }
+
+    #endregion
+
     [Fact]
     public void Parse_RoundTrip_WithNoRuns()
     {

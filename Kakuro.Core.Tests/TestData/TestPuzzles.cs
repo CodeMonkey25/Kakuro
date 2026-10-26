@@ -40,6 +40,12 @@ internal static class TestPuzzles
     /// <summary>3x3 block whose row totals (46) differ from its column totals (50); only guessing exposes the contradiction.</summary>
     public const string UnsolvableAfterGuessing = "test|1|Easy|19,3,1,0,0|13,3,2,0,0|14,3,3,0,0|18,3,0,1,1|18,3,0,2,1|14,3,0,3,1";
 
+    /// <summary>
+    /// Row 9 over (1,1),(1,2) is not in the precomputed table, but column 17 limits (1,1) to {8,9} and column 16 limits (1,2) to {7,9}.
+    /// No cell is emptied by the precomputed constraints; the conflict only appears during propagation.
+    /// </summary>
+    public const string PropagationConflict = "test|1|Easy|9,2,1,0,0|17,2,0,1,1|16,2,0,2,1";
+
     public const string Official41 = "The Official Book of Kakuro|41|Easy|13,2,0,1,1|11,3,0,2,1|9,3,0,6,1|14,2,0,7,1|17,2,1,0,0|16,5,1,3,1|8,2,1,5,0|34,5,1,5,1|7,3,2,0,0|23,3,2,4,0|15,3,2,4,1|15,5,3,1,0|13,3,4,2,0|21,3,4,2,1|18,3,4,6,1|35,5,5,1,0|6,2,5,1,1|9,2,5,7,1|7,3,6,0,0|24,3,6,4,0|12,2,7,0,0|5,2,7,5,0";
 
     /// <summary>A puzzle with a single horizontal run of the given total and length.</summary>
@@ -48,13 +54,19 @@ internal static class TestPuzzles
     /// <summary>Every non-blank line of the shared puzzles.txt (copied next to the test assembly).</summary>
     public static TheoryData<string> FromFile()
     {
-        string path = Path.Combine(AppContext.BaseDirectory, "TestData", "puzzles.txt");
         TheoryData<string> data = [];
-        foreach (string line in File.ReadLines(path).Select(l => l.Trim()).Where(l => l.Length > 0))
+        foreach (string line in Lines())
         {
             data.Add(line);
         }
         return data;
+    }
+
+    /// <summary>The non-blank lines of puzzles.txt, in file order.</summary>
+    public static IReadOnlyList<string> Lines()
+    {
+        string path = Path.Combine(AppContext.BaseDirectory, "TestData", "puzzles.txt");
+        return File.ReadLines(path).Select(l => l.Trim()).Where(l => l.Length > 0).ToList();
     }
 
     /// <summary>
