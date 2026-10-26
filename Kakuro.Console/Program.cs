@@ -24,32 +24,36 @@ class Program
             .ToArray();
         
         // run an initial solve to load static classes and JIT the code
-        new Engine(System.Console.WriteLine).Solve(puzzles.First());
+        new Engine(System.Console.WriteLine).Solve(puzzles[19]);
         
         int i = 0;
         List<string> log = new();
         Engine engine = new(log.Add);
-        List<(int line, TimeSpan time, int guesses)> timings = new();
+        List<(int line, TimeSpan time, int goodGuesses, int badGuesses)> timings = new();
         foreach (Puzzle puzzle in puzzles)
         {
             log.Clear();
             
             int line = i++;
             TimeSpan time = TimeIt(() => engine.Solve(puzzle));
-            int guesses = 0;
+            int goodGuesses = 0;
+            int badGuesses = 0;
             
             if (log.Any(m => m.StartsWith("Solved in ")))
             {
-                guesses = int.Parse(log.First(m => m.StartsWith("Solved in ")).Split(' ')[2]);
+                string[] parts = log.First(m => m.StartsWith("Solved in ")).Split(' ');
+                goodGuesses = int.Parse(parts[2]);
+                badGuesses = int.Parse(parts[6]);
             }
             
-            timings.Add((line, time, guesses));
+            timings.Add((line, time, goodGuesses, badGuesses));
         }
         
-        System.Console.WriteLine("Line\tGuesses\tTime");
-        foreach ((int line, TimeSpan time, int guesses) in timings)
+        System.Console.WriteLine("\tGood\tBad");
+        System.Console.WriteLine("Line\tGuesses\tGuesses\tTime");
+        foreach ((int line, TimeSpan time, int goodGuesses, int badGuesses) in timings)
         {
-            System.Console.WriteLine($"{line}\t{(guesses == 0 ? "" : guesses.ToString())}\t{time.ReadableTime()}");
+            System.Console.WriteLine($"{line}\t{(goodGuesses == 0 ? "" : goodGuesses.ToString())}\t{(badGuesses == 0 ? "" : badGuesses.ToString())}\t{time.ReadableTime()}");
         }
     }
     
