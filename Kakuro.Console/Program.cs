@@ -39,9 +39,9 @@ class Program
             int goodGuesses = 0;
             int badGuesses = 0;
             
-            if (log.Any(m => m.StartsWith("Solved in ")))
+            if (log.Any(static m => m.StartsWith("Solved in ")))
             {
-                string[] parts = log.First(m => m.StartsWith("Solved in ")).Split(' ');
+                string[] parts = log.First(static m => m.StartsWith("Solved in ")).Split(' ');
                 goodGuesses = int.Parse(parts[2]);
                 badGuesses = int.Parse(parts[6]);
             }
