@@ -23,11 +23,13 @@ class Program
             .Select(Puzzle.Parse)
             .ToArray();
         
+        List<string> log = new();
+
         // run an initial solve to load static classes and JIT the code
-        new Engine(System.Console.WriteLine).Solve(puzzles[19]);
+        new Engine(log.Add).Solve(puzzles[19]);
+        System.Console.WriteLine(string.Join("\n", log));
         
         int i = 0;
-        List<string> log = new();
         Engine engine = new(log.Add);
         List<(int line, TimeSpan time, int goodGuesses, int badGuesses)> timings = new();
         foreach (Puzzle puzzle in puzzles)
