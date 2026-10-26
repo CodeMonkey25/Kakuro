@@ -53,7 +53,9 @@ class Program
         System.Console.WriteLine("Line\tGuesses\tGuesses\tTime");
         foreach ((int line, TimeSpan time, int goodGuesses, int badGuesses) in timings)
         {
-            System.Console.WriteLine($"{line}\t{(goodGuesses == 0 ? "" : goodGuesses.ToString())}\t{(badGuesses == 0 ? "" : badGuesses.ToString())}\t{time.ReadableTime()}");
+            string good = goodGuesses == 0 ? "" : goodGuesses.ToString();
+            string bad = badGuesses == 0 ? "" : badGuesses.ToString();
+            System.Console.WriteLine($"{line}\t{good}\t{bad}\t{time.ReadableTime()}");
         }
     }
     
