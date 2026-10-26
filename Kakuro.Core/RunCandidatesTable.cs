@@ -68,23 +68,23 @@ public static class RunCandidatesTable
             .ToFrozenDictionary();
 
     // [length - MinRunLength, total - MinRunTotal] -> exclusion mask; array indexing keeps the solver's hot-path lookup cheap
-    private static readonly uint[,] ExclusionMasks =
+    private static readonly (uint mask, ImmutableArray<int> exclusions)[,] ExclusionsLookup =
         ExclusionEntries
             .Aggregate(
-                new uint[Constants.MaxRunLength - Constants.MinRunLength + 1, Constants.MaxRunTotal - Constants.MinRunTotal + 1],
+                new (uint, ImmutableArray<int>)[Constants.MaxRunLength - Constants.MinRunLength + 1, Constants.MaxRunTotal - Constants.MinRunTotal + 1],
                 (masks, entry) =>
                 {
                     int length = entry.Key.length - Constants.MinRunLength;
                     int total = entry.Key.total - Constants.MinRunTotal;
-                    masks[length, total] = MaskHelper.MaskForCandidates(entry.Value);
+                    masks[length, total] = (MaskHelper.MaskForCandidates(entry.Value), entry.Value);
                     return masks;
                 });
 
-    public static uint GetRunExclusionMask(int length, int total)
+    public static (uint mask, ImmutableArray<int> exclusions) GetRunExclusionMask(int length, int total)
     {
-        if (length is < Constants.MinRunLength or > Constants.MaxRunLength) return 0;
-        if (total is < Constants.MinRunTotal or > Constants.MaxRunTotal) return 0;
-        return ExclusionMasks[length - Constants.MinRunLength, total - Constants.MinRunTotal];
+        if (length is < Constants.MinRunLength or > Constants.MaxRunLength) return default;
+        if (total is < Constants.MinRunTotal or > Constants.MaxRunTotal) return default;
+        return RunCandidatesTable.ExclusionsLookup[length - Constants.MinRunLength, total - Constants.MinRunTotal];
     }
 
     public static ImmutableArray<int> GetRunInclusions(int length, int total) =>

@@ -67,7 +67,7 @@ public class RunCandidatesTableTests
     {
         foreach (((int length, int total), ImmutableArray<int> digits) in RunCandidatesTable.InclusionEntries)
         {
-            Assert.Equal(~MaskHelper.MaskForCandidates(digits) & Constants.AllCandidatesMask, RunCandidatesTable.GetRunExclusionMask(length, total));
+            Assert.Equal(~MaskHelper.MaskForCandidates(digits) & Constants.AllCandidatesMask, RunCandidatesTable.GetRunExclusionMask(length, total).mask);
         }
     }
 
@@ -79,7 +79,7 @@ public class RunCandidatesTableTests
     [InlineData(8, 36, new[] { 9 })]
     public void GetRunExclusionMask_KnownRuns_ExcludesTheOtherDigits(int length, int total, int[] excluded)
     {
-        Assert.Equal(MaskHelper.MaskForCandidates(excluded), RunCandidatesTable.GetRunExclusionMask(length, total));
+        Assert.Equal(MaskHelper.MaskForCandidates(excluded), RunCandidatesTable.GetRunExclusionMask(length, total).mask);
     }
 
     [Theory]
@@ -88,15 +88,15 @@ public class RunCandidatesTableTests
     [InlineData(2, 2)]   // impossible
     [InlineData(2, 18)]  // impossible
     [InlineData(4, 0)]
-    public void GetRunExclusionMask_WhenRunIsNotUnique_ReturnsZero(int length, int total)
+    public void GetRunExclusionMask_WhenRunIsNotUnique_ReturnsDefault(int length, int total)
     {
-        Assert.Equal(0u, RunCandidatesTable.GetRunExclusionMask(length, total));
+        Assert.Equal(default, RunCandidatesTable.GetRunExclusionMask(length, total));
     }
 
     [Fact]
     public void GetRunExclusionMask_NineCellRun_ExcludesNothing()
     {
-        Assert.Equal(0u, RunCandidatesTable.GetRunExclusionMask(9, 45));
+        Assert.Equal(0u, RunCandidatesTable.GetRunExclusionMask(9, 45).mask);
     }
 
     [Theory]
@@ -108,7 +108,7 @@ public class RunCandidatesTableTests
     [InlineData(2, int.MaxValue)]
     public void GetRunExclusionMask_OutOfRange_ReturnsZeroWithoutThrowing(int length, int total)
     {
-        Assert.Equal(0u, RunCandidatesTable.GetRunExclusionMask(length, total));
+        Assert.Equal(0u, RunCandidatesTable.GetRunExclusionMask(length, total).mask);
     }
 
     [Fact]
@@ -137,7 +137,7 @@ public class RunCandidatesTableTests
     {
         foreach ((int length, int total) in RunCandidatesTable.InclusionEntries.Keys)
         {
-            Assert.Equal(MaskHelper.MaskForCandidates(RunCandidatesTable.GetRunExclusions(length, total)), RunCandidatesTable.GetRunExclusionMask(length, total));
+            Assert.Equal(MaskHelper.MaskForCandidates(RunCandidatesTable.GetRunExclusions(length, total)), RunCandidatesTable.GetRunExclusionMask(length, total).mask);
         }
     }
 
@@ -165,7 +165,7 @@ public class RunCandidatesTableTests
     {
         foreach ((int length, int total) in RunCandidatesTable.InclusionEntries.Keys)
         {
-            Assert.Equal(~RunCandidatesTable.GetRunExclusionMask(length, total) & Constants.AllCandidatesMask, MaskHelper.MaskForCandidates(RunCandidatesTable.GetRunInclusions(length, total)));
+            Assert.Equal(~RunCandidatesTable.GetRunExclusionMask(length, total).mask & Constants.AllCandidatesMask, MaskHelper.MaskForCandidates(RunCandidatesTable.GetRunInclusions(length, total)));
         }
     }
 

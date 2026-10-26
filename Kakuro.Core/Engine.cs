@@ -97,15 +97,14 @@ public sealed class Engine
     {
         foreach (Board.Run run in board.Runs)
         {
-            uint exclusionMask = RunCandidatesTable.GetRunExclusionMask(run.Length, run.Total);
-            if (exclusionMask == 0) continue;
+            (uint mask, ImmutableArray<int> exclusions) = RunCandidatesTable.GetRunExclusionMask(run.Length, run.Total);
+            if (mask == 0) continue;
             
-            ImmutableArray<int> excludedDigits = RunCandidatesTable.GetRunExclusions(run.Length, run.Total);
-            _log?.Invoke($"{Constants.LogIndent}Run ({run.Length}, {run.Total}): candidates removed [{string.Join(", ", excludedDigits)}]...");
+            _log?.Invoke($"{Constants.LogIndent}Run ({run.Length}, {run.Total}): candidates removed [{string.Join(", ", exclusions)}]...");
             
             foreach (PlayableCell cell in run.Cells)
             {
-                (string? error, _) = cell.RemoveCandidates(exclusionMask);
+                (string? error, _) = cell.RemoveCandidates(mask);
                 if (error != null) return error;
             }
         }
