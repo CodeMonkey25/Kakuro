@@ -97,7 +97,7 @@ public sealed class Engine
     {
         foreach (Board.Run run in board.Runs)
         {
-            (uint mask, ImmutableArray<int> exclusions) = RunCandidatesTable.GetRunExclusionMask(run.Length, run.Total);
+            (uint mask, ImmutableArray<int> exclusions) = RunCandidatesTable.GetRunExclusions(run.Length, run.Total);
             if (mask == 0) continue;
             
             _log?.Invoke($"{Constants.LogIndent}Run ({run.Length}, {run.Total}): candidates removed [{string.Join(", ", exclusions)}]...");

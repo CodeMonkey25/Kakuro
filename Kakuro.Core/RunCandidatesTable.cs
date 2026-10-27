@@ -80,16 +80,10 @@ public static class RunCandidatesTable
                     return masks;
                 });
 
-    public static (uint mask, ImmutableArray<int> exclusions) GetRunExclusionMask(int length, int total)
+    public static (uint mask, ImmutableArray<int> exclusions) GetRunExclusions(int length, int total)
     {
         if (length is < Constants.MinRunLength or > Constants.MaxRunLength) return default;
         if (total is < Constants.MinRunTotal or > Constants.MaxRunTotal) return default;
         return RunCandidatesTable.ExclusionsLookup[length - Constants.MinRunLength, total - Constants.MinRunTotal];
     }
-
-    public static ImmutableArray<int> GetRunInclusions(int length, int total) =>
-        InclusionEntries.GetValueOrDefault((length, total), ImmutableArray<int>.Empty);
-
-    public static ImmutableArray<int> GetRunExclusions(int length, int total) =>
-        ExclusionEntries.GetValueOrDefault((length, total), ImmutableArray<int>.Empty);
 }
