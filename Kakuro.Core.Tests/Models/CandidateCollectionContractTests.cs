@@ -40,6 +40,94 @@ public abstract class CandidateCollectionContractTests
     }
 
     [Fact]
+    public void Enumeration_YieldsCandidatesInAscendingOrder()
+    {
+        var collection = Create(9, 1, 7, 3);
+
+        var items = new List<int>();
+        foreach (int candidate in collection)
+        {
+            items.Add(candidate);
+        }
+
+        Assert.Equal([1, 3, 7, 9], items);
+    }
+
+    [Fact]
+    public void Enumeration_WhenEmpty_YieldsNothing()
+    {
+        Assert.Empty(Create());
+    }
+
+    [Fact]
+    public void Enumeration_CanBeRepeated()
+    {
+        var collection = Create(2, 4, 6);
+
+        Assert.Equal(collection.ToArray(), collection.ToArray());
+        Assert.Equal([2, 4, 6], collection);
+    }
+
+    [Fact]
+    public void Enumeration_AllowsRemovalWhileIterating()
+    {
+        var collection = Create(1, 2, 3, 4);
+
+        var seen = new List<int>();
+        foreach (int candidate in collection)
+        {
+            seen.Add(candidate);
+            collection.Remove(candidate);
+        }
+
+        Assert.Equal([1, 2, 3, 4], seen);
+        Assert.Equal(0, collection.Count);
+    }
+
+    [Fact]
+    public void Enumeration_NonGenericEnumerator_YieldsSameValues()
+    {
+        var collection = Create(2, 5, 8);
+
+        var items = new List<int>();
+        foreach (object candidate in (System.Collections.IEnumerable)collection)
+        {
+            items.Add((int)candidate);
+        }
+
+        Assert.Equal([2, 5, 8], items);
+    }
+
+    [Fact]
+    public void Indexer_ReturnsCandidatesInAscendingOrder()
+    {
+        var collection = Create(8, 2, 5);
+
+        Assert.Equal(2, collection[0]);
+        Assert.Equal(5, collection[1]);
+        Assert.Equal(8, collection[2]);
+    }
+
+    [Fact]
+    public void Indexer_OutOfRange_Throws()
+    {
+        var collection = Create(2, 5);
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => collection[-1]);
+        Assert.Throws<ArgumentOutOfRangeException>(() => collection[2]);
+    }
+
+    [Fact]
+    public void ReadOnlyList_ExposesCountIndexerAndEnumeration()
+    {
+        IReadOnlyList<int> list = Create(3, 6, 9);
+
+        Assert.Equal(3, list.Count);
+        Assert.Equal(6, list[1]);
+        Assert.Equal([3, 6, 9], list.ToArray());
+    }
+
+    [Fact]
     public void Contains_ReportsMembership()
     {
         var collection = Create(2, 9);

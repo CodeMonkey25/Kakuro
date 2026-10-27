@@ -1,12 +1,31 @@
+using System.Collections;
 using System.Numerics;
 
 namespace Kakuro.Core.Models;
 
-public abstract class CandidateCollection
+public abstract class CandidateCollection : IReadOnlyList<int>
 {
-    public static CandidateCollection Build(IEnumerable<int> candidates) => new CandidateCollectionMask(candidates);
+    #region interfaces
+
+    public IEnumerator<int> GetEnumerator()
+    {
+        int[] items = new int[Count];
+        CopyTo(items);
+        foreach (int i in items)
+        {
+            yield return i;
+        }
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     public abstract int Count { get; }
+
+    public int this[int index] => Get(index);
+
+    #endregion
+
+    public static CandidateCollection Build(IEnumerable<int> candidates) => new CandidateCollectionMask(candidates);
 
     public abstract void Add(int candidate);
     public abstract bool Remove(int candidate);
@@ -17,8 +36,6 @@ public abstract class CandidateCollection
     public abstract ICandidateCollectionState GetState();
     public abstract void SetState(ICandidateCollectionState state);
     public abstract void CopyTo(Span<int> destination);
-
-    public int this[int index] => Get(index);
 
     public virtual void AddAll(IEnumerable<int> candidates)
     {
