@@ -15,18 +15,28 @@ class Program
     
     private static void Run()
     {
-        Puzzle[] puzzles = File.ReadLines("puzzles.txt")
-            .Select(static p => p.Trim())
-            .Where(static p => !string.IsNullOrWhiteSpace(p))
-            .Select(Puzzle.Parse)
-            .ToArray();
+        Puzzle[] puzzles = [];
+
+        TimeSpan loadTime = TimeIt(() =>
+        {
+            puzzles = File.ReadLines("puzzles.txt")
+                .Select(static p => p.Trim())
+                .Where(static p => !string.IsNullOrWhiteSpace(p))
+                .Select(Puzzle.Parse)
+                .ToArray();
+        });
+        System.Console.WriteLine($"Loaded {puzzles.Length} puzzle(s) in {loadTime.ReadableTime()}");
         
         List<string> log = new();
 
         // run an initial solve to load static classes and JIT the code
-        // line 19 has a lot of passes and guesses - 46, 48, & 57 are slow
-        new Engine(log.Add).Solve(puzzles[19]);
+        loadTime = TimeIt(() =>
+        {
+            // line 19 has a lot of passes and guesses - 2, 46, 48, & 57 are slow
+            new Engine(log.Add).Solve(puzzles[19]);
+        });
         System.Console.WriteLine(string.Join("\n", log));
+        System.Console.WriteLine($"Initial run: {loadTime.ReadableTime()}");
         
         int i = 0;
         Engine engine = new(log.Add);
@@ -39,10 +49,11 @@ class Program
             TimeSpan time = TimeIt(() => engine.Solve(puzzle));
             int goodGuesses = 0;
             int badGuesses = 0;
-            
-            if (log.Any(static m => m.StartsWith("Solved in ")))
+
+            string? guessLine = log.FirstOrDefault(static m => m.StartsWith("Solved in "));
+            if (guessLine != null)
             {
-                string[] parts = log.First(static m => m.StartsWith("Solved in ")).Split(' ');
+                string[] parts = guessLine.Split(' ');
                 goodGuesses = int.Parse(parts[2]);
                 badGuesses = int.Parse(parts[6]);
             }
