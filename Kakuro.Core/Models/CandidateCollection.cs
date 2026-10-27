@@ -18,6 +18,8 @@ public abstract class CandidateCollection
     public abstract void SetState(ICandidateCollectionState state);
     public abstract void CopyTo(Span<int> destination);
 
+    public int this[int index] => Get(index);
+
     public virtual void AddAll(IEnumerable<int> candidates)
     {
         foreach (int candidate in candidates)

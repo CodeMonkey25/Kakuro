@@ -60,7 +60,7 @@ public sealed class PlayableCell(int row, int column) : ICell
         string? error = _candidates.Count switch
         {
             0 => NoCandidatesError(),
-            1 => Solve(_candidates.Get(0)),
+            1 => Solve(_candidates[0]),
             _ => null
         };
         return (error, true);
@@ -124,7 +124,7 @@ public sealed class PlayableCell(int row, int column) : ICell
     public bool IsValidState(ICell.IState state)
     {
         if (state is not PlayableCellState { Value: var value, Candidates: var candidates }) return false;
-        if (value != Constants.UnsolvedCell && value is < Constants.MinCandidate or > Constants.MaxCandidate) return false;
+        if (value != Constants.UnsolvedCell && (value is < Constants.MinCandidate or > Constants.MaxCandidate)) return false;
         return candidates.IsStateValid(value);
     }
 

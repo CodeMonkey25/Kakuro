@@ -134,6 +134,61 @@ public abstract class CandidateCollectionContractTests
         Assert.Throws<ArgumentOutOfRangeException>(() => collection.Get(0));
     }
 
+    [Fact]
+    public void Indexer_ReturnsCandidateAtIndex_IncludingBoundaries()
+    {
+        var collection = Create(1, 3, 7, 9);
+
+        Assert.Equal(1, collection[0]);
+        Assert.Equal(3, collection[1]);
+        Assert.Equal(7, collection[2]);
+        Assert.Equal(9, collection[3]);
+    }
+
+    [Fact]
+    public void Indexer_WithSingleCandidate_ReturnsIt()
+    {
+        Assert.Equal(9, Create(9)[0]);
+    }
+
+    [Fact]
+    public void Indexer_MatchesGetForEveryIndex()
+    {
+        var collection = Create(2, 4, 5, 8);
+
+        for (int i = 0; i < collection.Count; i++)
+        {
+            Assert.Equal(collection.Get(i), collection[i]);
+        }
+    }
+
+    [Fact]
+    public void Indexer_AfterRemove_ReflectsRemoval()
+    {
+        var collection = Create(2, 4, 6);
+        collection.Remove(2);
+
+        Assert.Equal(4, collection[0]);
+        Assert.Equal(6, collection[1]);
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(3)]
+    [InlineData(10)]
+    public void Indexer_WithOutOfRangeIndex_Throws(int index)
+    {
+        var collection = Create(1, 5, 9);
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => collection[index]);
+    }
+
+    [Fact]
+    public void Indexer_WhenEmpty_Throws()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => Create()[0]);
+    }
+
     #endregion
 
     #region CopyTo
