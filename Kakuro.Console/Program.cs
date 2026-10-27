@@ -18,14 +18,13 @@ class Program
         Puzzle[] puzzles = File.ReadLines("puzzles.txt")
             .Select(static p => p.Trim())
             .Where(static p => !string.IsNullOrWhiteSpace(p))
-            // .Skip(19) // 19 has a lot of passes and guesses - 46, 48, & 57 are slow
-            // .Take(1)
             .Select(Puzzle.Parse)
             .ToArray();
         
         List<string> log = new();
 
         // run an initial solve to load static classes and JIT the code
+        // line 19 has a lot of passes and guesses - 46, 48, & 57 are slow
         new Engine(log.Add).Solve(puzzles[19]);
         System.Console.WriteLine(string.Join("\n", log));
         
