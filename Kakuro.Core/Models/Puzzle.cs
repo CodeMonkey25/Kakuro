@@ -8,17 +8,17 @@ public sealed record Puzzle
     public string Number { get; }
     public string Difficulty { get; }
     public ImmutableArray<Run> Runs { get; }
-    
+
     public int Rows { get; }
     public int Columns { get; }
-    
+
     private Puzzle(string source, string number, string difficulty, ImmutableArray<Run> runs)
     {
         Source = source;
         Number = number;
         Difficulty = difficulty;
         Runs = runs;
-        
+
         Rows = Runs
             .Select(r => r.Orientation == Run.RunOrientation.Vertical ? r.Row + r.Length + 1 : r.Row + 1)
             .DefaultIfEmpty(1)
@@ -28,7 +28,7 @@ public sealed record Puzzle
             .DefaultIfEmpty(1)
             .Max();
     }
-    
+
     public static Puzzle Parse(string puzzle)
     {
         string[] parts = puzzle.Split('|');
@@ -41,7 +41,7 @@ public sealed record Puzzle
 
         return new Puzzle(source, number, difficulty, runs);
     }
-    
+
     // ImmutableArray<T> compares by reference, so the synthesized record equality would not compare runs by value
     public bool Equals(Puzzle? other)
     {
@@ -70,18 +70,18 @@ public sealed record Puzzle
         string header = $"{Source}|{Number}|{Difficulty}";
         return Runs.IsEmpty ? header : $"{header}|{string.Join('|', Runs)}";
     }
-    
+
     public sealed record Run
     {
         public int Total { get; }
         public int Length { get; }
-    
+
         // the row and column are the coordinates of the hint cell for the run
-        public int Row { get; } 
+        public int Row { get; }
         public int Column { get; }
-    
+
         public RunOrientation Orientation { get; }
-    
+
         private Run(int total, int length, int row, int column, RunOrientation orientation)
         {
             Total = total;
@@ -90,7 +90,7 @@ public sealed record Puzzle
             Column = column;
             Orientation = orientation;
         }
-    
+
         public static Run Parse(string run)
         {
             string[] parts = run.Split(',');
@@ -131,7 +131,7 @@ public sealed record Puzzle
 
             return new Run(total, length, row, column, (RunOrientation)orientationValue);
         }
-    
+
         public override string ToString()
         {
             return $"{Total},{Length},{Row},{Column},{(int)Orientation}";

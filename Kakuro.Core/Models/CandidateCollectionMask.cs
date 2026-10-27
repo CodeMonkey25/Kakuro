@@ -40,7 +40,7 @@ public sealed class CandidateCollectionMask : CandidateCollection
         _candidateMask &= ~bit;
         return removed;
     }
-    
+
     public override int Get(int index)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(index);
@@ -53,7 +53,7 @@ public sealed class CandidateCollectionMask : CandidateCollection
         }
         return BitOperations.TrailingZeroCount(mask) + Constants.MinCandidate;
     }
-    
+
     public override uint GetMask() => _candidateMask;
 
     public override bool Contains(int candidate) =>
@@ -72,7 +72,7 @@ public sealed class CandidateCollectionMask : CandidateCollection
             throw new ArgumentException("Invalid state type", nameof(state));
         _candidateMask = maskState.CandidateMask;
     }
-    
+
     public override void CopyTo(Span<int> destination)
     {
         if (destination.Length < Count) throw new ArgumentException("Destination is too small", nameof(destination));

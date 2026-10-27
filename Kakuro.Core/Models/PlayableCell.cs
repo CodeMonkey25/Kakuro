@@ -84,18 +84,18 @@ public sealed class PlayableCell(int row, int column) : ICell
         Value = value;
         _candidates.Clear();
         _candidates.Add(value);
-        
+
         foreach (PlayableCell linkedCell in LinkedCells)
         {
             (string? error, _) = linkedCell.RemoveCandidate(value);
             if (error != null) return error;
         }
-        
+
         CandidatesChanged?.Invoke();
 
         return null;
     }
-    
+
     public void BindCells(IEnumerable<PlayableCell> linkedCells)
     {
         List<PlayableCell> list = new(LinkedCells);
@@ -109,14 +109,14 @@ public sealed class PlayableCell(int row, int column) : ICell
     }
 
     public override string ToString() => Value == Constants.UnsolvedCell ? " " : Value.ToString();
-    
+
     public ICell.IState GetState() => new PlayableCellState(Value, _candidates.GetState());
 
     public void SetState(ICell.IState state)
     {
         if (state is not PlayableCellState playableCellState || !IsValidState(playableCellState))
             throw new ArgumentException("Invalid state");
-        
+
         Value = playableCellState.Value;
         _candidates.SetState(playableCellState.Candidates);
     }

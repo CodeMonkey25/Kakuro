@@ -17,7 +17,7 @@ public sealed class Engine
     public bool Solve(Puzzle puzzle)
     {
         Board board = new(puzzle);
-        
+
         bool solved = Solve(board);
         if (solved)
         {
@@ -35,7 +35,7 @@ public sealed class Engine
         {
             _log?.Invoke("Unable to solve puzzle");
         }
-        
+
         return solved;
     }
 
@@ -65,7 +65,7 @@ public sealed class Engine
         {
             run.MarkDirty();
         }
-        
+
         RunConstraintWorkspace workspace = new();
         _log?.Invoke("Calculating initial constraints...");
         error = CalculateRunConstraints(board, workspace, true);
@@ -77,7 +77,7 @@ public sealed class Engine
         }
 
         if (board.IsSolved()) return true;
-        
+
         _log?.Invoke("Solving by guessing...");
         int guesses = 0;
         int badGuesses = 0;
@@ -88,7 +88,7 @@ public sealed class Engine
             board.SetState(initialState);
             return false;
         }
-        
+
         _log?.Invoke($"Solved in {guesses} guesses, not including {badGuesses} bad guesses.");
         return true;
     }
@@ -99,9 +99,9 @@ public sealed class Engine
         {
             (uint mask, ImmutableArray<int> exclusions) = RunCandidatesTable.GetRunExclusions(run.Length, run.Total);
             if (mask == 0) continue;
-            
+
             _log?.Invoke($"{Constants.LogIndent}Run ({run.Length}, {run.Total}): candidates removed [{string.Join(", ", exclusions)}]...");
-            
+
             foreach (PlayableCell cell in run.Cells)
             {
                 (string? error, _) = cell.RemoveCandidates(mask);
@@ -138,13 +138,13 @@ public sealed class Engine
                 run.ClearDirty();
                 continue;
             }
-            
+
             workspace.Load(run);
             GetExcludedCandidates(0, 0, workspace);
             (string? error, bool runWasUpdated) = workspace.WriteExclusionsToRun();
             if (error != null) return (error, false);
             if (runWasUpdated) boardWasUpdated = true;
-            
+
             run.ClearDirty();
         }
 
@@ -171,7 +171,7 @@ public sealed class Engine
 
             int newRunningTotal = runningTotal + current;
             if (newRunningTotal > workspace.RunTotal) return false;
-            
+
             int remainingSumNeeded = workspace.RunTotal - newRunningTotal;
             if (remainingSumNeeded < Constants.MinPossibleSum[remainingCellsAfterThis]) continue;
             if (remainingSumNeeded > Constants.MaxPossibleSum[remainingCellsAfterThis]) continue;
@@ -187,15 +187,15 @@ public sealed class Engine
     private bool SolveByGuessing(Board board, RunConstraintWorkspace workspace, ref int guesses, ref int badGuesses)
     {
         string indent = string.Concat(Enumerable.Repeat(Constants.LogIndent, guesses + 1));
-        
+
         // identify unsolved cell with lowest number of candidates
         PlayableCell? cell = GetCellWithLowestCandidates(board);
         if (cell == null) return true; // no unsolved cells remain
-        
+
         // load candidates for guessing
         Span<int> candidates = stackalloc int[cell.CandidateCount];
         cell.CopyCandidatesTo(candidates);
-        
+
         // try each candidate in turn
         Board.State state = board.GetState();
         foreach (int candidate in candidates)
@@ -209,14 +209,14 @@ public sealed class Engine
             guesses--;
             badGuesses++;
         }
-        
+
         return false;
     }
 
     private PlayableCell? GetCellWithLowestCandidates(Board board)
     {
         PlayableCell? result = null;
-        
+
         foreach (PlayableCell playableCell in board.PlayableCells)
         {
             if (playableCell.IsSolved) continue;
@@ -297,20 +297,20 @@ public sealed class Engine
     {
         private uint _candidates;
         private uint _excluded;
-        
+
         public CandidateEnumerator Candidates => new(_candidates);
 
         public void Load(PlayableCell cell)
         {
             _excluded = _candidates = cell.GetCandidatesMask();
         }
-        
+
         public void ClearExclusions() => _excluded = 0;
 
         public void AddExclusion(int number) => _excluded |= MaskHelper.BitForCandidate(number);
 
         public void RemoveExclusion(int number) => _excluded &= ~MaskHelper.BitForCandidate(number);
-        
+
         public uint GetExclusionsMask() => _excluded;
 
         public uint GetCandidatesMask() => _candidates;

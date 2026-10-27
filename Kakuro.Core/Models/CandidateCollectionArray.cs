@@ -95,7 +95,7 @@ public sealed class CandidateCollectionArray : CandidateCollection
         Array.Copy(arrayState.Candidates, _candidates, _candidates.Length);
         _count = arrayState.Count;
     }
-    
+
     private sealed record CandidateCollectionArrayState(bool[] Candidates, int Count) : ICandidateCollectionState
     {
         public bool IsStateValid(int value)
@@ -114,7 +114,7 @@ public sealed class CandidateCollectionArray : CandidateCollection
             }
             return true;
         }
-        
+
         public bool Equals(CandidateCollectionArrayState? other)
         {
             if (other is null) return false;

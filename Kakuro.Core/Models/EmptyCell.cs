@@ -7,7 +7,7 @@ public sealed class EmptyCell : ICell
     public static EmptyCell Instance { get; } = new();
 
     public override string ToString() => "X";
-    
+
     private EmptyCell() { }
 
     public ICell.IState GetState() => EmptyCellState.Instance;

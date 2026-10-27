@@ -15,11 +15,11 @@ public sealed class Board
     public Board(Puzzle puzzle)
     {
         Puzzle = puzzle;
-        
+
         // prepare Cells array
         ICell[] cells = new ICell[Puzzle.Rows * Puzzle.Columns];
         Array.Fill(cells, EmptyCell.Instance);
-        
+
         List<Run> runs = new(Puzzle.Runs.Length);
         foreach (Puzzle.Run puzzleRun in Puzzle.Runs)
         {
@@ -35,11 +35,11 @@ public sealed class Board
                 }
                 runCells.Add(playableCell);
             }
-            
+
             // instantiate Board Runs
             Run run = new(puzzleRun, runCells.ToImmutableArray());
             runs.Add(run);
-            
+
             // bind run cells together
             foreach (PlayableCell cell in runCells)
             {
@@ -47,12 +47,12 @@ public sealed class Board
                 cell.CandidatesChanged += run.MarkDirty;
             }
         }
-        
+
         Cells = cells.ToImmutableArray();
         PlayableCells = cells.OfType<PlayableCell>().ToImmutableArray();
         Runs = runs.ToImmutableArray();
     }
-    
+
     public override string ToString()
     {
         string rowDivider = new('-', Puzzle.Columns * 2 + 1);
@@ -92,7 +92,7 @@ public sealed class Board
             {
                 if (!playableCell.IsSolved) return false;
                 if (!seen.Add(playableCell.Value)) return false;
-                
+
                 sum += playableCell.Value;
             }
             if (sum != run.Total) return false;
@@ -100,7 +100,7 @@ public sealed class Board
 
         return true;
     }
-    
+
     public State GetState()
     {
         ICell.IState[] states = new ICell.IState[PlayableCells.Length];
@@ -115,7 +115,7 @@ public sealed class Board
     {
         if (state is null || state.CellStates.IsDefault || state.CellStates.Length != PlayableCells.Length)
             throw new ArgumentException("Invalid state");
-        
+
         for (int i = 0; i < PlayableCells.Length; i++)
         {
             if (!PlayableCells[i].IsValidState(state.CellStates[i]))
@@ -159,13 +159,13 @@ public sealed class Board
         {
             IsDirty = true;
         }
-        
+
         public void ClearDirty()
         {
             IsDirty = false;
         }
     }
-    
+
     public sealed record State(ImmutableArray<ICell.IState> CellStates)
     {
         public bool Equals(State? other) =>

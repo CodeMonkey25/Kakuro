@@ -44,15 +44,15 @@ public sealed class CandidateCollectionList : CandidateCollection
     public override bool Remove(int candidate) => _candidates.Remove(candidate);
 
     public override int Get(int index) => _candidates[index];
-    
+
     public override uint GetMask() => MaskHelper.MaskForCandidates(_candidates);
 
     public override bool Contains(int candidate) => _candidates.Contains(candidate);
-    
+
     public override void Clear() => _candidates.Clear();
-    
+
     public override ICandidateCollectionState GetState() => new CandidateCollectionListState(_candidates.ToImmutableArray());
-    
+
     public override void SetState(ICandidateCollectionState state)
     {
         if (state is not CandidateCollectionListState listState)
@@ -60,7 +60,7 @@ public sealed class CandidateCollectionList : CandidateCollection
         Clear();
         AddAll(listState.Candidates);
     }
-    
+
     public override void CopyTo(Span<int> destination) => _candidates.CopyTo(destination);
 
     private sealed record CandidateCollectionListState(ImmutableArray<int> Candidates) : ICandidateCollectionState
