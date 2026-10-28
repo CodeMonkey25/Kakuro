@@ -28,18 +28,18 @@ class Program
         System.Console.WriteLine($"Loaded {puzzles.Length} puzzle(s) in {loadTime.ReadableTime()}");
         
         List<string> log = new();
+        Engine engine = new(log.Add);
 
         // run an initial solve to load static classes and JIT the code
         loadTime = TimeIt(() =>
         {
             // line 19 has a lot of passes and guesses - 2, 46, 48, & 57 are slow
-            new Engine(log.Add).Solve(puzzles[19]);
+            engine.Solve(puzzles[19]);
         });
         System.Console.WriteLine(string.Join("\n", log));
         System.Console.WriteLine($"Initial run: {loadTime.ReadableTime()}");
         
         int i = 0;
-        Engine engine = new(log.Add);
         List<(int line, TimeSpan time, int goodGuesses, int badGuesses)> timings = new();
         foreach (Puzzle puzzle in puzzles)
         {
