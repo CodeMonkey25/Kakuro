@@ -106,9 +106,9 @@ public sealed record Puzzle
             }
 
             int length = int.Parse(parts[1]);
-            if (length <= 0)
+            if (length < Constants.MinRunLength)
             {
-                throw new FormatException($"Invalid run length '{length}'. Length must be greater than 0.");
+                throw new FormatException($"Invalid run length '{length}'. Length must be greater than or equal to {Constants.MinRunLength}.");
             }
 
             if (length > Constants.MaxRunLength)
